@@ -299,6 +299,28 @@ TOOLS = [
                 "required": ["query"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_by_budget",
+            "description": "Search for sofas and beds within a specific budget. Returns products with base prices under the specified amount, along with fabric tier guidance. Use this when customer asks 'show me sofas under £X' or 'what can I get for £X'. Note: Base prices shown are for standard configurations - final price varies by size, fabric tier, and cover type.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "max_price": {
+                        "type": "number",
+                        "description": "Maximum budget in GBP (pounds). Example: 2000 for £2,000"
+                    },
+                    "product_type": {
+                        "type": "string",
+                        "description": "Optional filter by product type. Options: 'sofa', 'bed', 'chair', 'footstool', 'dog_bed'. If not specified, searches all types.",
+                        "enum": ["sofa", "bed", "chair", "footstool", "dog_bed", "all"]
+                    }
+                },
+                "required": ["max_price"]
+            }
+        }
     }
 ]
 
@@ -328,6 +350,87 @@ def get_price_tool_handler(query):
     print(f"  [Tool:get_price] Query: '{query}' -> Status: {status_code}")
 
     return result, status_code
+
+def search_by_budget_handler(max_price, product_type="all"):
+    """
+    Tool handler for search_by_budget.
+
+    Searches all products and returns those with base prices under the specified budget.
+
+    Args:
+        max_price (int/float): Maximum budget in GBP
+        product_type (str): Optional filter - 'sofa', 'bed', 'chair', 'footstool', 'dog_bed', or 'all'
+
+    Returns:
+        (result_dict, status_code)
+    """
+    print(f"  [Tool:search_by_budget] Budget: £{max_price}, Type: {product_type}")
+
+    try:
+        # Validate inputs
+        max_price = float(max_price)
+        if max_price <= 0:
+            return {"error": "Budget must be greater than £0"}, 400
+
+        # Filter products by budget and type
+        matching_products = []
+
+        for product_name, product_data in PRODUCT_SKU_MAP.items():
+            # Skip if product doesn't match type filter
+            if product_type != "all" and product_data.get("type") != product_type:
+                continue
+
+            # Check if base price is within budget
+            base_price = int(product_data.get("price", 999999))
+            if base_price <= max_price:
+                matching_products.append({
+                    "name": product_data.get("full_name", product_name),
+                    "base_price": base_price,
+                    "price_display": product_data.get("price_display", f"£{base_price:,}"),
+                    "type": product_data.get("type", "unknown"),
+                    "sku": product_data.get("sku")
+                })
+
+        # Sort by price (ascending)
+        matching_products.sort(key=lambda x: x["base_price"])
+
+        # Limit results to top 20 to avoid overwhelming response
+        if len(matching_products) > 20:
+            matching_products = matching_products[:20]
+            truncated = True
+        else:
+            truncated = False
+
+        print(f"  [Tool:search_by_budget] Found {len(matching_products)} products under £{max_price}")
+
+        # Build response
+        if not matching_products:
+            return {
+                "message": f"No products found under £{max_price:,.0f}",
+                "suggestion": "Try increasing your budget or check our full range starting from £1,500",
+                "count": 0
+            }, 200
+
+        return {
+            "count": len(matching_products),
+            "products": matching_products,
+            "truncated": truncated,
+            "fabric_tier_guidance": {
+                "note": "Prices shown are base prices for standard configurations. Final price varies by:",
+                "factors": ["Size (snuggler, 2-seater, 3-seater, etc.)", "Fabric tier (Essentials, Premium, Luxury)", "Cover type (fit, loose, slipcover)"],
+                "tier_impact": "Essentials fabrics stay close to base price. Premium adds some cost. Luxury significantly increases price."
+            },
+            "next_steps": "Ask customer which product interests them, then use get_price for exact pricing with their preferred size and fabric."
+        }, 200
+
+    except ValueError as e:
+        print(f"  [ERROR] Invalid max_price: {e}")
+        return {"error": "Invalid budget amount. Please provide a numeric value."}, 400
+    except Exception as e:
+        print(f"  [ERROR] search_by_budget failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": "Search failed. Please try again."}, 500
 
 # --- CORS Helper (Critique #9) ---
 def _build_cors_preflight_response():
@@ -744,6 +847,10 @@ def chat_handler(request):
                         if tool_name == "get_price":
                             query = tool_args.get("query", "")
                             tool_result, tool_status = get_price_tool_handler(query)
+                        elif tool_name == "search_by_budget":
+                            max_price = tool_args.get("max_price", 0)
+                            product_type = tool_args.get("product_type", "all")
+                            tool_result, tool_status = search_by_budget_handler(max_price, product_type)
                         else:
                             tool_result = {"error": f"Unknown tool: {tool_name}"}
                             tool_status = 400
