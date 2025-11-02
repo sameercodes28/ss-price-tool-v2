@@ -321,6 +321,27 @@ TOOLS = [
                 "required": ["max_price"]
             }
         }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_fabrics_by_color",
+            "description": "Search for fabric options by color. Returns fabrics matching the specified color across all products (or a specific product if provided). Use this when customer asks 'show me blue fabrics' or 'what fabrics do you have in grey'. Returns fabric names, colors, tiers, and swatch images.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "color": {
+                        "type": "string",
+                        "description": "The color to search for. Examples: 'blue', 'grey', 'red', 'green', 'beige', 'white', 'black'"
+                    },
+                    "product_name": {
+                        "type": "string",
+                        "description": "Optional: Limit search to fabrics available for a specific product. Example: 'Alwinton', 'Rye', 'Saltdean'. If not provided, searches all fabrics across all products."
+                    }
+                },
+                "required": ["color"]
+            }
+        }
     }
 ]
 
@@ -431,6 +452,120 @@ def search_by_budget_handler(max_price, product_type="all"):
         import traceback
         traceback.print_exc()
         return {"error": "Search failed. Please try again."}, 500
+
+def search_fabrics_by_color_handler(color, product_name=None):
+    """
+    Tool handler for search_fabrics_by_color.
+
+    Searches for fabrics matching the specified color, optionally filtered by product.
+
+    Args:
+        color (str): Color to search for (e.g., 'blue', 'grey', 'red')
+        product_name (str, optional): Limit search to this product's fabrics
+
+    Returns:
+        (result_dict, status_code)
+    """
+    print(f"  [Tool:search_fabrics_by_color] Color: '{color}', Product: {product_name or 'all'}")
+
+    try:
+        color_lower = color.lower().strip()
+        if not color_lower:
+            return {"error": "Color cannot be empty"}, 400
+
+        # If product_name provided, find its SKU
+        target_product_sku = None
+        if product_name:
+            product_name_lower = product_name.lower().strip()
+            # Find matching product
+            for keyword, product_data in PRODUCT_SKU_MAP.items():
+                if keyword == product_name_lower or product_data.get("full_name", "").lower().find(product_name_lower) >= 0:
+                    target_product_sku = product_data.get("sku")
+                    print(f"  [Tool:search_fabrics_by_color] Limiting to product SKU: {target_product_sku}")
+                    break
+
+            if not target_product_sku:
+                return {
+                    "error": f"Product '{product_name}' not found",
+                    "suggestion": "Try searching without specifying a product, or check the product name"
+                }, 404
+
+        # Search for matching fabrics
+        matching_fabrics = []
+        seen_fabrics = set()  # Track unique fabric+color combinations
+
+        # Determine which products to search
+        products_to_search = {}
+        if target_product_sku:
+            products_to_search = {target_product_sku: FABRIC_SKU_MAP.get(target_product_sku, {})}
+        else:
+            products_to_search = FABRIC_SKU_MAP
+
+        # Search through fabrics
+        for product_sku, fabric_map in products_to_search.items():
+            for fabric_keyword, fabric_data in fabric_map.items():
+                color_name = fabric_data.get("color_name", "")
+
+                # Check if color matches
+                if color_lower in color_name.lower():
+                    # Create unique key to avoid duplicates
+                    unique_key = f"{fabric_data.get('fabric_sku')}-{fabric_data.get('color_sku')}"
+
+                    if unique_key not in seen_fabrics:
+                        seen_fabrics.add(unique_key)
+                        matching_fabrics.append({
+                            "fabric_name": fabric_data.get("fabric_name", "Unknown"),
+                            "color_name": color_name,
+                            "tier": fabric_data.get("tier", "Unknown"),
+                            "collection": fabric_data.get("collection", ""),
+                            "description": fabric_data.get("desc", "")[:200] + "..." if len(fabric_data.get("desc", "")) > 200 else fabric_data.get("desc", ""),
+                            "swatch_url": fabric_data.get("swatch_url", ""),
+                            "fabric_sku": fabric_data.get("fabric_sku"),
+                            "color_sku": fabric_data.get("color_sku")
+                        })
+
+        # Sort by tier (Essentials first, then Premium, then Luxury) and then by fabric name
+        tier_order = {"Essentials": 1, "Premium": 2, "Luxury": 3}
+        matching_fabrics.sort(key=lambda x: (tier_order.get(x["tier"], 99), x["fabric_name"], x["color_name"]))
+
+        # Limit results to 30 to avoid overwhelming response
+        if len(matching_fabrics) > 30:
+            matching_fabrics = matching_fabrics[:30]
+            truncated = True
+        else:
+            truncated = False
+
+        print(f"  [Tool:search_fabrics_by_color] Found {len(matching_fabrics)} unique fabrics matching '{color}'")
+
+        # Build response
+        if not matching_fabrics:
+            return {
+                "message": f"No {color} fabrics found" + (f" for {product_name}" if product_name else ""),
+                "suggestion": "Try a different color name (blue, grey, red, green, beige, etc.) or check our full fabric range",
+                "count": 0
+            }, 200
+
+        # Group by tier for better presentation
+        by_tier = {"Essentials": [], "Premium": [], "Luxury": []}
+        for fabric in matching_fabrics:
+            tier = fabric["tier"]
+            if tier in by_tier:
+                by_tier[tier].append(fabric)
+
+        return {
+            "count": len(matching_fabrics),
+            "fabrics": matching_fabrics,
+            "grouped_by_tier": by_tier,
+            "truncated": truncated,
+            "context": f"Showing {color} fabrics" + (f" for {product_name}" if product_name else " across all products"),
+            "next_steps": "Show customer the options by tier. When they choose a fabric, use get_price to calculate exact pricing with their product and size."
+        }, 200
+
+    except Exception as e:
+        print(f"  [ERROR] search_fabrics_by_color failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"error": "Fabric search failed. Please try again."}, 500
 
 # --- CORS Helper (Critique #9) ---
 def _build_cors_preflight_response():
@@ -851,6 +986,10 @@ def chat_handler(request):
                             max_price = tool_args.get("max_price", 0)
                             product_type = tool_args.get("product_type", "all")
                             tool_result, tool_status = search_by_budget_handler(max_price, product_type)
+                        elif tool_name == "search_fabrics_by_color":
+                            color = tool_args.get("color", "")
+                            product_name = tool_args.get("product_name")
+                            tool_result, tool_status = search_fabrics_by_color_handler(color, product_name)
                         else:
                             tool_result = {"error": f"Unknown tool: {tool_name}"}
                             tool_status = 400
