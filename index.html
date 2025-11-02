@@ -844,25 +844,27 @@
                 if (currentSection === 'breakdown' && (line.startsWith('-') || line.startsWith('•'))) {
                     const text = line.substring(1).trim();
 
-                    // Parse complex format: "Item: ~~£old~~ → **£new** *(Save £amount!)*"
-                    const itemMatch = text.match(/^([^:]+):\s*(~~£[\d,]+~~\s*→\s*\*\*£[\d,]+\*\*.*)/);
-                    if (itemMatch) {
-                        const itemName = itemMatch[1];
-                        const priceInfo = itemMatch[2];
+                    // Extract item name (everything before the colon)
+                    const colonIndex = text.indexOf(':');
+                    if (colonIndex !== -1) {
+                        const itemName = text.substring(0, colonIndex).trim();
+                        const priceInfo = text.substring(colonIndex + 1).trim();
 
-                        // Extract new price for display
-                        const newPriceMatch = priceInfo.match(/\*\*£([\d,]+)\*\*/);
-                        const newPrice = newPriceMatch ? newPriceMatch[1] : '';
+                        // Extract new price - find last **£amount** pattern
+                        const newPriceMatch = priceInfo.match(/\*\*£([\d,]+)\*\*/g);
+                        if (newPriceMatch && newPriceMatch.length > 0) {
+                            // Get the last match (the new price, not old price)
+                            const lastMatch = newPriceMatch[newPriceMatch.length - 1];
+                            const priceValue = lastMatch.match(/£([\d,]+)/)[1];
 
-                        html += `<li><span>${escapeHtml(itemName)}</span><strong>£${newPrice}</strong></li>`;
-                    } else {
-                        // Fallback: Simple "Item: £amount" format
-                        const parts = text.split(':');
-                        if (parts.length === 2) {
-                            html += `<li><span>${escapeHtml(parts[0])}</span><strong>${escapeHtml(parts[1].trim())}</strong></li>`;
+                            html += `<li><span>${escapeHtml(itemName)}</span><strong>£${priceValue}</strong></li>`;
                         } else {
-                            html += `<li>${escapeHtml(text)}</li>`;
+                            // No price found, just show the item
+                            html += `<li>${escapeHtml(itemName)}</li>`;
                         }
+                    } else {
+                        // No colon, just show the whole line
+                        html += `<li>${escapeHtml(text)}</li>`;
                     }
                     continue;
                 }
