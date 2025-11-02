@@ -180,14 +180,20 @@ Claude:
 
 Before marking ANY task as complete, verify:
 
-- [ ] Local test passed
-- [ ] Edge cases tested
-- [ ] Error cases tested
-- [ ] No regressions in existing functionality
-- [ ] Code reviewed for security issues
-- [ ] Code reviewed for performance issues
-- [ ] Documentation updated
-- [ ] Changes documented in context.md
+- [ ] **Claude tested locally** - used Bash/curl to test or provided script for user
+- [ ] **Edge cases tested** - empty strings, special characters, etc.
+- [ ] **Error cases tested** - invalid inputs, missing data, etc.
+- [ ] **No regressions** - existing functionality still works
+- [ ] **Security reviewed** - no injection vulnerabilities, no exposed secrets
+- [ ] **Performance checked** - responds in < 2 seconds
+- [ ] **Documentation updated** - code comments, relevant docs
+- [ ] **Changes documented** in .claude/context.md
+
+**Testing Methods:**
+- Use Bash tool to test locally (start server, curl endpoints)
+- Read files to verify code correctness
+- WebFetch to test deployed endpoints
+- Provide simple script for user if Claude cannot test directly
 
 ### Red Flags (Stop and Reassess If You See These)
 
@@ -239,11 +245,25 @@ You are helping build a real-time sales assistance tool for Sofas & Stuff sales 
 - If something breaks, fix it before adding anything new
 
 **Testing Approach**
-- No unit tests needed
-- Test by actually using the feature as sales staff would
-- Run through real sales scenarios after each change
-- If it doesn't work smoothly, it's not done
-- Speed test everything - must respond in under 2 seconds
+- **No testing frameworks** - no unit test libraries, no test bloat
+- **Claude tests first** - use available tools (Bash, Read, WebFetch, etc.) to test functionality
+- **Manual testing when needed** - if Claude cannot test directly, provide user a simple script to run
+- **Test by actually using the feature** - real sales scenarios, not abstract tests
+- **Speed test everything** - must respond in under 2 seconds
+- **User provides results** - if script needed, user runs it and pastes output back for analysis
+
+**How Claude Should Test:**
+1. Use Bash tool to run local server and test endpoints with curl
+2. Read files to verify code changes are correct
+3. Use WebFetch to test deployed endpoints
+4. Provide simple one-line test scripts for user to run if needed
+5. Analyze results and fix any issues found
+
+**Example Test Script for User:**
+```bash
+# Simple one-liner the user can run and paste results back
+curl -X POST http://localhost:8080/getPrice -H "Content-Type: application/json" -d '{"query": "alwinton snuggler"}'
+```
 
 ### DEVELOPMENT PRIORITIES
 
@@ -360,12 +380,12 @@ The tool must handle how conversations actually happen:
 
 ### WHAT NOT TO BUILD
 
-- No complex authentication systems
-- No database dependencies for v2
-- No unit testing framework
-- No over-abstracted code
-- No features sales staff won't actually use
-- No complex deployment pipelines
+- **No testing frameworks** - no pytest, no unittest, no jest, no test libraries
+- **No complex authentication systems**
+- **No database dependencies** for v2 (use in-memory/JSON files)
+- **No over-abstracted code** - keep it simple and direct
+- **No features sales staff won't use** - focus on real needs
+- **No complex deployment pipelines** - keep deployment simple
 
 ### SUCCESS METRICS
 
