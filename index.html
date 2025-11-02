@@ -1544,33 +1544,45 @@
             isTyping = true;
 
             // Clear existing text with backspace effect
-            const existingText = placeholderText.textContent;
-            let charIndex = existingText.length;
+            let existingText = placeholderText.textContent;
 
-            // Backspace animation (faster)
+            // Delete text word by word
             function deleteText() {
-                if (charIndex > 0) {
-                    placeholderText.textContent = existingText.substring(0, charIndex - 1);
-                    charIndex--;
-                    typingTimeout = setTimeout(deleteText, 15); // Faster backspace (was 30)
+                if (existingText.length > 0) {
+                    // Find the last space to delete word by word
+                    let lastSpaceIndex = existingText.lastIndexOf(' ');
+                    if (lastSpaceIndex === -1) {
+                        // No more spaces, clear everything
+                        placeholderText.textContent = '';
+                    } else {
+                        // Delete to the last space
+                        placeholderText.textContent = existingText.substring(0, lastSpaceIndex);
+                    }
+                    existingText = placeholderText.textContent;
+
+                    if (existingText.length > 0) {
+                        typingTimeout = setTimeout(deleteText, 100); // 100ms between word deletions
+                    } else {
+                        // Start typing new text
+                        typeNewText();
+                    }
                 } else {
-                    // Start typing new text
                     typeNewText();
                 }
             }
 
-            // Type new text (faster)
+            // Type new text letter by letter
             let newCharIndex = 0;
             function typeNewText() {
                 if (newCharIndex < currentText.length) {
                     placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
                     newCharIndex++;
-                    typingTimeout = setTimeout(typeNewText, 30 + Math.random() * 20); // Faster typing (was 60-100)
+                    typingTimeout = setTimeout(typeNewText, 30 + Math.random() * 20); // Keep letter-by-letter typing
                 } else {
                     // Pause before next example
                     isTyping = false;
                     currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
-                    typingTimeout = setTimeout(typewriterEffect, 2500); // Slightly shorter pause (was 3000)
+                    typingTimeout = setTimeout(typewriterEffect, 1000); // 1 second pause as requested
                 }
             }
 
@@ -2108,13 +2120,14 @@
         // INITIALIZATION
         // ========================================
 
-        window.addEventListener('load', () => {
+        window.addEventListener('DOMContentLoaded', () => {
             setRandomWelcomeMessage();
-            placeholderText.textContent = ''; // Start with empty
-            // Don't focus immediately to allow typewriter to work
-            setTimeout(() => {
-                typewriterEffect(); // Start typewriter immediately
-            }, 100);
+            const placeholderText = document.getElementById('placeholderText');
+            if (placeholderText) {
+                placeholderText.textContent = ''; // Start with empty
+                // Start typewriter effect immediately when DOM is ready
+                typewriterEffect();
+            }
         });
 
         window.addEventListener('beforeunload', () => {
