@@ -33,8 +33,8 @@ GitHub Pages (free)     Google Cloud Functions (v2)      Sofa API + Bed API
 **Key Innovation:** Smart 2-API routing system that automatically selects the correct S&S API based on product type.
 
 **Current Deployment:**
-- Backend: Not yet deployed (v2 GCF to be created)
-- Frontend: Not yet deployed (v2 GitHub Pages to be created)
+- Backend: ✅ Deployed to GCF → https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2
+- Frontend: ✅ Deployed to GitHub Pages → https://sameercodes28.github.io/ss-price-tool-v2/
 
 ---
 
@@ -45,14 +45,15 @@ GitHub Pages (free)     Google Cloud Functions (v2)      Sofa API + Bed API
 - [x] v2 README updated with experimental status
 - [x] v2 context file created
 - [x] All v1 code inherited (210 products, 4 JSON files, etc.)
+- [x] GitHub repository created (ss-price-tool-v2)
+- [x] Google Cloud project created (sofa-project-v2)
+- [x] v2 backend deployed to GCF
+- [x] v2 frontend updated with v2 backend URL
+- [x] v2 frontend deployed to GitHub Pages
+- [x] v2 deployment tested and working
 
-### What Needs Setup ⚠️
-- [ ] Create new GitHub repository for v2
-- [ ] Create new Google Cloud project for v2
-- [ ] Deploy v2 backend to new GCF
-- [ ] Update v2 frontend with new backend URL
-- [ ] Deploy v2 frontend to GitHub Pages
-- [ ] Test v2 deployment
+### Setup Complete ✅
+All infrastructure is deployed and operational!
 
 ### v2 Development Goals 🎯
 *(Document your v2 objectives here as you develop)*
@@ -220,11 +221,12 @@ GitHub Pages (free)     Google Cloud Functions (v2)      Sofa API + Bed API
 
 ### v2 (Experimental)
 - **Local Directory:** ~/Desktop/SS-2
-- **Google Cloud Project:** (To be created)
+- **GitHub Repo:** https://github.com/sameercodes28/ss-price-tool-v2
+- **Google Cloud Project:** `sofa-project-v2`
 - **GCF Function:** `sofa-price-calculator-v2`
 - **GCF Region:** `europe-west2`
-- **Backend URL:** (To be deployed)
-- **Frontend URL:** (To be deployed)
+- **Backend URL:** https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2
+- **Frontend URL:** https://sameercodes28.github.io/ss-price-tool-v2/
 
 ---
 
