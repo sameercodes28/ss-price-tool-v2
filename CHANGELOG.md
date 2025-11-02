@@ -1,15 +1,15 @@
-# Changelog - v2 (Experimental)
+# Changelog - v2
 
-All notable changes to the **v2 experimental** version of the Sofas & Stuff Voice Price Tool will be documented in this file.
+All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool will be documented in this file.
 
 > **Note:** This is the v2 changelog. For v1 stable release history, see [v1 repository](https://github.com/sameercodes28/SS).
 
 ---
 
-## [2.0.0-alpha] - 2025-11-02 ✅ DEPLOYED
+## [2.0.0] - 2025-11-02 ✅ DEPLOYED
 
 ### Initial v2 Release
-This is the initial experimental release, forked from v1.0.0 stable.
+This is the initial v2 production release, forked from v1.0.0 stable.
 
 ### Deployment Status
 - ✅ v2 backend deployed to Google Cloud Functions (separate project)
@@ -43,11 +43,11 @@ This is the initial experimental release, forked from v1.0.0 stable.
   - Also applied fix to v1 as v1.0.1
 
 ### Documentation (v2 Specific)
-- ✅ README.md updated for v2 experimental status
+- ✅ README.md updated for v2 production development
 - ✅ V1_V2_SETUP_GUIDE.md created
 - ✅ .claude/context.md initialized for v2
 - ✅ .claude/instructions.md updated for v2
-- ✅ PRD.md updated to reflect v2 experimental status
+- ✅ PRD.md updated to reflect v2 production development status
 
 ### Technical
 - Backend: Python 3.12, Google Cloud Functions (Gen 2)
@@ -59,12 +59,12 @@ This is the initial experimental release, forked from v1.0.0 stable.
 
 ## v2 Development Goals
 
-Track your v2 experimental features here as you develop them:
+Track your v2 features here as you develop them:
 
 ### Planned Features
 - [ ] (Document your v2 goals here)
-- [ ] (Add new experimental features)
-- [ ] (Try new architectures)
+- [ ] (Add new features incrementally)
+- [ ] (Improve architecture step-by-step)
 
 ### Completed Features
 - [x] v2 infrastructure setup
@@ -76,7 +76,7 @@ Track your v2 experimental features here as you develop them:
 ## Relationship to v1
 
 **v1 (Stable):** Production release at ~/Desktop/SS-1
-**v2 (Experimental):** This version - safe to break things!
+**v2 (Production Development):** This version - built incrementally with thorough testing
 
 Changes in v2 do NOT affect v1. Both versions run independently with separate:
 - GitHub repositories
@@ -96,10 +96,10 @@ v2 currently uses the same JSON data files as v1:
 - fabrics.json: 95 products with fabric data (23 MB)
 
 ### Future v2-Specific Enhancements
-Document your v2 experimental enhancements here:
+Document your v2 enhancements here:
 - [ ] (Add your v2 ideas)
-- [ ] (Try new features)
-- [ ] (Experiment with improvements)
+- [ ] (Develop new features incrementally)
+- [ ] (Implement improvements step-by-step)
 
 ---
 

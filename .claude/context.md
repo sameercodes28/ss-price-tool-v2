@@ -1,10 +1,10 @@
-# Claude Context - Sofas & Stuff Price Tool - v2 (Experimental)
+# Claude Context - Sofas & Stuff Price Tool - v2
 
 **Last Updated:** 2025-11-02 (v2 fully configured and references updated)
-**Current Version:** v2.0.0-alpha
-**Project Status:** 🚧 Experimental / Development
+**Current Version:** v2.0.0
+**Project Status:** 🚀 Production Development (incremental approach)
 
-> **Important:** This is the v2 EXPERIMENTAL repository. Feel free to make radical changes here.
+> **Important:** This is the v2 repository. Build incrementally with thorough testing.
 > **v1 Stable:** See ~/Desktop/SS-1 (ss-price-tool-v1) - DO NOT MODIFY
 
 > **Purpose:** This file helps Claude (or any LLM) quickly understand the project state, recent changes, and ongoing work. Update this file at the end of each session.
@@ -20,9 +20,9 @@ This is v2 of the voice-enabled price lookup tool for Sofas & Stuff salespeople.
 
 **Relationship to v1:**
 - **Forked from:** v1.0.0 (stable, production)
-- **Purpose:** Experimental development, new features, architecture improvements
+- **Purpose:** Production v2 development with new features and improvements
 - **Isolation:** v1 and v2 are completely separate (different repos, different GCF projects)
-- **Fallback:** If v2 fails, v1 continues running unaffected
+- **Fallback:** If v2 has issues, v1 continues running unaffected
 
 **Architecture:**
 ```
@@ -42,7 +42,7 @@ GitHub Pages (free)     Google Cloud Functions (v2)      Sofa API + Bed API
 
 ### What's Working ✅
 - [x] v2 directory created (forked from v1.0.0)
-- [x] v2 README updated with experimental status
+- [x] v2 README updated for production development
 - [x] v2 context file created
 - [x] All v1 code inherited (210 products, 4 JSON files, etc.)
 - [x] GitHub repository created (ss-price-tool-v2)
@@ -108,18 +108,18 @@ All infrastructure is deployed and operational!
    - Updated v1 repo link to correct URL
 
 2. ✅ **Updated PRD.md for v2**
-   - Changed from "v1.0.0 - Production" to "v2.0.0-alpha - Experimental"
+   - Changed from "v1.0.0 - Production" to "v2.0.0 - Production Development"
    - Added parent project reference to v1
-   - Updated executive summary to reflect v2 experimental status
+   - Updated executive summary to reflect v2 production development status
 
 3. ✅ **Rewrote CHANGELOG.md for v2**
    - Created v2-specific changelog (separate from v1)
-   - Documented v2 initial release (2.0.0-alpha)
+   - Documented v2 initial release (2.0.0)
    - Included infrastructure details (separate repos, GCF projects)
    - Added v2 development goals section
 
 4. ✅ **Updated .claude/instructions.md for v2**
-   - Changed project reference to "v2.0.0-alpha (EXPERIMENTAL)"
+   - Changed project reference to "v2.0.0 - Production Development"
    - Added parent project location (~/Desktop/SS-1)
    - Clarified v2-specific documentation
 
@@ -130,13 +130,13 @@ All infrastructure is deployed and operational!
 
 **Files Modified:**
 - `README.md` - Fixed placeholder usernames, v1 repo links
-- `docs/PRD.md` - Updated to v2 experimental status
+- `docs/PRD.md` - Updated to v2 production development status
 - `CHANGELOG.md` - Completely rewritten for v2
 - `.claude/instructions.md` - Updated for v2 references
 - `.claude/context.md` - This file (added this session entry)
 
 **Decisions Made:**
-- v2 documentation should clearly state "experimental" status
+- v2 is production quality, built incrementally to avoid bugs
 - All v1 references that indicate origin (forked from v1.0.0) should remain
 - CHANGELOG.md for v2 should be separate from v1 changelog
 - Claude memory system works identically in v2 as it did in v1
@@ -145,28 +145,28 @@ All infrastructure is deployed and operational!
 - All files now properly reference v2
 - Claude will auto-read context.md at start of each session (same as v1)
 - User can use /update-context command same as v1
-- v2 is now fully configured for experimentation
+- v2 is now fully configured for incremental production development
 
 ---
 
 ### Session: 2025-11-02 (v2 Initialization)
 
-**Objective:** Create v2 experimental branch from v1.0.0
+**Objective:** Create v2 production branch from v1.0.0
 
 **Changes Made:**
 
 1. ✅ **Marked v1 as stable**
    - Updated v1 README to indicate it's stable
-   - Updated v1 context to warn against experimental changes
+   - Updated v1 context to maintain as stable version
 
 2. ✅ **Created v2 directory**
    - Copied entire SS-1 to SS-2
    - Removed v1 git history from v2
 
 3. ✅ **Updated v2 documentation**
-   - Created new v2 README with experimental status
+   - Created new v2 README for production development
    - Created new v2 context file (this file)
-   - Marked v2 as 2.0.0-alpha
+   - Marked v2 as 2.0.0
 
 **Files Created:**
 - `~/Desktop/SS-2/` - Entire v2 directory structure
@@ -177,6 +177,7 @@ All infrastructure is deployed and operational!
 - None yet (v2 is fresh copy of v1)
 
 **Decisions Made:**
+- v2 is production quality, built incrementally to avoid bugs
 - v2 will use separate GitHub repo
 - v2 will use separate Google Cloud project
 - v2 will have separate GCF function name
@@ -205,7 +206,7 @@ All infrastructure is deployed and operational!
 
 ### Medium Priority (Development)
 - [ ] Document v2 goals and features
-- [ ] Make first v2 experimental change
+- [ ] Make first v2 feature addition
 - [ ] Test v2 changes don't affect v1
 
 ### Low Priority
@@ -237,7 +238,7 @@ All infrastructure is deployed and operational!
    - Separate Google Cloud project
    - Separate GCF function (sofa-price-calculator-v2)
    - Separate GitHub Pages URL
-   - Experimental status (can break things)
+   - New features and improvements (built incrementally)
 
 ### Common Gotchas
 
@@ -271,7 +272,7 @@ All infrastructure is deployed and operational!
 - **Frontend URL:** (Your GitHub Pages URL)
 - **S&S Website:** https://sofasandstuff.com
 
-### v2 (Experimental)
+### v2 (Production Development)
 - **Local Directory:** ~/Desktop/SS-2
 - **GitHub Repo:** https://github.com/sameercodes28/ss-price-tool-v2
 - **Google Cloud Project:** `sofa-project-v2`
@@ -285,10 +286,10 @@ All infrastructure is deployed and operational!
 ## 💬 Communication Style
 
 When working on v2:
-- Be experimental! Try new things!
+- Build incrementally with careful testing
 - Document what you change
 - Compare to v1 when helpful
-- Note if something breaks (that's OK!)
+- Test thoroughly to avoid bugs
 - Update this context file frequently
 
 ---

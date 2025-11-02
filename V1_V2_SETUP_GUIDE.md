@@ -18,7 +18,7 @@ Both versions run **independently** with separate infrastructure, so v2 experime
 
 ## 📊 Complete Setup Summary
 
-| Component | v1 (Stable) | v2 (Experimental) |
+| Component | v1 (Stable) | v2 (Production Development) |
 |-----------|-------------|-------------------|
 | **Local Directory** | `~/Desktop/SS-1` | `~/Desktop/SS-2` |
 | **GitHub Repo** | (Your existing repo) | https://github.com/sameercodes28/ss-price-tool-v2 |
@@ -26,8 +26,8 @@ Both versions run **independently** with separate infrastructure, so v2 experime
 | **GCF Function Name** | `sofa-price-calculator` | `sofa-price-calculator-v2` |
 | **Backend URL** | `https://europe-west2-sofaproject-476903.cloudfunctions.net/sofa-price-calculator` | `https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2` |
 | **Frontend URL** | (Your v1 GitHub Pages) | https://sameercodes28.github.io/ss-price-tool-v2/ |
-| **Status** | 🟢 Production (frozen) | 🟡 Experimental (active development) |
-| **Purpose** | Stable fallback demo | Testing new features |
+| **Status** | 🟢 Production (frozen) | 🚀 Production Development (active) |
+| **Purpose** | Stable fallback demo | New features built incrementally |
 
 ---
 
@@ -75,21 +75,21 @@ git push origin main
 
 ---
 
-## 🚀 Working with v2 (Experimental)
+## 🚀 Working with v2 (Production Development)
 
 ### When to Work on v2
-- Testing new features
-- Trying different architectures
-- Experimenting with improvements
-- Adding risky changes
-- Learning new techniques
+- Developing new features incrementally
+- Implementing architecture improvements
+- Adding new capabilities with thorough testing
+- Building production-quality enhancements
+- Improving existing functionality
 
 ### How to Work on v2
 ```bash
 # Switch to v2 directory
 cd ~/Desktop/SS-2
 
-# Make ANY changes you want (experiment freely!)
+# Make changes incrementally with testing
 
 # Test locally
 functions-framework --target=http_entry_point --debug
@@ -106,18 +106,18 @@ gcloud functions deploy sofa-price-calculator-v2 \
   --timeout 60s \
   --memory 512MB
 
-# Commit changes
+# Commit changes (after testing!)
 git add .
-git commit -m "v2: Description of experimental changes"
+git commit -m "v2: Description of changes - what was done, why, and what was tested"
 git push origin main
 ```
 
-### ✅ v2 Freedoms
-- **Feel free** to break things
-- **Experiment** with radical changes
-- **Try** new libraries and approaches
-- **Don't worry** about stability
-- **v1 is safe** if v2 fails
+### ✅ v2 Development Approach
+- **Build incrementally** - small pieces, tested thoroughly
+- **Test extensively** - before and after every change
+- **Maintain quality** - production-grade code
+- **Document changes** - clear commit messages
+- **v1 is safe** - v2 changes don't affect v1
 
 ---
 
@@ -274,7 +274,7 @@ Unless you exceed 2M requests on **either** project individually, you won't be c
 │   ├── .git/                      # v1 git history
 │   └── ... (all v1 files)
 │
-└── SS-2/                          # v2 (Experimental - GO WILD!)
+└── SS-2/                          # v2 (Production Development - Build Carefully!)
     ├── main.py                    # Same as v1 initially
     ├── index.html                 # Points to v2 backend
     ├── products.json              # Same as v1 initially
@@ -334,21 +334,21 @@ gcloud functions logs read sofa-price-calculator-v2 --limit=50
 Your v1 and v2 setup is now complete. Here's what you have:
 
 - ✅ v1 deployed and stable (your fallback demo)
-- ✅ v2 deployed and ready for experimentation
+- ✅ v2 deployed and ready for production development
 - ✅ Separate infrastructure (repos, GCF projects, URLs)
 - ✅ Complete isolation (v2 can't break v1)
 - ✅ Free tier on both (4M requests/month total)
 
-**You're ready to start experimenting with v2 while keeping v1 safe!**
+**You're ready to start building v2 incrementally while keeping v1 safe!**
 
 ---
 
 ## 🎯 Next Steps
 
 1. **Test v2:** Open https://sameercodes28.github.io/ss-price-tool-v2/ and try a query
-2. **Start Experimenting:** Make your first v2 change in `~/Desktop/SS-2`
+2. **Start Building:** Make your first v2 change in `~/Desktop/SS-2` (incrementally!)
 3. **Document Your Goals:** Update `SS-2/README.md` with your v2 objectives
-4. **Have Fun:** Break things, try new ideas, learn!
+4. **Build Quality:** Test thoroughly, commit often, document changes
 
 ---
 

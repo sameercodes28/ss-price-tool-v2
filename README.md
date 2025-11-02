@@ -1,13 +1,13 @@
-# Sofas & Stuff Voice Price Check Tool - v2 (Experimental)
+# Sofas & Stuff Voice Price Check Tool - v2
 
-**Version:** 2.0.0-alpha
-**Status:** 🚧 Experimental / Development
+**Version:** 2.0.0
+**Status:** 🚀 Production Development (incremental approach)
 **Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
 **Last Updated:** November 2, 2025
 
-> **⚠️ IMPORTANT:** This is v2 experimental development. The stable v1 is deployed separately and remains unaffected by changes here.
+> **⚠️ IMPORTANT:** This is v2 production development. The stable v1 is deployed separately and remains unaffected by changes here.
 
-A voice-enabled price lookup tool for Sofas & Stuff salespeople. This v2 branch is for experimenting with new features and improvements.
+A voice-enabled price lookup tool for Sofas & Stuff salespeople. This v2 version is for new features and improvements, built incrementally with thorough testing.
 
 ---
 
@@ -25,7 +25,7 @@ A voice-enabled price lookup tool for Sofas & Stuff salespeople. This v2 branch 
 ## 🔗 Related Projects
 
 - **v1 Stable:** [SS-1](https://github.com/sameercodes28/SS) - Production deployment (separate repo)
-- **v2 Experimental:** This repository - Active development
+- **v2 Production Development:** This repository - Active development
 
 ---
 
@@ -177,4 +177,4 @@ curl -X POST https://YOUR-V2-GCF-URL/getPrice \
 ---
 
 **Built with ❤️ for Sofas & Stuff**
-**v2 Experimental Branch - Forked from v1.0.0**
+**v2 Production Development - Forked from v1.0.0**
