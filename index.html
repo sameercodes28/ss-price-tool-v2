@@ -790,6 +790,7 @@
         /**
          * Format LLM response into beautiful, professional HTML
          * Parses response and creates structured, visual sections
+         * VERSION: 2025-11-02-v3 (TOTAL price fix)
          */
         function formatLLMResponse(content) {
             let html = '';
@@ -798,6 +799,10 @@
             const lines = content.split('\n');
             let currentSection = '';
             let inOpportunities = false;
+
+            // Debug: Log first few lines to see what we're processing
+            console.log('[formatLLMResponse] Processing response, first 5 lines:');
+            lines.slice(0, 5).forEach((l, i) => console.log(`  ${i}: "${l.trim()}"`));
 
             for (let line of lines) {
                 line = line.trim();
@@ -830,8 +835,10 @@
 
                 // Total price (for multiple items) - CHECK THIS FIRST
                 if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
+                    console.log('[TOTAL DETECTED] Line:', line);
                     const totalMatch = line.match(/TOTAL:\s*\*\*?£([\d,]+)\*\*?/);
                     const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
+                    console.log('[TOTAL] Match:', totalMatch, 'Savings:', savingsMatch);
                     if (totalMatch) {
                         const totalAmount = totalMatch[1];
                         html += `<div class="total-price">TOTAL: £${totalAmount}`;
