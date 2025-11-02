@@ -13,20 +13,27 @@ This ensures continuity between sessions and prevents hallucinations.
 
 ## Quick Project Reference
 
-**Project:** Sofas & Stuff Voice Price Tool v1.0.0
-**Status:** Production Ready
-**Architecture:** Frontend (GitHub Pages) → Backend (GCF) → S&S APIs
+**Project:** Sofas & Stuff Voice Price Tool v2.0.0-alpha (EXPERIMENTAL)
+**Status:** 🚧 Development / Experimentation
+**Architecture:** Frontend (GitHub Pages) → Backend (GCF v2) → S&S APIs
+**Parent:** v1.0.0 (stable) at ~/Desktop/SS-1
 
 **Key Files:**
 - `main.py` - Backend (line 188: entry point)
-- `index.html` - Frontend (line 188: backend URL)
+- `index.html` - Frontend (line 187: v2 backend URL)
 - 4 JSON files - Translation dictionaries (loaded at startup)
 
+**Important:**
+- This is v2 EXPERIMENTAL - safe to break things!
+- v1 is at ~/Desktop/SS-1 (DO NOT MODIFY v1 from here)
+- v2 has separate GitHub repo, GCF project, and deployment
+
 **Documentation:**
-1. `README.md` - Start here
-2. `TECHNICAL_GUIDE.md` - How everything works
-3. `ARCHITECTURE.md` - System design
-4. `.claude/context.md` - Session memory (read first!)
+1. `README.md` - Start here (v2 specific)
+2. `V1_V2_SETUP_GUIDE.md` - v1/v2 workflow guide
+3. `TECHNICAL_GUIDE.md` - How everything works
+4. `ARCHITECTURE.md` - System design
+5. `.claude/context.md` - Session memory (read first!)
 
 ---
 
