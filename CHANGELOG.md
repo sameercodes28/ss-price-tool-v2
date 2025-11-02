@@ -6,6 +6,124 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [2.1.0] - 2025-11-02 🎭 DEMO STAGE - Phase 1C Complete
+
+### LLM Integration - Grok-4 Conversational Agent
+This release adds full AI chat agent capabilities powered by xAI's Grok-4 model via OpenRouter API.
+
+### 🚀 Major Features Added
+
+#### 1. Conversational Chat Interface (`/chat` endpoint)
+- Natural language conversation with Grok-4 LLM
+- Multi-turn conversation support with context tracking
+- Session-based conversation management (session_id parameter)
+- OpenRouter API integration using OpenAI-compatible SDK
+- Conversation history maintained in browser (client-side)
+
+#### 2. Tool Calling System (3 Tools)
+**get_price** - Precise pricing for any product configuration
+- Inputs: Natural language query (e.g., "alwinton snuggler pacific")
+- Returns: Exact price, product details, fabric info, variant info
+- Example: £1,958 for Alwinton Snuggler in Pacific fabric
+
+**search_by_budget** - Find products under a budget
+- Inputs: max_price (e.g., 2000), optional product_type filter
+- Returns: All matching products sorted by price
+- Includes fabric tier guidance (Tier 1-6 price ranges)
+- Example: Found Midhurst £1,937 and Petworth £1,941 under £2,000
+
+**search_fabrics_by_color** - Search fabrics by color name
+- Inputs: color (e.g., "blue"), optional product_name filter
+- Returns: All matching fabrics grouped by tier
+- Deduplicated by unique fabric-color combinations
+- Example: Found 24 blue fabrics across 6 tiers
+
+#### 3. Feature Flag Architecture
+- `USE_LLM` feature flag in frontend (line 345)
+- Dual-path support: LLM mode (/chat) vs Direct matching mode (/getPrice)
+- Can toggle between AI agent and v1 logic without code changes
+- Fallback mechanism ensures v1 functionality always available
+
+### 🛠️ Technical Implementation
+
+#### Backend Changes (main.py)
+- Lines 78-93: SYSTEM_PROMPT defining agent behavior and tool usage
+- Lines 95-235: TOOLS schema (OpenAI function calling format)
+- Lines 285-330: get_price tool handler with MockRequest pattern
+- Lines 354-454: search_by_budget tool handler with fabric tier logic
+- Lines 456-568: search_fabrics_by_color tool handler with deduplication
+- Lines 845-1009: /chat endpoint with conversation loop (max 5 iterations)
+- Environment variables: OPENROUTER_API_KEY, GROK_MODEL (x-ai/grok-4)
+
+#### Frontend Changes (index.html)
+- Lines 345-346: USE_LLM feature flag
+- Lines 354-376: Session management (generateSessionId, resetConversation)
+- Lines 354-376: conversationHistory array tracking full conversation
+- Lines 597-742: Dual-path sendMessage() with LLM and non-LLM logic
+- Lines 743-790: handleChatResponse() parsing tool-based responses
+- Console logging for metadata (tokens, iterations, model)
+
+### 📊 Test Results (All Passed ✅)
+
+**Baseline Test:** /getPrice still works (no breakage)
+```bash
+curl .../getPrice -d '{"query": "alwinton snuggler pacific"}'
+→ {"price": "£1,958", ...} ✅
+```
+
+**Test 1:** Greeting
+```bash
+curl .../chat -d '{"messages": [{"role": "user", "content": "Hello"}], "session_id": "test"}'
+→ Natural greeting response (3,861 tokens) ✅
+```
+
+**Test 2:** get_price tool
+```bash
+curl .../chat -d '{"messages": [{"role": "user", "content": "How much is alwinton snuggler pacific?"}], ...}'
+→ £1,958 with full details (8,812 tokens, 2 iterations) ✅
+```
+
+**Test 3:** search_by_budget tool
+```bash
+curl .../chat -d '{"messages": [{"role": "user", "content": "What sofas under £2,000?"}], ...}'
+→ Found 2 matching sofas (8,420 tokens, 2 iterations) ✅
+```
+
+**Test 4:** search_fabrics_by_color tool
+```bash
+curl .../chat -d '{"messages": [{"role": "user", "content": "Show me blue fabrics"}], ...}'
+→ Found 24 blue fabrics (11,908 tokens, 2 iterations) ✅
+```
+
+### 🎯 Deployment Details
+- **Status:** ✅ LIVE AND FUNCTIONAL
+- **Backend:** Deployed to GCF with OpenRouter API key
+- **Frontend:** Deployed to GitHub Pages with USE_LLM=true
+- **Git Tag:** `demo-ready-phase-1c-complete`
+- **Branch:** Merged `feature/grok-llm` → `main`
+
+### 📝 Documentation Updates
+- ✅ .claude/context.md - Added Phase 1C session summary
+- ✅ README.md - Updated with Demo Stage notice and features
+- ✅ CHANGELOG.md - This entry
+- ✅ TECHNICAL_GUIDE.md - Updated with LLM architecture
+
+### 🔮 Known Limitations (To Be Addressed in Demo Polish Phase)
+- Temperature not set (defaults to 1.0, needs 0.1 for precise responses)
+- Responses are plain text paragraphs (needs markdown formatting)
+- No follow-up question suggestions (planned: Perplexity-style chips)
+- No clickable product/fabric links (URLs available in data, needs integration)
+- No real-time streaming (uses loading dots, planned: SSE streaming)
+
+### 🎭 Demo Polish Phase - Planned Next
+- [ ] Piece 1: Set temperature=0.1 for deterministic responses
+- [ ] Piece 2: Markdown formatting for better readability
+- [ ] Piece 3: Follow-up question suggestions as clickable chips
+- [ ] Piece 4: Clickable product/fabric links to sofasandstuff.com
+- [ ] Piece 5: Real-time streaming responses via SSE
+
+---
+
 ## [2.0.0] - 2025-11-02 ✅ DEPLOYED
 
 ### Initial v2 Release

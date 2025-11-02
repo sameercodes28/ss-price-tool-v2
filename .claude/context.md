@@ -339,6 +339,242 @@ curl -X POST .../getPrice -d '{"query": "rye snuggler pacific"}'
 
 ---
 
+### Session: 2025-11-02 (Phase 1C: Grok LLM Integration - COMPLETE)
+
+**Objective:** Integrate Grok-4 LLM via OpenRouter with 3 tools for conversational agent
+
+**Changes Made:**
+
+1. ✅ **OpenRouter/Grok-4 Integration (main.py)**
+   - Added OpenAI client configured for OpenRouter API
+   - Model: `x-ai/grok-4` (best function calling support)
+   - Environment variables: `OPENROUTER_API_KEY`, `GROK_MODEL`
+   - Lines 13, 63-77: Client initialization with error handling
+
+2. ✅ **Comprehensive System Prompt (200 lines)**
+   - Lines 79-279: Full product knowledge, conversation patterns
+   - Company background (210+ products, British craftsmanship)
+   - Product catalog (Alwinton, Rye, Saltdean, etc.)
+   - Fabric tiers (Essentials, Premium, Luxury)
+   - Tool descriptions and usage guidelines
+   - Response style and examples
+   - Edge case handling
+
+3. ✅ **Chat Handler with Full Tool Calling Loop**
+   - Lines 633-789: `/chat` endpoint with conversation management
+   - Tool calling loop (max 5 iterations)
+   - Tracks total tokens across iterations
+   - Session ID support (future-proofing for Phase 1B)
+   - Error handling with fallback messages
+
+4. ✅ **Three Tools Implemented:**
+
+   **Tool 1: get_price** (Lines 285-330)
+   - Wrapper around existing `get_price_logic()`
+   - Returns exact pricing for specific configurations
+   - MockRequest pattern to reuse existing code
+
+   **Tool 2: search_by_budget** (Lines 354-454)
+   - Searches products under max price
+   - Returns up to 20 products sorted by price
+   - Includes fabric tier guidance
+   - Filters by product type (sofa, bed, all, etc.)
+
+   **Tool 3: search_fabrics_by_color** (Lines 456-568)
+   - Searches fabrics matching color name
+   - Deduplicates across products
+   - Groups by tier (Essentials, Premium, Luxury)
+   - Returns up to 30 unique fabric options
+   - Optional product_name parameter for context-aware search
+
+5. ✅ **Frontend Integration (index.html)**
+   - Lines 341-376: LLM configuration with feature flag
+   - `USE_LLM = true` - Feature flag for LLM vs direct matching
+   - Session management (generateSessionId, resetConversation)
+   - Conversation history tracking (OpenAI message format)
+   - Lines 597-742: Dual-path sendMessage() function:
+     - LLM path: Calls `/chat` with full history
+     - Non-LLM path: Falls back to `/getPrice` (Phase 1.5 logic)
+   - Metadata logging (tokens, iterations, model)
+
+**Backend Test Results (All PASSED ✅):**
+```bash
+# Test 1: /getPrice (No Breakage)
+curl .../getPrice -d '{"query": "alwinton snuggler pacific"}'
+→ {"price": "£1,958", ...} ✅
+
+# Test 2: /chat Greeting
+curl .../chat -d @test_chat.json
+→ Natural greeting response (3,861 tokens) ✅
+
+# Test 3: get_price Tool
+curl .../chat -d '{"messages":[{"role":"user","content":"How much is Alwinton snuggler in Pacific?"}]}'
+→ £1,958 with full product details (8,812 tokens, 2 iterations) ✅
+
+# Test 4: search_by_budget Tool
+curl .../chat -d '{"messages":[{"role":"user","content":"Show me sofas under £2000"}]}'
+→ Found Midhurst £1,937 and Petworth £1,941 (8,420 tokens) ✅
+
+# Test 5: search_fabrics_by_color Tool
+curl .../chat -d '{"messages":[{"role":"user","content":"Show me blue fabrics"}]}'
+→ Found 24 blue fabrics with examples (11,908 tokens) ✅
+```
+
+**Files Modified:**
+- `main.py` - Added 695 lines (tools, system prompt, chat handler)
+- `index.html` - Added 219 lines (LLM integration, conversation tracking)
+- `requirements.txt` - Added `openai>=1.12.0`, `python-dotenv>=1.0.0`
+- `.env` (local only) - OpenRouter API key configuration
+- `.env.example` - Environment variable documentation
+- `test_openrouter.py` - Connection test script
+
+**Implementation Strategy:**
+- Feature branch: `feature/grok-llm`
+- Tagged baseline: `demo-ready-before-phase-1c`
+- Incremental pieces (3.1-3.10) with commits at each stage
+- Tested backend separately before frontend changes
+- Feature flag allows rollback (`USE_LLM=false`)
+
+**Deployment:**
+- Backend: `https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2`
+- Frontend: `https://sameercodes28.github.io/ss-price-tool-v2/`
+- OpenRouter API Key: New key created with $10 credits
+- All endpoints tested live and working
+
+**Key Decisions:**
+- Used `x-ai/grok-4` (not grok-beta) for best function calling
+- Temperature NOT set (defaults to 1.0 - needs fixing in Demo Polish)
+- Fabric tier pricing kept generic ("varies by product" - not specific amounts)
+- Tool calling loop with max 5 iterations prevents infinite loops
+- Session ID passed but not stored yet (Phase 1B will add memory)
+
+**Token Usage:**
+- Greeting: ~3,800 tokens
+- get_price tool call: ~8,800 tokens (2 iterations)
+- search_by_budget: ~8,400 tokens (2 iterations)
+- search_fabrics_by_color: ~11,900 tokens (2 iterations)
+- **Cost per conversation: $0.03-0.12** (Grok pricing)
+
+**Commits:**
+- b81874d: Pre-implementation setup (lessons learned, checklist, recovery protocol)
+- d50fa6e: Piece 3.1 - OpenRouter setup (connection test skipped due to API key 401)
+- b3a602d: Piece 3.2 - Basic /chat endpoint with system prompt
+- 2867e3e: Piece 3.3 - Tool registry + get_price tool
+- 3b575b6: Piece 3.4 - search_by_budget tool
+- 5618e1a: Piece 3.5 - search_fabrics_by_color tool
+- 541d425: Piece 3.8 - Backend deployed and tested (all 5 tests passed)
+- 0a523f7: Piece 3.9 - Frontend integration with conversation tracking
+- a0a4ed0: Piece 3.10 - Enable LLM features (USE_LLM=true)
+- 5854a29: Merge to main
+
+**Tags:**
+- `demo-ready-before-phase-1c` - Baseline before LLM integration
+- `demo-ready-phase-1c-complete` - Phase 1C fully deployed and tested
+
+**User Feedback:**
+- Impressed with backend test results
+- Requested improvements for demo polish:
+  - Real-time streaming (no typing dots)
+  - Better response formatting (markdown, bullet points)
+  - Follow-up question suggestions (Perplexity-style chips)
+  - Temperature = 0.1 (more precise, less creative)
+  - Clickable product/fabric links to sofasandstuff.com
+  - Update all documentation
+
+**Current State:**
+- ✅ Phase 1A complete (Frontend Chat UI)
+- ✅ Phase 1.5 complete (Backend Connection)
+- ✅ Phase 1C complete (Grok LLM + 3 Tools)
+- ⏳ Demo Polish next (streaming, formatting, links, etc.)
+- 🔜 Phase 1B upcoming (Backend Session Memory)
+
+**Status:** ✅ **WORKING DEMO - LIVE AND FUNCTIONAL**
+
+---
+
+### Session: 2025-11-02 (Demo Polish Phase - PLANNING)
+
+**Objective:** Improve UX for demo presentation based on user feedback
+
+**Status:** 📋 **DOCUMENTATION FIRST** (before any code changes)
+
+**User Requirements:**
+1. ✅ Real-time streaming responses (no typing dots)
+2. ✅ Better formatting (markdown, bullet points, spacing)
+3. ✅ Follow-up question suggestions (Perplexity-style clickable chips)
+4. ✅ Temperature = 0.1 (precise, deterministic responses)
+5. ✅ Clickable product/fabric links (direct to sofasandstuff.com)
+6. ✅ Update all .md files with Phase 1C changes
+
+**Investigation Results:**
+
+**1. Streaming:** ✅ FULLY POSSIBLE
+- OpenRouter supports SSE with `stream: true`
+- GCF Gen 2 supports SSE responses
+- OpenAI Python SDK has built-in streaming
+- Implementation: Separate `/chat-stream` endpoint (keeps `/chat` working)
+- Complexity: HIGH (tool calling in streaming mode is complex)
+- Value: VERY HIGH (much better UX)
+
+**2. Formatting:** ✅ EASY WIN
+- Update system prompt to use markdown syntax
+- Add marked.js library to frontend (5KB)
+- Render LLM responses as formatted HTML
+- Complexity: LOW
+- Value: HIGH
+
+**3. Follow-up Suggestions:** ✅ FULLY POSSIBLE
+- System prompt outputs suggestions in special format
+- Frontend parses and renders as clickable chips
+- Clicking chip sends question automatically
+- Complexity: MEDIUM
+- Value: VERY HIGH (guides conversation)
+
+**4. Temperature:** ❌ NOT SET (CRITICAL FIX)
+- Currently defaults to 1.0 (too creative for pricing)
+- Fix: Add `temperature=0.1` to chat endpoint
+- Complexity: TRIVIAL (one line)
+- Value: HIGH (reduces hallucinations)
+
+**5. Product Links:** ✅ FULLY POSSIBLE
+- Data already exists in products.json (url field)
+- Tool handlers can include URLs in results
+- System prompt instructs Grok to format as links
+- Complexity: MEDIUM
+- Value: VERY HIGH (instant access to products)
+
+**6. Documentation:** ⏳ IN PROGRESS
+- .claude/context.md - Adding Phase 1C summary ✅
+- README.md - Adding Demo Stage notice
+- CHANGELOG.md - Adding Phase 1C entry
+- TECHNICAL_GUIDE.md - Adding architecture details
+
+**Implementation Plan:**
+- **Piece 1:** Temperature=0.1 (5 min, ZERO risk)
+- **Piece 2:** Response formatting (30 min, LOW risk)
+- **Piece 3:** Follow-up suggestions (45 min, MEDIUM risk)
+- **Piece 4:** Product links (1 hour, MEDIUM-HIGH risk)
+- **Piece 5:** Streaming (2 hours, HIGHEST risk)
+
+**Safety Strategy:**
+- Create feature branch: `feature/demo-polish`
+- Each piece has feature flag for easy disable
+- Test with curl after each piece
+- Verify /getPrice still works (must return £1,958)
+- Deploy to GCF and test live before merging
+- Keep `/chat` non-streaming, add `/chat-stream` separately
+
+**Total Time Estimate:** 5 hours (including thorough testing)
+
+**Next Steps:**
+1. ✅ Update all .md files (this session)
+2. Create feature branch
+3. Implement pieces 1-5 incrementally
+4. Test at each stage
+5. Tag: `demo-ready-demo-polish-complete`
+
+---
+
 ### Session: 2025-11-02 (Remove Experimental Status - Production Development)
 
 **Objective:** Remove all "experimental" references and establish v2 as production development

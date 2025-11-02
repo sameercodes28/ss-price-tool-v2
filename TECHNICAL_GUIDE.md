@@ -16,6 +16,7 @@
 7. [Data Structures Deep Dive](#7-data-structures-deep-dive)
 8. [Error Handling & Edge Cases](#8-error-handling--edge-cases)
 9. [Performance & Optimization](#9-performance--optimization)
+10. [LLM Integration - Phase 1C](#10-llm-integration---phase-1c)
 
 ---
 
@@ -1210,6 +1211,535 @@ Optimization:
   - Keep JSON files small (✓ only 26 MB)
   - Minimize dependencies (✓ only 6 packages)
 ```
+
+---
+
+## 10. LLM Integration - Phase 1C
+
+### 10.1 Overview
+
+Phase 1C adds conversational AI capabilities using xAI's Grok-4 language model via OpenRouter API.
+
+**New Architecture:**
+```
+User → Frontend (index.html) → /chat endpoint → Grok-4 LLM → Tools → S&S API
+                                     ↓
+                              Conversation Loop
+                              (max 5 iterations)
+```
+
+**Key Components:**
+- **OpenRouter API:** Proxy service for Grok-4 access
+- **Tool Calling:** Grok-4 decides which tools to call based on conversation
+- **Session Management:** Tracks conversation history per session
+- **Dual-Path Support:** Can toggle between LLM (/chat) and Direct matching (/getPrice)
+
+---
+
+### 10.2 /chat Endpoint Architecture (main.py:845-1009)
+
+#### Request Format
+```json
+{
+  "messages": [
+    {"role": "user", "content": "How much is an alwinton snuggler in pacific?"}
+  ],
+  "session_id": "session_1730513472_a3f2"
+}
+```
+
+#### Response Format
+```json
+{
+  "response": "The Alwinton Snuggler in Pacific fabric (Sussex Plain) costs £1,958...",
+  "metadata": {
+    "model": "x-ai/grok-4",
+    "tokens": 8812,
+    "iterations": 2,
+    "session_id": "session_1730513472_a3f2"
+  }
+}
+```
+
+---
+
+### 10.3 Conversation Flow with Tool Calling
+
+#### Step-by-Step Example: "How much is alwinton snuggler pacific?"
+
+**Iteration 1: LLM Decides to Use Tool**
+```python
+# Backend receives conversation history
+conversation = [
+    {"role": "system", "content": SYSTEM_PROMPT},
+    {"role": "user", "content": "How much is an alwinton snuggler in pacific?"}
+]
+
+# Call Grok-4 with tools available
+response = openrouter_client.chat.completions.create(
+    model="x-ai/grok-4",
+    messages=conversation,
+    tools=TOOLS  # [get_price, search_by_budget, search_fabrics_by_color]
+)
+
+# Grok-4 decides: "I should call get_price tool"
+tool_call = response.choices[0].message.tool_calls[0]
+# {
+#   "id": "call_abc123",
+#   "function": {
+#     "name": "get_price",
+#     "arguments": '{"query": "alwinton snuggler pacific"}'
+#   }
+# }
+```
+
+**Backend Executes Tool**
+```python
+# Parse tool call
+function_name = tool_call.function.name  # "get_price"
+arguments = json.loads(tool_call.function.arguments)  # {"query": "..."}
+
+# Execute tool handler
+if function_name == "get_price":
+    result, status_code = get_price_tool_handler(arguments['query'])
+    # result = {"price": "£1,958", "productName": "Alwinton Snuggler", ...}
+
+# Add tool result to conversation
+conversation.append({
+    "role": "tool",
+    "tool_call_id": "call_abc123",
+    "name": "get_price",
+    "content": json.dumps(result)
+})
+```
+
+**Iteration 2: LLM Synthesizes Response**
+```python
+# Call Grok-4 again with tool result
+response = openrouter_client.chat.completions.create(
+    model="x-ai/grok-4",
+    messages=conversation  # Now includes tool result
+)
+
+# Grok-4 reads tool result and generates natural language
+final_response = "The Alwinton Snuggler in Pacific fabric (Sussex Plain) costs £1,958. This is an Essentials tier fabric..."
+
+# Return to user
+return {
+    "response": final_response,
+    "metadata": {"tokens": 8812, "iterations": 2}
+}
+```
+
+---
+
+### 10.4 Tool Handlers
+
+#### Tool 1: get_price (main.py:285-330)
+
+**Purpose:** Get exact pricing for any product + fabric + variant combination
+
+**How It Works:**
+```python
+def get_price_tool_handler(query):
+    """Wrapper around existing get_price_logic."""
+    # Creates a mock request object
+    class MockRequest:
+        def __init__(self, query):
+            self._json = {"query": query}
+            self.headers = {"User-Agent": "Grok-LLM-Tool"}
+        def get_json(self):
+            return self._json
+
+    mock_request = MockRequest(query)
+    result, status_code = get_price_logic(mock_request)
+    return result, status_code
+```
+
+**Why MockRequest?**
+- Reuses existing `get_price_logic()` function (lines 144-359)
+- No code duplication - same logic for /getPrice and tool calling
+- Tool handler is just a thin wrapper
+
+**Example:**
+```python
+get_price_tool_handler("alwinton snuggler pacific")
+→ {
+    "price": "£1,958",
+    "productName": "Alwinton Snuggler",
+    "fabricName": "Sussex Plain - Pacific",
+    "specs": [...],
+    "fabricDetails": {...}
+}
+```
+
+---
+
+#### Tool 2: search_by_budget (main.py:354-454)
+
+**Purpose:** Find all products under a budget with fabric tier guidance
+
+**Algorithm:**
+```python
+def search_by_budget_handler(max_price, product_type="all"):
+    max_price = float(max_price)
+    matching_products = []
+
+    # Search all products
+    for product_name, product_data in PRODUCT_SKU_MAP.items():
+        # Filter by type if specified
+        if product_type != "all" and product_data.get("type") != product_type:
+            continue
+
+        # Check if base price under budget
+        base_price = int(product_data.get("price", 999999))
+        if base_price <= max_price:
+            matching_products.append({
+                "name": product_data.get("full_name"),
+                "base_price": base_price,
+                "type": product_data.get("type"),
+                "sku": product_data.get("sku")
+            })
+
+    # Sort by price
+    matching_products.sort(key=lambda x: x["base_price"])
+
+    # Add fabric tier guidance
+    return {
+        "matching_products": matching_products[:20],  # Limit to 20
+        "fabric_tier_note": "Prices shown are base prices in Essentials tier..."
+    }
+```
+
+**Example:**
+```python
+search_by_budget_handler(2000, "all")
+→ {
+    "matching_products": [
+        {"name": "Midhurst 2 Seater Sofa", "base_price": 1937, "type": "sofa"},
+        {"name": "Petworth 2 Seater Sofa", "base_price": 1941, "type": "sofa"}
+    ],
+    "fabric_tier_note": "Prices vary by fabric tier (Tier 1-6)"
+}
+```
+
+---
+
+#### Tool 3: search_fabrics_by_color (main.py:456-568)
+
+**Purpose:** Search all fabrics matching a color name
+
+**Algorithm:**
+```python
+def search_fabrics_by_color_handler(color, product_name=None):
+    color_lower = color.lower().strip()
+
+    # If product_name provided, find its SKU
+    target_product_sku = None
+    if product_name:
+        for keyword, product_data in PRODUCT_SKU_MAP.items():
+            if keyword == product_name.lower() or product_name.lower() in product_data.get("full_name", "").lower():
+                target_product_sku = product_data.get("sku")
+                break
+
+    # Search through fabrics
+    matching_fabrics = []
+    seen_fabrics = set()  # Deduplication
+
+    for product_sku, fabrics in FABRIC_SKU_MAP.items():
+        # Filter by product if specified
+        if target_product_sku and product_sku != target_product_sku:
+            continue
+
+        for keyword, fabric_data in fabrics.items():
+            # Check if color matches
+            if color_lower in keyword.lower() or color_lower in fabric_data.get("color_name", "").lower():
+                # Deduplicate by fabric_sku + color_sku
+                unique_key = f"{fabric_data['fabric_sku']}-{fabric_data['color_sku']}"
+                if unique_key not in seen_fabrics:
+                    seen_fabrics.add(unique_key)
+                    matching_fabrics.append(fabric_data)
+
+    # Group by tier
+    fabrics_by_tier = {}
+    for fabric in matching_fabrics[:30]:  # Limit to 30
+        tier = fabric.get("tier", "Unknown")
+        if tier not in fabrics_by_tier:
+            fabrics_by_tier[tier] = []
+        fabrics_by_tier[tier].append({
+            "fabric_name": fabric.get("fabric_name"),
+            "color_name": fabric.get("color_name"),
+            "swatch_url": fabric.get("swatch_url")
+        })
+
+    return {"fabrics_by_tier": fabrics_by_tier}
+```
+
+**Example:**
+```python
+search_fabrics_by_color_handler("blue")
+→ {
+    "fabrics_by_tier": {
+        "Essentials": [
+            {"fabric_name": "Sussex Plain", "color_name": "Pacific", "swatch_url": "..."},
+            {"fabric_name": "Covertex", "color_name": "Indigo", "swatch_url": "..."}
+        ],
+        "Premium": [...]
+    }
+}
+```
+
+---
+
+### 10.5 System Prompt (main.py:78-93)
+
+**Purpose:** Defines agent behavior and tool usage guidelines
+
+```python
+SYSTEM_PROMPT = """You are an AI assistant for Sofas & Stuff, helping customers find the perfect sofa...
+
+AVAILABLE TOOLS:
+1. get_price: Use when customer asks for specific product pricing
+   Example: "How much is an alwinton snuggler in pacific?"
+
+2. search_by_budget: Use when customer has a budget constraint
+   Example: "What can I get for under £2,000?"
+
+3. search_fabrics_by_color: Use when customer wants to see fabric options
+   Example: "Show me all blue fabrics"
+
+GUIDELINES:
+- Always be helpful, professional, and concise
+- If you use a tool, explain the results clearly
+- For product comparisons, call get_price multiple times in parallel
+- Prices shown are accurate and real-time from Sofas & Stuff API
+"""
+```
+
+---
+
+### 10.6 OpenRouter Integration
+
+**Environment Variables:**
+```bash
+OPENROUTER_API_KEY=sk-or-v1-xxx
+GROK_MODEL=x-ai/grok-4
+```
+
+**Client Initialization (main.py:60-76):**
+```python
+import os
+from openai import OpenAI
+
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
+GROK_MODEL = os.getenv('GROK_MODEL', 'x-ai/grok-4')
+
+# OpenRouter uses OpenAI-compatible API
+openrouter_client = OpenAI(
+    api_key=OPENROUTER_API_KEY,
+    base_url="https://openrouter.ai/api/v1"
+)
+```
+
+**Why OpenRouter?**
+- Provides access to Grok-4 without direct xAI account
+- OpenAI-compatible SDK (easy integration)
+- Pay-per-use pricing (no subscription)
+- Automatic failover and retry handling
+
+---
+
+### 10.7 Frontend Integration (index.html:345-790)
+
+#### Feature Flag
+```javascript
+const USE_LLM = true;  // Toggle LLM features on/off
+```
+
+#### Session Management
+```javascript
+let sessionId = null;
+let conversationHistory = [];
+
+function generateSessionId() {
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+}
+
+function resetConversation() {
+    conversationHistory = [];
+    sessionId = generateSessionId();
+}
+
+// Initialize on page load
+sessionId = generateSessionId();
+```
+
+#### Dual-Path sendMessage()
+```javascript
+async function sendMessage() {
+    const message = input.value.trim();
+
+    if (USE_LLM) {
+        // LLM PATH: /chat endpoint
+        conversationHistory.push({role: 'user', content: message});
+
+        const response = await fetch(`${BACKEND_API_URL}/chat`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                messages: conversationHistory,
+                session_id: sessionId
+            })
+        });
+
+        const data = await response.json();
+        if (data.response) {
+            addMessage(data.response, false);
+            conversationHistory.push({role: 'assistant', content: data.response});
+        }
+    } else {
+        // NON-LLM PATH: /getPrice endpoint (v1 logic)
+        // ... keyword matching logic ...
+    }
+}
+```
+
+---
+
+### 10.8 Token Usage & Costs
+
+**Typical Token Counts:**
+- Greeting: ~3,861 tokens
+- Single tool call (get_price): ~8,812 tokens (2 iterations)
+- Budget search: ~8,420 tokens (2 iterations)
+- Fabric search: ~11,908 tokens (2 iterations)
+
+**Grok-4 Pricing (via OpenRouter):**
+- $2.00 per 1M input tokens
+- $10.00 per 1M output tokens
+- Average cost per query: $0.02-$0.05
+
+**Monthly Cost Estimate:**
+- 100 queries/day = 3,000 queries/month
+- Average 10,000 tokens per query
+- ~30M tokens/month = ~$60-$120/month
+
+---
+
+### 10.9 Error Handling
+
+**OpenRouter API Errors:**
+```python
+try:
+    response = openrouter_client.chat.completions.create(...)
+except openai.AuthenticationError:
+    return {"error": "OpenRouter authentication failed"}, 401
+except openai.RateLimitError:
+    return {"error": "Rate limit exceeded"}, 429
+except Exception as e:
+    return {"error": f"LLM request failed: {str(e)}"}, 500
+```
+
+**Tool Execution Errors:**
+```python
+try:
+    result, status_code = tool_handler(arguments)
+    if status_code != 200:
+        # Tool returned error
+        tool_result = json.dumps({
+            "error": result.get("error", "Tool execution failed")
+        })
+except Exception as e:
+    tool_result = json.dumps({"error": f"Exception: {str(e)}"})
+```
+
+**Max Iterations Safety:**
+```python
+MAX_ITERATIONS = 5
+for iteration in range(1, MAX_ITERATIONS + 1):
+    # ... conversation loop ...
+
+    if not tool_calls:
+        # LLM finished, return response
+        break
+
+if iteration >= MAX_ITERATIONS:
+    return {"error": "Conversation exceeded max iterations"}, 500
+```
+
+---
+
+### 10.10 Conversation Loop Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ User: "How much is alwinton snuggler pacific?"         │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Frontend: Add to conversationHistory                    │
+│ POST /chat with messages + session_id                   │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Backend: ITERATION 1                                    │
+│ - Add SYSTEM_PROMPT to conversation                     │
+│ - Call Grok-4 with tools available                      │
+│ - Grok decides: "Use get_price tool"                    │
+│ - Returns tool_call request                             │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Backend: Execute Tool                                   │
+│ - Parse tool_call arguments                             │
+│ - Call get_price_tool_handler("alwinton snuggler...")  │
+│ - Tool reuses get_price_logic via MockRequest          │
+│ - Calls S&S API: ChangeProductSize                      │
+│ - Returns: {"price": "£1,958", ...}                     │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Backend: ITERATION 2                                    │
+│ - Add tool result to conversation                       │
+│ - Call Grok-4 again with tool result                    │
+│ - Grok reads result and generates natural response      │
+│ - No more tool calls needed                             │
+│ - Return final response to frontend                     │
+└─────────────────────────────────────────────────────────┘
+                        ↓
+┌─────────────────────────────────────────────────────────┐
+│ Frontend: Display Response                              │
+│ - Add assistant message to conversationHistory          │
+│ - Show response in chat UI                              │
+│ - Log metadata (tokens, iterations, model)              │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 10.11 Key Design Decisions
+
+**Why Reuse get_price_logic?**
+- No code duplication
+- Same logic for /getPrice and tool calling
+- If we fix a bug, both paths benefit
+- MockRequest pattern is clean and testable
+
+**Why Client-Side Conversation History?**
+- Phase 1C doesn't have session storage backend yet
+- Simpler implementation for demo stage
+- Phase 1B will add Firestore/Redis for server-side storage
+
+**Why Max 5 Iterations?**
+- Prevents infinite loops
+- Controls costs (each iteration = more tokens)
+- Grok-4 typically needs 1-2 iterations max
+
+**Why Feature Flag (USE_LLM)?**
+- Can toggle LLM on/off without code changes
+- Easy rollback if something breaks
+- Allows testing both paths independently
+- Fallback to v1 logic always available
 
 ---
 
