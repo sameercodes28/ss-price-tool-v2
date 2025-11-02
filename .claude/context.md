@@ -189,6 +189,26 @@ All infrastructure is deployed and operational!
 - **Key principle:** "Prefer simplicity and fewer lines over bloat"
 - **Decision tree:** Can I remove? → Can I modify? → Must I add?
 
+**Additional Changes:**
+8. ✅ **Added "Demo-Ready State Protocol"**
+   - Lines 453-575 in .claude/instructions.md: Comprehensive workflow to keep main always demo-ready
+   - Feature branch workflow - all development in branches, never directly on main
+   - Git tagging strategy - tag every demo-ready state for easy rollback
+   - Emergency revert procedures - quick recovery if something breaks
+   - Tag naming convention: `demo-ready-YYYY-MM-DD` or `demo-ready-v2.x.x`
+
+**Demo-Ready State Protocol:**
+- **Main branch = ALWAYS demo-ready** (never broken)
+- **Feature branches = development** (safe to break, debug, experiment)
+- **Tags = rollback points** (can revert to any demo-ready state instantly)
+- **Merge to main only when tested** (local + deployed testing required)
+- **Emergency revert:** `git revert -m 1 HEAD` or `git reset --hard <tag>`
+
+**Current Demo-Ready State:**
+- Tag: `demo-ready-2025-11-02-baseline`
+- Description: v2 baseline with all v1 functionality working
+- Status: ✅ Deployed and operational
+
 **Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
 - 3fe1741: "v2: Document session changes in context.md"
@@ -199,6 +219,8 @@ All infrastructure is deployed and operational!
 - 8a694d7: "v2: Add 'Working Code Protection Protocol' to prevent regressions"
 - 67e36de: "v2: Document Working Code Protection Protocol in context.md"
 - 53f0021: "v2: Revise protocol to prefer simplicity and code removal over bloat"
+- 17e8fd3: "v2: Update context.md with revised protocol (simplicity over bloat)"
+- 79f3fe6: "v2: Add Demo-Ready State Protocol with feature branches and tags"
 
 ---
 
