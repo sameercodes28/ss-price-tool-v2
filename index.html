@@ -816,14 +816,20 @@
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667EEA, #764BA2);
-            color: white;
+            background: #DCF8C6; /* WhatsApp-style green */
+            color: var(--text-primary);
             border: none;
             border-radius: 18px 18px 4px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .message.assistant .message-content {
             border-radius: 4px 18px 18px 18px;
+        }
+
+        /* Remove avatar for user messages */
+        .message.user .message-avatar {
+            display: none;
         }
 
         /* ============================================
@@ -918,6 +924,61 @@
             font-size: 16px;
         }
 
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 20px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .features-section {
+            margin: 20px 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .opportunities-section {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+
+        .opportunity-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .opportunity-item:last-child {
+            border-bottom: none;
+        }
+
+        .opportunity-item strong {
+            color: var(--fabric-terracotta);
+        }
+
+        .savings-text {
+            color: #16a34a;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
         .follow-up-text {
             color: var(--text-secondary);
             margin: 24px 0 20px;
@@ -925,10 +986,13 @@
         }
 
         .suggestion-chips-container {
+            margin-top: 20px;
+        }
+
+        .chips-wrapper {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 16px;
         }
 
         .suggestion-chip-minimal {
@@ -1686,7 +1750,6 @@
 
             if (type === 'user') {
                 message.innerHTML = `
-                    <div class="message-avatar">👤</div>
                     <div class="message-wrapper">
                         <div class="message-header">
                             <span class="message-author">You</span>
@@ -1729,140 +1792,118 @@
 
         /**
          * Format LLM response into clean, minimal HTML
-         * VERSION: NEW MINIMAL DESIGN
+         * VERSION: COMPREHENSIVE PARSER WITH CLEAN DESIGN
          */
         function formatLLMResponse(content) {
             let html = '';
             const lines = content.split('\n');
-            let introText = '';
-            let productInfo = {};
-            let priceBreakdown = [];
-            let suggestions = [];
-            let totalPrice = '';
             let currentSection = '';
+            let suggestions = [];
+            let features = [];
+            let opportunities = [];
 
-            // Parse the content
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
 
-                // Skip section headers with emojis
-                if (line.startsWith('### 💰') || line.startsWith('### ✨') ||
-                    line.startsWith('### 🎯') || line.startsWith('### 💬')) {
-                    if (line.startsWith('### 💬')) currentSection = 'suggestions';
+                // Section headers
+                if (line.startsWith('### 💰')) {
+                    currentSection = 'price';
+                    continue;
+                } else if (line.startsWith('### ✨')) {
+                    currentSection = 'features';
+                    continue;
+                } else if (line.startsWith('### 🎯')) {
+                    currentSection = 'opportunities';
+                    continue;
+                } else if (line.startsWith('### 💬')) {
+                    currentSection = 'suggestions';
                     continue;
                 }
 
-                // Extract product name and details
-                if (line.startsWith('**') && line.endsWith('**')) {
-                    const productName = line.replace(/\*\*/g, '');
-                    if (productName.includes(' in ')) {
-                        const parts = productName.split(' in ');
-                        productInfo.name = parts[0];
-                        productInfo.fabric = parts[1];
-                    } else {
-                        productInfo.name = productName;
+                // Handle different sections
+                if (currentSection === 'price') {
+                    // Product name (bold text)
+                    if (line.startsWith('**') && line.endsWith('**')) {
+                        const productName = line.replace(/\*\*/g, '');
+                        if (productName.includes(' in ')) {
+                            const parts = productName.split(' in ');
+                            html += `<h3 class="product-title">${escapeHtml(parts[0])}</h3>`;
+                            html += `<p class="product-specs">${escapeHtml(parts[1])}</p>`;
+                        } else {
+                            html += `<h3 class="product-title">${escapeHtml(productName)}</h3>`;
+                        }
+                        continue;
                     }
-                    continue;
-                }
 
-                // Extract price with strikethrough
-                if (line.includes('~~£') && line.includes('**£')) {
-                    const oldMatch = line.match(/~~£([\d,]+)~~/);
-                    const newMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                    if (oldMatch && newMatch) {
-                        productInfo.oldPrice = oldMatch[1];
-                        productInfo.newPrice = newMatch[1];
+                    // Price with strikethrough
+                    if (line.includes('~~£') && line.includes('**£')) {
+                        const oldMatch = line.match(/~~£([\d,]+)~~/);
+                        const newMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                        const saveMatch = line.match(/Save £([\d,]+)/);
+
+                        if (oldMatch && newMatch) {
+                            html += '<div class="main-price-display">';
+                            html += '<span class="price-label">CLIENT PRICE</span>';
+                            html += `<span class="price-amount">£${newMatch[1]}</span>`;
+                            if (saveMatch) {
+                                html += `<span class="savings-text">Save £${saveMatch[1]}!</span>`;
+                            }
+                            html += '</div>';
+                        }
                         continue;
                     }
                 }
-
-                // Extract suggestions
-                if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
-                    suggestions.push(line.substring(1).trim());
-                    continue;
+                else if (currentSection === 'features' && (line.startsWith('•') || line.startsWith('-'))) {
+                    features.push(line.substring(1).trim());
                 }
-
-                // Extract price breakdown
-                if (line.includes('Base Model') || line.includes('Grade') || line.includes('Total')) {
-                    // Parse price breakdown lines
-                    const priceMatch = line.match(/£([\d,]+)/);
-                    if (priceMatch) {
-                        const label = line.replace(/£[\d,]+.*/, '').replace(/[:\-\+]/, '').trim();
-                        const value = priceMatch[1];
-                        if (label.toLowerCase().includes('total')) {
-                            totalPrice = value;
-                        } else {
-                            priceBreakdown.push({ label, value });
-                        }
+                else if (currentSection === 'opportunities') {
+                    if (line.startsWith('>')) {
+                        const text = line.substring(1).trim()
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        opportunities.push(text);
                     }
-                    continue;
                 }
-
-                // First non-empty line that isn't parsed is intro text
-                if (!introText && !line.startsWith('#') && !line.startsWith('*')) {
-                    introText = line;
+                else if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
+                    suggestions.push(line.substring(1).trim());
+                }
+                else if (!currentSection && !line.startsWith('#')) {
+                    // Regular paragraph text
+                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
                 }
             }
 
-            // Build the HTML output
-            if (introText) {
-                html += `<p class="intro-text">${escapeHtml(introText)}</p>`;
-            }
-
-            // Add product info section
-            if (productInfo.name) {
-                html += '<div class="product-info">';
-                html += `<h3 class="product-title">${escapeHtml(productInfo.name)}</h3>`;
-                if (productInfo.fabric) {
-                    html += `<p class="product-specs">${escapeHtml(productInfo.fabric)} · W210cm × D95cm × H88cm</p>`;
-                }
-
-                // Show main price
-                if (productInfo.newPrice) {
-                    html += '<div class="main-price-display">';
-                    html += '<span class="price-label">CLIENT PRICE</span>';
-                    html += `<span class="price-amount">£${productInfo.newPrice}</span>`;
-                    html += '</div>';
-                }
+            // Add features section
+            if (features.length > 0) {
+                html += '<div class="features-section">';
+                html += '<h4 class="section-title">✨ Key Features</h4>';
+                html += '<ul class="feature-list">';
+                features.forEach(feature => {
+                    html += `<li>✓ ${escapeHtml(feature)}</li>`;
+                });
+                html += '</ul>';
                 html += '</div>';
             }
 
-            // Add price breakdown if available
-            if (priceBreakdown.length > 0) {
-                html += '<div class="price-breakdown-table">';
-                for (const item of priceBreakdown) {
-                    html += `<div class="price-row">`;
-                    html += `<span class="price-item">${escapeHtml(item.label)}</span>`;
-                    html += `<span class="price-value">£${item.value}</span>`;
-                    html += '</div>';
-                }
-                if (totalPrice) {
-                    html += '<div class="price-row price-total">';
-                    html += '<span class="price-item">Total</span>';
-                    html += `<span class="price-value total">£${totalPrice}</span>`;
-                    html += '</div>';
-                }
+            // Add opportunities section
+            if (opportunities.length > 0) {
+                html += '<div class="opportunities-section">';
+                html += '<h4 class="section-title">🎯 Opportunities to Enhance</h4>';
+                opportunities.forEach(opp => {
+                    html += `<div class="opportunity-item">${opp}</div>`;
+                });
                 html += '</div>';
             }
-
-            // Add generic message
-            html += '<p class="follow-up-text">Great choice - let me show you the current Alwinton pricing.</p>';
 
             // Add suggestion chips
             if (suggestions.length > 0) {
                 html += '<div class="suggestion-chips-container">';
+                html += '<h4 class="section-title">💬 What next?</h4>';
+                html += '<div class="chips-wrapper">';
                 suggestions.forEach(suggestion => {
                     html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
                 });
                 html += '</div>';
-            } else {
-                // Default suggestions if none provided
-                html += '<div class="suggestion-chips-container">';
-                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Similar price range')">Similar price range</button>`;
-                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Customer favorites')">Customer favorites</button>`;
-                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Configuration options')">Configuration options</button>`;
-                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Fabric samples available')">Fabric samples available</button>`;
                 html += '</div>';
             }
 
