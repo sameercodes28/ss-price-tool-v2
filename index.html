@@ -191,6 +191,48 @@
             letter-spacing: -0.025em;
         }
 
+        /* Total Price (for multiple items) - EVEN LARGER */
+        .total-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #047857;
+            line-height: 1;
+            letter-spacing: -0.025em;
+            margin: 1rem 0 0.5rem 0;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        /* Price Breakdown List */
+        .price-breakdown {
+            background: white;
+            border-left: 4px solid #10b981;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .price-breakdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .price-breakdown li {
+            padding: 0.375rem 0;
+            color: #374151;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .price-breakdown li strong {
+            color: #047857;
+            font-weight: 600;
+        }
+
         .savings-badge {
             background: #dc2626;
             color: white;
@@ -802,6 +844,37 @@
                         currentSection = 'price';
                         continue;
                     }
+                }
+
+                // Total price (for multiple items)
+                if (line.startsWith('TOTAL:')) {
+                    const totalMatch = line.match(/TOTAL:\s*\*\*£([\d,]+)\*\*/);
+                    if (totalMatch) {
+                        const totalAmount = totalMatch[1];
+                        html += `<div class="total-price">TOTAL: £${totalAmount}</div>`;
+                        html += '<div class="price-breakdown"><ul>';
+                        currentSection = 'breakdown';
+                        continue;
+                    }
+                }
+
+                // Price breakdown items (bullet list after TOTAL)
+                if (currentSection === 'breakdown' && (line.startsWith('-') || line.startsWith('•'))) {
+                    const text = line.substring(1).trim();
+                    // Parse "Item name: £amount" format
+                    const parts = text.split(':');
+                    if (parts.length === 2) {
+                        html += `<li><span>${escapeHtml(parts[0])}</span><strong>${escapeHtml(parts[1].trim())}</strong></li>`;
+                    } else {
+                        html += `<li>${escapeHtml(text)}</li>`;
+                    }
+                    continue;
+                }
+
+                // Close breakdown when we hit a non-bullet line
+                if (currentSection === 'breakdown' && !line.startsWith('-') && !line.startsWith('•')) {
+                    html += '</ul></div>';
+                    currentSection = 'price';
                 }
 
                 // Product name (bold text not in price display)

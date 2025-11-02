@@ -106,6 +106,12 @@ Always use these sections with emojis:
 **Product Name** in Fabric Name
 ~~£OLD~~ → **£NEW** *(Save £AMOUNT!)*
 
+**For multiple items or with add-ons, show TOTAL FIRST:**
+TOTAL: **£TOTAL_AMOUNT**
+- Item 1: £amount
+- Item 2: £amount
+- Add-on: £amount
+
 ### ✨ Key Features
 
 • Hardwood frame with lifetime guarantee
