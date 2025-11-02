@@ -564,6 +564,23 @@
             showTypingIndicator();
 
             try {
+                // Check for greetings or casual queries first
+                const lowerMessage = message.toLowerCase().trim();
+                const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
+                if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                    hideTypingIndicator();
+                    addMessage(
+                        "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
+                        "Try asking me something like:\n" +
+                        "• \"alwinton snuggler pacific\"\n" +
+                        "• \"berkeley 3 seater sussex plain\"\n" +
+                        "• \"stockbridge sofa bed\"\n\n" +
+                        "Just tell me the product name, size, and fabric!",
+                        false
+                    );
+                    return;
+                }
+
                 // Call real backend API
                 const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
                     method: 'POST',
@@ -582,11 +599,30 @@
                     const responseText = formatPriceResponse(data);
                     addMessage(responseText, false);
                 } else if (data.error) {
-                    // Error from backend
-                    addMessage(`I couldn't find that product. ${data.error}`, false);
+                    // Error from backend - provide helpful guidance
+                    let helpfulError = "I couldn't find that exact product.\n\n";
+
+                    // Check if it might be a typo
+                    if (lowerMessage.length > 3) {
+                        helpfulError += "💡 Try:\n" +
+                            "• Check spelling (e.g., 'Berkeley' not 'Berekely')\n" +
+                            "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
+                            "• Include fabric (e.g., 'sussex plain', 'velvet')\n\n";
+                    }
+
+                    helpfulError += "Popular products: Alwinton, Berkeley, Stockbridge, Aldingbourne";
+
+                    addMessage(helpfulError, false);
                 } else {
                     // Unexpected response
-                    addMessage('Sorry, I didn\'t understand that. Could you try rephrasing?', false);
+                    addMessage(
+                        "Hmm, I'm not sure about that.\n\n" +
+                        "I work best when you give me:\n" +
+                        "• Product name (e.g., Alwinton)\n" +
+                        "• Size (e.g., 3 seater, snuggler)\n" +
+                        "• Fabric (e.g., Sussex Plain, Velvet)",
+                        false
+                    );
                 }
 
             } catch (error) {
