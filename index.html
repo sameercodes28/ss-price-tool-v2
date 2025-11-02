@@ -823,30 +823,7 @@
                     continue;
                 }
 
-                // Price line with old and new prices
-                if (line.includes('~~£') && line.includes('**£')) {
-                    const oldPriceMatch = line.match(/~~£([\d,]+)~~/);
-                    const newPriceMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
-
-                    if (oldPriceMatch && newPriceMatch) {
-                        const oldPrice = oldPriceMatch[1];
-                        const newPrice = newPriceMatch[1];
-                        const savings = savingsMatch ? savingsMatch[1] : null;
-
-                        html += '<div class="price-display">';
-                        html += `<div class="old-price">Was £${oldPrice}</div>`;
-                        html += `<div class="new-price">£${newPrice}</div>`;
-                        if (savings) {
-                            html += `<div class="savings-badge">Save £${savings}!</div>`;
-                        }
-                        html += '</div>';
-                        currentSection = 'price';
-                        continue;
-                    }
-                }
-
-                // Total price (for multiple items)
+                // Total price (for multiple items) - CHECK THIS FIRST
                 if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
                     const totalMatch = line.match(/TOTAL:\s*\*\*?£([\d,]+)\*\*?/);
                     const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
@@ -894,6 +871,29 @@
                 if (currentSection === 'breakdown' && !line.startsWith('-') && !line.startsWith('•')) {
                     html += '</ul></div>';
                     currentSection = 'price';
+                }
+
+                // Price line with old and new prices (for single items, NOT breakdown items)
+                if (line.includes('~~£') && line.includes('**£') && !line.startsWith('-') && !line.startsWith('•') && currentSection !== 'breakdown') {
+                    const oldPriceMatch = line.match(/~~£([\d,]+)~~/);
+                    const newPriceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
+
+                    if (oldPriceMatch && newPriceMatch) {
+                        const oldPrice = oldPriceMatch[1];
+                        const newPrice = newPriceMatch[1];
+                        const savings = savingsMatch ? savingsMatch[1] : null;
+
+                        html += '<div class="price-display">';
+                        html += `<div class="old-price">Was £${oldPrice}</div>`;
+                        html += `<div class="new-price">£${newPrice}</div>`;
+                        if (savings) {
+                            html += `<div class="savings-badge">Save £${savings}!</div>`;
+                        }
+                        html += '</div>';
+                        currentSection = 'price';
+                        continue;
+                    }
                 }
 
                 // Product name (bold text not in price display)
