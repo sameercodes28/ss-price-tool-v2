@@ -459,7 +459,7 @@
                     const button = document.createElement('button');
                     button.className = 'text-left text-sm text-blue-600 hover:underline p-2 bg-blue-50 rounded-lg';
                     button.textContent = `"${item.query}" (${item.price})`;
-                    button.onclick = ()D => {
+                    button.onclick = () => {
                         manualInput.value = item.query;
                         fetchPrice(item.query);
                     };
