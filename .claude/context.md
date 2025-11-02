@@ -173,18 +173,21 @@ All infrastructure is deployed and operational!
 - **Line numbers** = approximate references (will shift as code changes)
 
 **Additional Changes:**
-7. ✅ **Added "Working Code Protection Protocol"**
-   - Lines 231-312 in .claude/instructions.md: Comprehensive protocol to prevent regressions
-   - Establishes preference hierarchy: Add new code > Extend code > Modify code
-   - Requires explicit justification before modifying existing working code
-   - Includes three code examples (wrong, right, acceptable approaches)
+7. ✅ **Added "Deliberate Change Protocol"** (revised from initial version)
+   - Lines 233-344 in .claude/instructions.md: Protocol to prevent regressions AND bloat
+   - **Revised approach:** Prefer simplicity and code removal over adding duplicates
+   - Establishes preference hierarchy: Remove > Modify > Add (revised from Add > Modify)
+   - Requires explicit justification for ANY change (add, modify, or remove)
+   - Includes four code examples (worst, best, good, acceptable approaches)
    - Added baseline testing requirement before/after any code changes
 
-**Working Code Protection Protocol:**
-- **1st choice:** Add new code without touching existing (safest)
-- **2nd choice:** Extend existing code with backward-compatible defaults
-- **Last resort:** Modify existing code (requires justification + user approval)
-- **Key principle:** "If it ain't broke, don't fix it - add to it instead"
+**Deliberate Change Protocol:**
+- **Best:** Remove unnecessary code, simplify existing code
+- **Good:** Modify existing code to handle new case (if cleaner)
+- **Acceptable:** Add new code if truly needed (avoid duplication)
+- **Worst:** Add duplicate/similar code that bloats the codebase
+- **Key principle:** "Prefer simplicity and fewer lines over bloat"
+- **Decision tree:** Can I remove? → Can I modify? → Must I add?
 
 **Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
@@ -194,6 +197,8 @@ All infrastructure is deployed and operational!
 - 3ac6aa7: "v2: Clarify instructions - definitions, deployment, phases, line numbers"
 - c9b4203: "v2: Document instruction clarifications in context.md"
 - 8a694d7: "v2: Add 'Working Code Protection Protocol' to prevent regressions"
+- 67e36de: "v2: Document Working Code Protection Protocol in context.md"
+- 53f0021: "v2: Revise protocol to prefer simplicity and code removal over bloat"
 
 ---
 
