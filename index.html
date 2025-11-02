@@ -177,7 +177,63 @@
         }
         .markdown-content del {
             text-decoration: line-through;
-            color: #6b7280;
+            color: #9ca3af;
+            opacity: 0.7;
+        }
+
+        /* Enhanced section headers with icons (Demo Polish) */
+        .markdown-content h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            margin: 0.875rem 0 0.625rem 0;
+            border-left: 3px solid #fb923c;
+            background: linear-gradient(to right, rgba(251, 146, 60, 0.08), transparent);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Price highlighting - make prices pop! */
+        .markdown-content p:has(strong):first-of-type {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 0.875rem;
+            border-radius: 0.5rem;
+            margin: 0.75rem 0;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+
+        /* Make final price really stand out */
+        .markdown-content strong {
+            font-weight: 700;
+            color: #059669;
+            font-size: 1.05em;
+        }
+
+        /* Old price strikethrough styling */
+        .markdown-content del {
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+
+        /* Opportunities section highlighting */
+        .markdown-content blockquote {
+            border-left: 4px solid #8b5cf6;
+            background: linear-gradient(to right, rgba(139, 92, 246, 0.08), transparent);
+            padding: 0.75rem 1rem;
+            margin: 0.875rem 0;
+            border-radius: 0.375rem;
+            font-style: normal;
+        }
+
+        .markdown-content blockquote p {
+            margin: 0.375rem 0;
+            color: #4c1d95;
+        }
+
+        .markdown-content blockquote strong {
+            color: #7c3aed;
         }
 
         /* Magical Glowing Orb Animation */
@@ -415,6 +471,16 @@
 
         // Feature flag: Use LLM (/chat) vs Direct matching (/getPrice)
         const USE_LLM = true; // LLM features enabled (Phase 1C)
+
+        // Configure marked.js for GFM (GitHub Flavored Markdown) with strikethrough support
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                gfm: true,  // Enable GitHub Flavored Markdown
+                breaks: true,  // Convert \n to <br>
+                headerIds: false,  // Don't add IDs to headers
+                mangle: false  // Don't escape autolinked email addresses
+            });
+        }
 
         // Backend API URL (v2)
         const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
