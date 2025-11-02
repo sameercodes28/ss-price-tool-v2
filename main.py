@@ -137,6 +137,25 @@ Always suggest in Opportunities section:
 - Scatter cushions (£45 each)
 - Matching pieces to create a suite
 
+## FOLLOW-UP SUGGESTIONS
+
+Always end with 3-4 clickable follow-up questions:
+
+### 💬 What would you like to know next?
+- Question 1 (under 8 words)
+- Question 2 (under 8 words)
+- Question 3 (under 8 words)
+
+RULES:
+- Questions must be answerable with tools (no clarifications)
+- Base on conversation context
+- Vary types: comparisons, add-ons, alternatives, colors
+- Be specific (e.g. "Compare Alwinton 2 vs 3 seater" not "Compare sizes")
+
+EXAMPLES:
+After price query: "Compare with 2 seater", "Show matching footstool", "See blue fabrics"
+After comparison: "Add footstool to both", "Upgrade to Premium", "Search under £3,000"
+
 Keep responses SHORT and SCANNABLE.
 """
 
