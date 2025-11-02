@@ -350,6 +350,160 @@ def get_price(query, cache=True):
 - ✅ Ask user if docs need updating for this change
 - ✅ Keep docs in sync with code IMMEDIATELY (not "later")
 
+---
+
+## 🚨 CRITICAL PROTOCOLS (Lessons from Mistakes)
+
+### ❌ NEVER INVENT DATA - Data Verification Protocol
+
+**Mistake Made:** Invented "Berkeley" product and "House Wool" fabric in examples without checking actual data files.
+
+**Rule:** NEVER make up, assume, or invent:
+- Product names
+- Fabric names
+- Sizes or variants
+- Prices
+- API responses
+- File paths
+- Configuration values
+
+**Required Process:**
+1. **ALWAYS check actual data files BEFORE mentioning specifics:**
+   - Product names → Check `products.json`
+   - Fabric names → Check `fabrics.json`
+   - Sizes/covers → Check `sizes.json`, `covers.json`
+   - API responses → Check `main.py` or test with curl
+
+2. **Verify examples work BEFORE suggesting them:**
+   ```bash
+   # DON'T suggest "berkeley 3 seater sussex plain" without testing
+   # DO THIS FIRST:
+   grep -i "berkeley" products.json  # Check if product exists
+   curl -X POST ... -d '{"query": "berkeley 3 seater sussex plain"}'  # Test it works
+   ```
+
+3. **When giving examples:**
+   - Use exact names from actual data
+   - Test each example locally first
+   - Verify response is successful (not error)
+
+4. **If uncertain about data:**
+   - Say "Let me check the data files first..."
+   - Use Read/Grep tools to verify
+   - Never guess or make assumptions
+
+**Red Flags:**
+- ❌ "For example, 'Berkeley'..." (Did you check products.json?)
+- ❌ "House Wool fabric" (Did you verify this exists?)
+- ❌ "Price is £2,450" (Did you test this query?)
+
+**Correct Approach:**
+- ✅ "Let me check what products exist..." → Grep products.json
+- ✅ "Testing this example..." → Curl test before suggesting
+- ✅ "According to products.json, the available products are..."
+
+---
+
+### 📋 Plan Tracking Protocol (Prevent Tunnel Vision)
+
+**Mistake Made:** Got focused on UI polish (fonts, colors) and forgot about the comprehensive 35-piece LLM integration plan.
+
+**Rule:** ALWAYS keep the big picture in mind.
+
+**Required Process:**
+
+1. **At start of EVERY session:**
+   - Read `.claude/context.md` completely
+   - Review active implementation plan
+   - Note current phase and what's next
+
+2. **Create TodoWrite with FULL plan:**
+   - Include ALL phases, not just current task
+   - Example:
+     ```
+     ✅ Phase 1A: Frontend UI (completed)
+     ⏳ Phase 1B: Session Memory (current)
+     🔜 Phase 1C: LLM Integration (next)
+     🔜 Phase 1D: Enhanced Tools (upcoming)
+     ```
+
+3. **After completing EACH piece:**
+   - State: "✅ Completed Phase X, Piece Y"
+   - Reference next: "Next up: Phase X, Piece Z"
+   - Ask: "Ready to continue with [next piece]?"
+
+4. **User gives feedback that diverges:**
+   - Acknowledge the comprehensive plan still exists
+   - Example: "This is a quick fix before returning to Phase 1C (LLM integration)"
+   - Update todos to show where we are in the plan
+
+5. **Before starting ANY new work:**
+   - Check: "Does this fit into the comprehensive plan?"
+   - If not: "This is a detour from the plan - shall we do this first?"
+
+**Red Flags:**
+- ❌ Working on fonts/colors for multiple messages without referencing the LLM plan
+- ❌ TodoWrite only shows current UI tasks, not full implementation plan
+- ❌ User has to remind you "what about the 35-piece plan?"
+
+**Correct Approach:**
+- ✅ TodoWrite always shows all phases
+- ✅ Explicit phase transitions: "Phase 1A complete, moving to Phase 1B"
+- ✅ Context.md has full plan documented for session continuity
+
+---
+
+### 💬 Commit Communication Protocol
+
+**Mistake Made:** Committed/pushed to main but wasn't explicit about it, causing user confusion.
+
+**Rule:** Be CRYSTAL CLEAR about git operations.
+
+**Required Communication:**
+
+After EVERY git operation, explicitly state:
+1. ✅ What was committed
+2. ✅ Which branch
+3. ✅ Whether it was pushed
+4. ✅ Where it's live (if applicable)
+
+**Template:**
+```
+✅ COMMITTED AND DEPLOYED
+
+Commit: abc1234 - "Description"
+Branch: main
+Pushed: YES ✅
+Live at: https://sameercodes28.github.io/ss-price-tool-v2/
+
+Changes are now in production. Test at the URL above.
+```
+
+**After merging feature branch to main:**
+```
+✅ MERGED TO MAIN
+
+Feature branch: feature/chat-interface-with-memory
+Merged into: main
+Pushed to GitHub: YES ✅
+Tagged as: demo-ready-v2.1.0-phase1a
+Live deployment: Will auto-update from main
+
+Test the changes at: [URL]
+```
+
+**Red Flags:**
+- ❌ Just running `git push` without telling user
+- ❌ "Changes committed" (Which branch? Pushed? Live?)
+- ❌ Assuming user knows git operations happened
+
+**Correct Approach:**
+- ✅ Explicit status after every git operation
+- ✅ Clear indication of what's live vs what's in branch
+- ✅ Links to test live version
+
+---
+
 ### Example Workflow
 
 ```
