@@ -450,6 +450,130 @@ curl -X POST http://localhost:8080/getPrice -H "Content-Type: application/json" 
 - Test locally before pushing
 - Keep v2 separate from v1
 
+### 🎯 CRITICAL: Demo-Ready State Protocol
+
+**Principle:** v2 must ALWAYS be in demo-ready state. Sales staff or stakeholders could see it at any moment.
+
+**Problem:** If we break something while adding a feature, we can't demo the tool until it's fixed.
+
+**Solution: Feature Branch + Demo-Ready Tags**
+
+**Workflow for Every New Feature:**
+
+1. **Before Starting ANY Feature:**
+   ```bash
+   # Ensure main is demo-ready and tag it
+   git checkout main
+   git tag -a demo-ready-YYYY-MM-DD -m "Demo ready: [description of current state]"
+   git push origin demo-ready-YYYY-MM-DD
+
+   # Create feature branch
+   git checkout -b feature/feature-name
+   ```
+
+2. **During Feature Development:**
+   - Work in feature branch only
+   - Commit pieces as you build (using detailed commit messages)
+   - Test thoroughly in feature branch
+   - Main branch stays untouched and demo-ready
+
+3. **When Feature is Complete and Tested:**
+   ```bash
+   # Merge to main only when feature fully works
+   git checkout main
+   git merge feature/feature-name
+   git push origin main
+
+   # Tag new demo-ready state
+   git tag -a demo-ready-YYYY-MM-DD -m "Demo ready: [added feature X]"
+   git push origin demo-ready-YYYY-MM-DD
+
+   # Deploy to production
+   gcloud functions deploy sofa-price-calculator-v2 ...
+
+   # Delete feature branch (optional, keeps repo clean)
+   git branch -d feature/feature-name
+   ```
+
+4. **If Something Breaks During Development:**
+   ```bash
+   # Main is still demo-ready, feature branch has the broken code
+   # Continue debugging in feature branch
+   # Main branch is always deployable
+   ```
+
+5. **If Something Breaks After Merging to Main:**
+   ```bash
+   # EMERGENCY REVERT - Quick rollback to last demo-ready state
+
+   # Option A: Revert the merge commit
+   git revert -m 1 HEAD
+   git push origin main
+
+   # Option B: Hard reset to last demo-ready tag (use with caution)
+   git reset --hard demo-ready-YYYY-MM-DD
+   git push origin main --force
+
+   # Redeploy last working version
+   gcloud functions deploy sofa-price-calculator-v2 ...
+
+   # Debug in new feature branch
+   git checkout -b fix/debug-issue
+   ```
+
+**Demo-Ready Tag Naming Convention:**
+- `demo-ready-YYYY-MM-DD` - Daily demo-ready checkpoints
+- `demo-ready-v2.1.0` - Version-based demo-ready states
+- Examples:
+  - `demo-ready-2025-11-02` - Today's working state
+  - `demo-ready-v2.1.0-chat-interface` - After chat interface feature
+
+**Rules:**
+- ✅ **Main branch is ALWAYS demo-ready** - never merge broken code
+- ✅ **Work in feature branches** - keeps main clean
+- ✅ **Tag every demo-ready state** - easy rollback points
+- ✅ **Test before merging** - local + deployed testing required
+- ✅ **Deploy only from main** - feature branches never deployed
+- ❌ **Never push broken code to main** - breaks demo-ready principle
+- ❌ **Never work directly on main** - always use feature branches
+
+**Quick Reference Commands:**
+
+```bash
+# Start new feature
+git checkout main
+git tag -a demo-ready-$(date +%Y-%m-%d) -m "Demo ready: current state"
+git checkout -b feature/my-feature
+
+# Merge completed feature
+git checkout main
+git merge feature/my-feature
+git tag -a demo-ready-$(date +%Y-%m-%d) -m "Demo ready: added my-feature"
+git push origin main --tags
+
+# Emergency revert
+git revert -m 1 HEAD
+git push origin main
+
+# View all demo-ready states
+git tag -l "demo-ready-*"
+
+# Rollback to specific state
+git reset --hard demo-ready-2025-11-02
+```
+
+**Claude's Workflow:**
+
+When user requests a feature:
+1. Check current branch (should be main)
+2. Tag current demo-ready state
+3. Create feature branch
+4. Build feature incrementally in branch
+5. Test thoroughly in branch
+6. Only merge to main when complete and tested
+7. Tag new demo-ready state
+8. If anything breaks, main is still demo-ready
+
 ### KEY DESIGN REQUIREMENTS
 
 **Speed Over Everything**
