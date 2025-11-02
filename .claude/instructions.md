@@ -230,36 +230,45 @@ Before marking ANY task as complete, verify:
 - Assuming something works without verifying
 - **Modifying existing working code without explicit justification**
 
-### 🚨 CRITICAL RULE: Do Not Break Existing Functionality
+### 🚨 CRITICAL RULE: Protect Existing Functionality While Keeping Code Simple
 
-**Problem:** Claude sometimes accidentally modifies working code when adding new features, causing regressions.
+**Problem:** Claude sometimes accidentally breaks working code OR creates bloated duplicate code when adding features.
 
-**Solution: The "Working Code Protection Protocol"**
+**Solution: The "Deliberate Change Protocol"**
 
-**Before changing ANY existing code:**
+**Core Principle:**
+- **Prefer simplicity and code removal over bloat**
+- **Every change (add, modify, or remove) must be justified**
+- **Test thoroughly regardless of change type**
+- **Keep codebase lean and maintainable**
+
+**Before changing ANYTHING in existing code:**
 
 1. **Read and understand it first**
    - Read the entire file/function completely
    - Understand what it currently does and why
    - Identify its dependencies and callers
+   - Check if there's duplicate/similar code that could be removed
 
 2. **Test current functionality (baseline)**
    - Test the existing feature BEFORE making changes
    - Document current behavior as baseline
    - Save test commands/results for comparison
 
-3. **Prefer additive changes**
-   - **First choice:** Add new code without touching existing code
-   - **Second choice:** Extend existing code (add parameters with defaults)
-   - **Last resort:** Modify existing code (requires explicit justification)
+3. **Choose the simplest approach**
+   - **Best:** Remove unnecessary code, simplify existing code
+   - **Good:** Modify existing code to handle new case (if cleaner)
+   - **Acceptable:** Add new code if truly needed (avoid duplication)
+   - **Worst:** Add duplicate/similar code that bloats the codebase
 
-4. **Justify ANY modification to existing working code**
-   - If you must modify existing code, explicitly state:
-     - **What** existing code you're changing
-     - **Why** it must be changed (not just added to)
+4. **Justify ANY change (add, modify, or remove)**
+   - Explicitly state:
+     - **What** you're changing (adding, modifying, or removing)
+     - **Why** this approach is the simplest/cleanest
+     - **What** alternatives you considered
      - **What** could break as a result
      - **How** you'll verify nothing breaks
-   - Get user confirmation before modifying working code
+   - Get user confirmation for non-trivial changes
 
 5. **Test existing functionality after changes**
    - Re-run baseline tests
@@ -268,48 +277,71 @@ Before marking ANY task as complete, verify:
 
 **Examples:**
 
-**❌ WRONG - Modifying existing code unnecessarily:**
+**❌ WORST - Adding duplicate code that bloats codebase:**
+```python
+# Existing working code
+def get_price(query):
+    result = api.fetch_price(query)
+    return result
+
+# Claude adds near-duplicate function - BLOAT!
+def get_price_with_cache(query):  # ← Unnecessary duplication
+    result = api.fetch_price(query)
+    return result
+```
+
+**✅ BEST - Simplifying by removing duplication:**
+```python
+# Existing bloated code
+def get_sofa_price(query):
+    return api.fetch_price(query, type='sofa')
+
+def get_bed_price(query):
+    return api.fetch_price(query, type='bed')
+
+# Claude simplifies to single function
+def get_price(query, product_type):
+    return api.fetch_price(query, type=product_type)
+# Removed 2 redundant functions, cleaner codebase
+```
+
+**✅ GOOD - Modifying existing to handle new case cleanly:**
 ```python
 # Existing working code
 def get_price(query):
     return api.fetch_price(query)
 
-# Claude changes it without justification
-def get_price(query, options=None):  # ← Why change this?
-    if options:
-        return api.fetch_price_with_options(query, options)
-    return api.fetch_price(query)
-```
-
-**✅ RIGHT - Adding new function, keeping existing intact:**
-```python
-# Existing working code - UNTOUCHED
-def get_price(query):
-    return api.fetch_price(query)
-
-# New function added separately
-def get_price_with_options(query, options):
-    return api.fetch_price_with_options(query, options)
-```
-
-**✅ ACCEPTABLE - Modifying with explicit justification:**
-```python
-# Must modify existing function because:
-# - All existing callers need the new behavior
-# - Adding new function would require changing 15 call sites
-# - Default parameter maintains backward compatibility
-# Tested: All existing calls work unchanged
-
-def get_price(query, cache=True):  # Added cache param with default
+# Claude extends cleanly with backward-compatible default
+def get_price(query, cache=True):
+    # Added cache param to avoid creating separate function
+    # Backward compatible: existing calls still work
+    # Tested: All existing functionality intact
     if cache:
         return cached_api.fetch_price(query)
     return api.fetch_price(query)
 ```
 
+**✅ ACCEPTABLE - Adding new code when truly different:**
+```python
+# Existing: synchronous price fetch
+def get_price(query):
+    return api.fetch_price(query)
+
+# New: async version is fundamentally different
+async def get_price_async(query):
+    return await api.fetch_price_async(query)
+# Justification: Async is different enough to warrant separate function
+```
+
+**Decision Tree:**
+1. Can I **remove** code? → Do that (simplest)
+2. Can I **modify** existing cleanly? → Do that (clean)
+3. Must I **add** new code? → Justify why (avoid bloat)
+
 **When in doubt:**
-- ❌ Don't modify existing working code
-- ✅ Add new code alongside it
-- ✅ Ask user which approach they prefer
+- ✅ Ask user: "Should I simplify existing code or add new code?"
+- ✅ Prefer fewer lines over more lines
+- ✅ Prefer one way to do something over multiple ways
 
 ### Remember
 
