@@ -111,129 +111,154 @@
             cursor: not-allowed;
         }
 
-        /* Markdown content styling (Phase 1C - Demo Polish) */
-        .markdown-content {
-            color: #1f2937;
+        /* Professional LLM Response Styling (Demo Polish V2) */
+        .llm-response {
             font-size: 0.875rem;
             line-height: 1.6;
         }
-        .markdown-content p {
-            margin: 0.5rem 0;
-        }
-        .markdown-content p:first-child {
-            margin-top: 0;
-        }
-        .markdown-content p:last-child {
-            margin-bottom: 0;
-        }
-        .markdown-content strong {
+
+        /* Section Headers */
+        .section-header {
             font-weight: 600;
-            color: #111827;
-        }
-        .markdown-content em {
-            font-style: italic;
-            color: #374151;
-        }
-        .markdown-content ul, .markdown-content ol {
-            margin: 0.75rem 0;
-            padding-left: 1.5rem;
-        }
-        .markdown-content li {
-            margin: 0.375rem 0;
-        }
-        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
-            font-weight: 600;
-            margin: 0.75rem 0 0.5rem 0;
-            line-height: 1.3;
-        }
-        .markdown-content h1 {
-            font-size: 1.125rem;
-            color: #111827;
-        }
-        .markdown-content h2 {
-            font-size: 1rem;
-            color: #111827;
-        }
-        .markdown-content h3 {
-            font-size: 0.9375rem;
-            color: #374151;
-        }
-        .markdown-content a {
-            color: #2563eb;
-            text-decoration: underline;
-            text-decoration-color: #93c5fd;
-            transition: all 0.2s;
-        }
-        .markdown-content a:hover {
-            color: #1d4ed8;
-            text-decoration-color: #2563eb;
-        }
-        .markdown-content code {
-            background: #f3f4f6;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
             font-size: 0.8125rem;
-            font-family: 'Courier New', monospace;
-        }
-        .markdown-content del {
-            text-decoration: line-through;
-            color: #9ca3af;
-            opacity: 0.7;
+            padding: 0.5rem 0.75rem;
+            margin: 0 -1rem 0.75rem -1rem;
+            border-radius: 0.375rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
         }
 
-        /* Enhanced section headers with icons (Demo Polish) */
-        .markdown-content h3 {
+        .price-header {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .features-header {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .opportunities-header {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            color: #6b21a8;
+            border-left: 4px solid #a855f7;
+        }
+
+        /* Product Name */
+        .product-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Price Display - MAKE IT HUGE AND PROMINENT */
+        .price-display {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 0.875rem 0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            margin: 0.875rem 0 0.625rem 0;
-            border-left: 3px solid #fb923c;
-            background: linear-gradient(to right, rgba(251, 146, 60, 0.08), transparent);
-            font-weight: 600;
-            font-size: 0.875rem;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
 
-        /* Price highlighting - make prices pop! */
-        .markdown-content p:has(strong):first-of-type {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border-left: 4px solid #f59e0b;
-            padding: 0.875rem;
-            border-radius: 0.5rem;
-            margin: 0.75rem 0;
-            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        .old-price {
+            font-size: 0.9375rem;
+            color: #78716c;
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            font-weight: 500;
         }
 
-        /* Make final price really stand out */
-        .markdown-content strong {
+        .new-price {
+            font-size: 2rem;
             font-weight: 700;
             color: #059669;
-            font-size: 1.05em;
+            line-height: 1;
+            letter-spacing: -0.025em;
         }
 
-        /* Old price strikethrough styling */
-        .markdown-content del {
-            color: #9ca3af;
-            font-size: 0.9em;
+        .savings-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
         }
 
-        /* Opportunities section highlighting */
-        .markdown-content blockquote {
+        /* Features Section */
+        .features-section {
+            margin: 1rem 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0.75rem 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: #374151;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* Opportunities Section */
+        .opportunities-section {
+            margin: 1rem 0;
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            border: 2px solid #a855f7;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+        }
+
+        .opportunity-item {
+            background: white;
             border-left: 4px solid #8b5cf6;
-            background: linear-gradient(to right, rgba(139, 92, 246, 0.08), transparent);
             padding: 0.75rem 1rem;
-            margin: 0.875rem 0;
-            border-radius: 0.375rem;
-            font-style: normal;
+            margin: 0.625rem 0;
+            border-radius: 0.5rem;
+            color: #581c87;
+            font-size: 0.875rem;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
         }
 
-        .markdown-content blockquote p {
-            margin: 0.375rem 0;
-            color: #4c1d95;
+        .opportunity-item strong {
+            color: #6b21a8;
+            font-weight: 600;
         }
 
-        .markdown-content blockquote strong {
-            color: #7c3aed;
+        /* Price Section */
+        .price-section {
+            margin: 1rem 0;
+        }
+
+        /* Response Text */
+        .response-text {
+            color: #4b5563;
+            margin: 0.5rem 0;
+            line-height: 1.6;
         }
 
         /* Magical Glowing Orb Animation */
@@ -680,9 +705,9 @@
                 `;
             } else {
                 // Agent message (left side, white with couch avatar)
-                // Use markdown rendering for LLM responses, plain text for non-LLM
-                const formattedContent = USE_LLM && typeof marked !== 'undefined'
-                    ? marked.parse(content)  // Render markdown (ChatGPT-style formatting)
+                // Use custom HTML formatter for LLM responses, plain text for non-LLM
+                const formattedContent = USE_LLM
+                    ? formatLLMResponse(content)  // Custom professional formatting
                     : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;  // Plain text fallback
 
                 messageDiv.innerHTML = `
@@ -693,7 +718,7 @@
                             <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
                         </svg>
                     </div>
-                    <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-3 max-w-[85%] shadow-md markdown-content">
+                    <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-4 max-w-[90%] shadow-lg llm-response">
                         ${formattedContent}
                     </div>
                 `;
@@ -711,6 +736,110 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        /**
+         * Format LLM response into beautiful, professional HTML
+         * Parses response and creates structured, visual sections
+         */
+        function formatLLMResponse(content) {
+            let html = '';
+
+            // Parse response into sections
+            const lines = content.split('\n');
+            let currentSection = '';
+            let inOpportunities = false;
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Section headers with icons
+                if (line.startsWith('### 💰')) {
+                    html += '<div class="price-section">';
+                    html += '<div class="section-header price-header">💰 Price</div>';
+                    continue;
+                } else if (line.startsWith('### ✨')) {
+                    if (currentSection === 'price') html += '</div>';
+                    html += '<div class="features-section">';
+                    html += '<div class="section-header features-header">✨ Key Features</div>';
+                    currentSection = 'features';
+                    continue;
+                } else if (line.startsWith('### 🎯')) {
+                    if (currentSection) html += '</div>';
+                    html += '<div class="opportunities-section">';
+                    html += '<div class="section-header opportunities-header">🎯 Opportunities to Enhance</div>';
+                    currentSection = 'opportunities';
+                    inOpportunities = true;
+                    continue;
+                }
+
+                // Price line with old and new prices
+                if (line.includes('~~£') && line.includes('**£')) {
+                    const oldPriceMatch = line.match(/~~£([\d,]+)~~/);
+                    const newPriceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
+
+                    if (oldPriceMatch && newPriceMatch) {
+                        const oldPrice = oldPriceMatch[1];
+                        const newPrice = newPriceMatch[1];
+                        const savings = savingsMatch ? savingsMatch[1] : null;
+
+                        html += '<div class="price-display">';
+                        html += `<div class="old-price">Was £${oldPrice}</div>`;
+                        html += `<div class="new-price">£${newPrice}</div>`;
+                        if (savings) {
+                            html += `<div class="savings-badge">Save £${savings}!</div>`;
+                        }
+                        html += '</div>';
+                        currentSection = 'price';
+                        continue;
+                    }
+                }
+
+                // Product name (bold text not in price display)
+                if (line.startsWith('**') && line.endsWith('**')) {
+                    const productName = line.replace(/\*\*/g, '');
+                    if (currentSection === 'price' || !currentSection) {
+                        html += `<div class="product-name">${escapeHtml(productName)}</div>`;
+                    }
+                    continue;
+                }
+
+                // Bullet points
+                if (line.startsWith('•') || line.startsWith('-')) {
+                    if (!html.includes('<ul class="feature-list">')) {
+                        html += '<ul class="feature-list">';
+                    }
+                    const text = line.substring(1).trim();
+                    html += `<li>${escapeHtml(text)}</li>`;
+                    continue;
+                }
+
+                // Opportunities (blockquote items)
+                if (line.startsWith('>')) {
+                    const text = line.substring(1).trim();
+                    // Parse bold and pricing from opportunity
+                    const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    html += `<div class="opportunity-item">${formatted}</div>`;
+                    continue;
+                }
+
+                // Regular text
+                if (line && !line.startsWith('#')) {
+                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
+                }
+            }
+
+            // Close any open sections
+            if (currentSection) html += '</div>';
+
+            // Close any open lists
+            if (html.includes('<ul class="feature-list">') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+
+            return html || `<p class="response-text">${escapeHtml(content)}</p>`;
         }
 
         /**
