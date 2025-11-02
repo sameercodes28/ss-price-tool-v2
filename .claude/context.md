@@ -1082,6 +1082,159 @@ LOG_EXECUTION_ID=true
 
 ---
 
+## 🐛 CRITICAL: LLM Response Formatting - Debugging Lessons
+
+**Date:** 2025-11-02
+**Context:** Total Price Display Enhancement - Multiple Hours of Debugging
+
+### 🚨 PROBLEM: Custom Formatting Not Working
+
+**Symptoms:**
+- User saw raw markdown: `**TOTAL: £2,609**` instead of formatted display
+- Breakdown items showing with checkmarks (wrong styling)
+- Multiple deployment cycles with no improvement
+
+**Debugging Journey (What We Tried):**
+1. ❌ Suspected browser caching → Tried incognito, hard refresh, service worker clear
+2. ❌ Suspected GitHub Pages delay → Verified code was deployed
+3. ❌ Suspected section closing bug → Fixed, but issue persisted
+4. ❌ Suspected breakdown parser → Enhanced, but issue persisted
+5. ✅ **ADDED DEBUG LOGGING** → Found the real issue in 5 minutes!
+
+### 💡 ROOT CAUSE: Regex Pattern Mismatch
+
+**The Bug:**
+```javascript
+// Expected format: TOTAL: **£amount**
+const totalMatch = line.match(/TOTAL:\s*\*\*?£([\d,]+)\*\*?/);
+
+// Actual format from Grok: **TOTAL: £amount**
+Line: "**TOTAL: £2,609** *(Save £461!)*"
+Match: null  ← FAILED!
+```
+
+**The Issue:**
+- We assumed markdown bold syntax came AFTER `TOTAL:`
+- Grok puts bold syntax BEFORE `TOTAL:`
+- Regex didn't match, entire formatting failed silently
+
+**The Fix:**
+```javascript
+// Correct regex: **? BEFORE TOTAL:
+const totalMatch = line.match(/\*\*?TOTAL:\s*£([\d,]+)\*\*?/);
+Match: ["**TOTAL: £2,609**", "2,609", ...]  ← SUCCESS!
+```
+
+### 🎯 KEY LESSONS FOR FUTURE
+
+#### 1. **ALWAYS Add Debug Logging First**
+
+When custom parsing fails, DON'T guess and deploy repeatedly. Instead:
+
+```javascript
+console.log('[Parser] Processing line:', line);
+console.log('[Parser] Regex match result:', someRegex.test(line));
+console.log('[Parser] Current section:', currentSection);
+```
+
+**Time Saved:**
+- Before: 5+ deployment cycles, 30+ minutes
+- After: 1 console check, 5 minutes to fix
+
+#### 2. **Don't Assume LLM Output Format**
+
+Even with SYSTEM_PROMPT instructions, LLMs may:
+- Put markdown syntax in different positions
+- Use different formatting conventions
+- Add unexpected whitespace or punctuation
+
+**Solution:**
+- Log actual LLM output first
+- Write flexible regex patterns
+- Test with real responses, not assumptions
+
+#### 3. **Browser Caching is Rarely the Issue**
+
+If incognito mode shows the same problem, it's NOT caching:
+- Browser cache affects static files
+- GitHub Pages CDN propagates in 1-2 minutes
+- Service workers can be cleared, but unlikely culprit
+
+**Real Issues Are Usually:**
+- Logic bugs (regex, conditions)
+- Data format mismatches
+- Silent failures (no error thrown)
+
+#### 4. **Test Parsing Logic Independently**
+
+Create standalone HTML files to test formatters:
+```javascript
+const testResponse = `### 💰 Price\n**TOTAL: £2,609**\n- Item 1: £1,958`;
+console.log(formatLLMResponse(testResponse));
+```
+
+Faster than deploying to production repeatedly.
+
+#### 5. **Version Your Formatter Functions**
+
+Add version comments to track changes:
+```javascript
+/**
+ * Format LLM response
+ * VERSION: 2025-11-02-v3 (TOTAL price fix)
+ */
+function formatLLMResponse(content) { ... }
+```
+
+Helps identify which version is deployed.
+
+### ⚠️ DO NOT (Lessons Learned)
+
+- ❌ Deploy multiple times hoping it "fixes itself"
+- ❌ Assume browser caching without evidence
+- ❌ Write regex without testing actual LLM output
+- ❌ Skip debug logging "to save time" (costs more time later)
+- ❌ Trust SYSTEM_PROMPT to guarantee exact format
+
+### ✅ DO (Best Practices)
+
+- ✅ Add debug logging FIRST when parsing fails
+- ✅ Check browser console before deploying
+- ✅ Test regex with actual LLM responses
+- ✅ Log line-by-line parsing in production (temporarily)
+- ✅ Write flexible patterns that handle variations
+- ✅ Create standalone test files for complex parsers
+
+### 📊 Time Investment Analysis
+
+**Without Debug Logging:**
+- 5 deployment cycles × 2 min deploy + 2 min test = 20 minutes
+- Multiple code changes without knowing root cause
+- User frustration: "Still the same issue. Even in incognito."
+
+**With Debug Logging:**
+- 1 deployment with logging = 2 minutes
+- 1 console check = 30 seconds
+- Immediate diagnosis: "Match: null"
+- 1 fix deployment = 2 minutes
+- **Total: 5 minutes vs 20+ minutes**
+
+### 🎓 Summary
+
+**The Real Lesson:** When debugging LLM response formatting issues, the **browser console is your best friend**. Five minutes of debug logging beats hours of blind deployments.
+
+**Quick Debug Checklist:**
+1. Add `console.log()` to parser
+2. Check browser console
+3. Compare expected vs actual format
+4. Fix regex/logic
+5. Remove debug logging
+6. Deploy once
+
+**Status:** ✅ **LESSON LEARNED - DOCUMENTED FOR FUTURE**
+
+---
+
 ## 💬 Communication Style
 
 When working on v2:
