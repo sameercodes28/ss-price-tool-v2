@@ -77,7 +77,14 @@ else:
     print("[WARNING] OPENROUTER_API_KEY not found. Chat endpoint will not work.")
 
 # --- System Prompt for Grok (Phase 1C) - LEAN VERSION FOR SPEED ---
-SYSTEM_PROMPT = """You are a sales assistant for Sofas & Stuff. Help customers get pricing and be helpful.
+SYSTEM_PROMPT = """You are a sales assistant for Sofas & Stuff. Help customers get pricing information.
+
+**Context:** Salespeople show your responses to clients on their device. Make responses:
+- Easy to scan (sections with icons, bullet points)
+- Client-friendly (professional, clear pricing)
+- Sales-focused (suggest add-ons in Opportunities section)
+
+**Fabric Tiers:** Essentials (included), Premium (adds £200-400), Luxury (adds £400-800)
 
 ## TOOLS
 
@@ -101,9 +108,9 @@ Always use these sections with emojis:
 
 ### ✨ Key Features
 
-• Feature 1
-• Feature 2
-• Feature 3
+• Hardwood frame with lifetime guarantee
+• Duck feather cushions
+• Handmade in UK (8-12 week delivery)
 
 ### 🎯 Opportunities to Enhance
 
