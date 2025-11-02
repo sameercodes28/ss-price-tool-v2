@@ -156,10 +156,28 @@ All infrastructure is deployed and operational!
 - User runs simple scripts only if Claude cannot test
 - Keeps codebase lean and focused
 
+**Additional Changes:**
+6. ✅ **Clarified ambiguous instructions**
+   - Lines 25-26 in .claude/instructions.md: Added line number disclaimer
+   - Lines 68-86: Added clear definitions of "Feature" vs "Piece"
+   - Lines 82-86: Added "Local vs Deployed Testing" rules
+   - Lines 290-317: Clarified phases are categories, not sequential
+   - Lines 144-153: Updated post-implementation testing with deployment rules
+
+**Key Clarifications Made:**
+- **Feature** = complete user-facing capability (deployed when done)
+- **Piece** = small step < 10-20 lines (tested and committed immediately)
+- **Local testing** = mandatory for every piece
+- **Deployed testing** = only for complete features
+- **Phases** = work categories, not sequential steps (can do any order)
+- **Line numbers** = approximate references (will shift as code changes)
+
 **Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
 - 3fe1741: "v2: Document session changes in context.md"
 - 34d35ab: "v2: Clarify testing approach - Claude tests, no frameworks"
+- 87638c3: "v2: Update context.md with testing approach documentation"
+- 3ac6aa7: "v2: Clarify instructions - definitions, deployment, phases, line numbers"
 
 ---
 
