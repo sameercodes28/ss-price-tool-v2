@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typewriter Placeholder Test</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 40px;
+            background: #FAFAF8;
+        }
+
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            border: 2px solid #E8E8E4;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: #667EEA;
+        }
+
+        .animated-placeholder {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #B8B8B8;
+            font-size: 16px;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input:focus ~ .animated-placeholder,
+        .search-input:not(:placeholder-shown) ~ .animated-placeholder {
+            display: none;
+        }
+
+        .placeholder-text {
+            margin-right: 2px;
+            color: #B8B8B8;
+        }
+
+        .placeholder-cursor {
+            width: 2px;
+            height: 20px;
+            background: #B8B8B8;
+            animation: blink 1s infinite;
+            opacity: 0.8;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .examples-list {
+            margin-top: 30px;
+            padding: 20px;
+            background: #F5F3EE;
+            border-radius: 8px;
+        }
+
+        h3 {
+            color: #1A1A1A;
+            margin-bottom: 12px;
+        }
+
+        li {
+            color: #6B6B6B;
+            margin: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>Typewriter Placeholder Test</h2>
+        <p>Watch the placeholder text type out different queries:</p>
+
+        <div class="search-box">
+            <input
+                type="text"
+                class="search-input"
+                id="testInput"
+                placeholder=" "
+                autocomplete="off">
+            <div class="animated-placeholder">
+                <span class="placeholder-text" id="placeholderText"></span>
+                <span class="placeholder-cursor"></span>
+            </div>
+        </div>
+
+        <div class="examples-list">
+            <h3>These examples will cycle through:</h3>
+            <ol>
+                <li>Alwinton 3 seater in Sussex Plain Pacific</li>
+                <li>Midhurst snuggler in House Wool Sky</li>
+                <li>Show all velvet fabric options under £2500</li>
+                <li>Petworth 2 seater in pet-friendly fabric</li>
+                <li>Chesterfield corner sofa configurations</li>
+                <li>Aldingbourne bed in neutral linen blend</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const placeholderExamples = [
+            "Alwinton 3 seater in Sussex Plain Pacific",
+            "Midhurst snuggler in House Wool Sky",
+            "Show all velvet fabric options under £2500",
+            "Petworth 2 seater in pet-friendly fabric",
+            "Chesterfield corner sofa configurations",
+            "Aldingbourne bed in neutral linen blend"
+        ];
+
+        let currentPlaceholderIndex = 0;
+        let typingTimeout;
+        let isTyping = false;
+
+        function typewriterEffect() {
+            const placeholderText = document.getElementById('placeholderText');
+            const currentText = placeholderExamples[currentPlaceholderIndex];
+
+            if (isTyping) return;
+            isTyping = true;
+
+            // Clear existing text with backspace effect
+            const existingText = placeholderText.textContent;
+            let charIndex = existingText.length;
+
+            // Backspace animation
+            function deleteText() {
+                if (charIndex > 0) {
+                    placeholderText.textContent = existingText.substring(0, charIndex - 1);
+                    charIndex--;
+                    typingTimeout = setTimeout(deleteText, 30);
+                } else {
+                    // Start typing new text
+                    typeNewText();
+                }
+            }
+
+            // Type new text
+            let newCharIndex = 0;
+            function typeNewText() {
+                if (newCharIndex < currentText.length) {
+                    placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
+                    newCharIndex++;
+                    typingTimeout = setTimeout(typeNewText, 60 + Math.random() * 40); // Variable speed
+                } else {
+                    // Pause before next example
+                    isTyping = false;
+                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
+                    typingTimeout = setTimeout(typewriterEffect, 3000); // Wait 3 seconds
+                }
+            }
+
+            // Start the animation
+            if (existingText.length > 0) {
+                deleteText();
+            } else {
+                typeNewText();
+            }
+        }
+
+        const testInput = document.getElementById('testInput');
+        const placeholderText = document.getElementById('placeholderText');
+
+        testInput.addEventListener('focus', () => {
+            clearTimeout(typingTimeout);
+            isTyping = false;
+            placeholderText.style.opacity = '0';
+        });
+
+        testInput.addEventListener('blur', () => {
+            if (!testInput.value) {
+                placeholderText.style.opacity = '1';
+                placeholderText.textContent = '';
+                typewriterEffect();
+            }
+        });
+
+        // Start animation on load
+        window.addEventListener('load', () => {
+            placeholderText.textContent = '';
+            setTimeout(typewriterEffect, 500);
+        });
+    </script>
+</body>
+</html>

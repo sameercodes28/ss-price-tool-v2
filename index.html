@@ -598,7 +598,7 @@
             left: 32px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--text-tertiary);
+            color: #B8B8B8; /* Lighter gray for ghost text */
             font-size: 16px;
             pointer-events: none;
             z-index: 1;
@@ -616,15 +616,18 @@
         .placeholder-text {
             display: inline-block;
             margin-right: 2px;
-            transition: opacity 0.3s ease;
+            color: #B8B8B8; /* Lighter gray for better ghost text effect */
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         .placeholder-cursor {
             display: inline-block;
             width: 2px;
             height: 20px;
-            background: var(--text-tertiary);
+            background: #B8B8B8; /* Match cursor color with text */
             animation: blink 1s infinite;
+            opacity: 0.8;
         }
 
         .search-submit {
@@ -1427,29 +1430,64 @@
         };
 
         const placeholderExamples = [
-            "Alwinton 3 seater in Pacific velvet",
-            "Chester sofa leather options",
-            "Bramley 2 seater pricing",
-            "Corner sofas under £3000",
-            "Harrow in linen blend",
-            "Chesterfield configurations",
-            "Size options for Pembroke",
-            "Budget friendly 3 seaters"
+            "Alwinton 3 seater in Sussex Plain Pacific",
+            "Midhurst snuggler in House Wool Sky",
+            "Show all velvet fabric options under £2500",
+            "Petworth 2 seater in pet-friendly fabric",
+            "Chesterfield corner sofa configurations",
+            "Aldingbourne bed in neutral linen blend"
         ];
 
         let currentPlaceholderIndex = 0;
         let placeholderInterval;
+        let typingTimeout;
+        let isTyping = false;
 
-        function animatePlaceholder() {
+        function typewriterEffect() {
             const placeholderText = document.getElementById('placeholderText');
+            const placeholderCursor = document.querySelector('.placeholder-cursor');
+            const currentText = placeholderExamples[currentPlaceholderIndex];
 
-            placeholderText.style.opacity = '0';
+            if (isTyping) return;
+            isTyping = true;
 
-            setTimeout(() => {
-                placeholderText.textContent = placeholderExamples[currentPlaceholderIndex];
-                placeholderText.style.opacity = '1';
-                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
-            }, 300);
+            // Clear existing text with backspace effect
+            const existingText = placeholderText.textContent;
+            let charIndex = existingText.length;
+
+            // Backspace animation
+            function deleteText() {
+                if (charIndex > 0) {
+                    placeholderText.textContent = existingText.substring(0, charIndex - 1);
+                    charIndex--;
+                    typingTimeout = setTimeout(deleteText, 30);
+                } else {
+                    // Start typing new text
+                    typeNewText();
+                }
+            }
+
+            // Type new text
+            let newCharIndex = 0;
+            function typeNewText() {
+                if (newCharIndex < currentText.length) {
+                    placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
+                    newCharIndex++;
+                    typingTimeout = setTimeout(typeNewText, 60 + Math.random() * 40); // Variable speed for natural typing
+                } else {
+                    // Pause before next example
+                    isTyping = false;
+                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
+                    typingTimeout = setTimeout(typewriterEffect, 3000); // Wait 3 seconds before next
+                }
+            }
+
+            // Start the animation
+            if (existingText.length > 0) {
+                deleteText();
+            } else {
+                typeNewText();
+            }
         }
 
         function getTimeOfDay() {
@@ -2008,14 +2046,16 @@
         });
 
         landingInput.addEventListener('focus', () => {
-            clearInterval(placeholderInterval);
+            clearTimeout(typingTimeout);
+            isTyping = false;
             placeholderText.style.opacity = '0';
         });
 
         landingInput.addEventListener('blur', () => {
             if (!landingInput.value) {
                 placeholderText.style.opacity = '1';
-                placeholderInterval = setInterval(animatePlaceholder, 3000);
+                placeholderText.textContent = ''; // Start fresh
+                typewriterEffect(); // Start typewriter effect
             }
         });
 
@@ -2025,13 +2065,13 @@
 
         window.addEventListener('load', () => {
             setRandomWelcomeMessage();
-            placeholderText.textContent = placeholderExamples[0];
-            placeholderInterval = setInterval(animatePlaceholder, 3000);
+            placeholderText.textContent = ''; // Start with empty
+            setTimeout(typewriterEffect, 500); // Start typewriter after a short delay
             landingInput.focus();
         });
 
         window.addEventListener('beforeunload', () => {
-            clearInterval(placeholderInterval);
+            clearTimeout(typingTimeout);
         });
     </script>
 </body>
