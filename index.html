@@ -847,11 +847,16 @@
                 }
 
                 // Total price (for multiple items)
-                if (line.startsWith('TOTAL:')) {
-                    const totalMatch = line.match(/TOTAL:\s*\*\*£([\d,]+)\*\*/);
+                if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
+                    const totalMatch = line.match(/TOTAL:\s*\*\*?£([\d,]+)\*\*?/);
+                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
                     if (totalMatch) {
                         const totalAmount = totalMatch[1];
-                        html += `<div class="total-price">TOTAL: £${totalAmount}</div>`;
+                        html += `<div class="total-price">TOTAL: £${totalAmount}`;
+                        if (savingsMatch) {
+                            html += ` <span style="font-size: 1.25rem; color: #dc2626;">(Save £${savingsMatch[1]}!)</span>`;
+                        }
+                        html += '</div>';
                         html += '<div class="price-breakdown"><ul>';
                         currentSection = 'breakdown';
                         continue;
@@ -861,12 +866,26 @@
                 // Price breakdown items (bullet list after TOTAL)
                 if (currentSection === 'breakdown' && (line.startsWith('-') || line.startsWith('•'))) {
                     const text = line.substring(1).trim();
-                    // Parse "Item name: £amount" format
-                    const parts = text.split(':');
-                    if (parts.length === 2) {
-                        html += `<li><span>${escapeHtml(parts[0])}</span><strong>${escapeHtml(parts[1].trim())}</strong></li>`;
+
+                    // Parse complex format: "Item: ~~£old~~ → **£new** *(Save £amount!)*"
+                    const itemMatch = text.match(/^([^:]+):\s*(~~£[\d,]+~~\s*→\s*\*\*£[\d,]+\*\*.*)/);
+                    if (itemMatch) {
+                        const itemName = itemMatch[1];
+                        const priceInfo = itemMatch[2];
+
+                        // Extract new price for display
+                        const newPriceMatch = priceInfo.match(/\*\*£([\d,]+)\*\*/);
+                        const newPrice = newPriceMatch ? newPriceMatch[1] : '';
+
+                        html += `<li><span>${escapeHtml(itemName)}</span><strong>£${newPrice}</strong></li>`;
                     } else {
-                        html += `<li>${escapeHtml(text)}</li>`;
+                        // Fallback: Simple "Item: £amount" format
+                        const parts = text.split(':');
+                        if (parts.length === 2) {
+                            html += `<li><span>${escapeHtml(parts[0])}</span><strong>${escapeHtml(parts[1].trim())}</strong></li>`;
+                        } else {
+                            html += `<li>${escapeHtml(text)}</li>`;
+                        }
                     }
                     continue;
                 }
