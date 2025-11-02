@@ -10,6 +10,31 @@
     <!-- Load modern fonts for testing -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Urbanist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ============================================
+           CSS VARIABLES - Original + Fabric Inspired
+           ============================================ */
+        :root {
+            /* === NEW: Fabric-inspired colors (Ultra Fabric UI) === */
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-linen: #E8DFD3;
+            --fabric-wool: #D4C5B9;
+            --fabric-silk: #F5EEE6;
+            --fabric-gold: #D4A574;
+
+            /* === NEW: UI colors based on fabric palette === */
+            --border-light: #E8E8E4;
+            --border-medium: #D4D4D0;
+            --hover-bg: #F0EDE6;
+
+            /* === NEW: Shadows === */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+            --shadow-fabric: 0 4px 20px rgba(198, 126, 95, 0.15);
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: linear-gradient(135deg, #FFF5EB 0%, #FFE4CC 50%, #FFD4A8 100%);
@@ -459,6 +484,286 @@
                 transform: scale(0.4) translateY(300px);
                 opacity: 0.7;
             }
+        }
+
+        /* ============================================
+           ULTRA FABRIC ORB DESIGN SYSTEM
+           ============================================ */
+
+        /* Complex weaving animation */
+        @keyframes ultraWeave {
+            0% {
+                transform: rotate(0deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            25% {
+                transform: rotate(90deg) scale(1.02);
+                filter: hue-rotate(10deg);
+            }
+            50% {
+                transform: rotate(180deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            75% {
+                transform: rotate(270deg) scale(1.02);
+                filter: hue-rotate(-10deg);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        /* Fiber movement animation */
+        @keyframes fiberFlow {
+            0%, 100% {
+                transform: translateX(0) translateY(0);
+                opacity: 0.6;
+            }
+            33% {
+                transform: translateX(2px) translateY(-1px);
+                opacity: 0.8;
+            }
+            66% {
+                transform: translateX(-1px) translateY(2px);
+                opacity: 0.7;
+            }
+        }
+
+        /* Holographic shimmer */
+        @keyframes holographicShift {
+            0% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 50% 50%;
+                filter: brightness(1.1);
+            }
+            100% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+        }
+
+        /* Depth pulse */
+        @keyframes depthPulse {
+            0%, 100% {
+                box-shadow:
+                    inset 0 0 10px rgba(198, 126, 95, 0.3),
+                    inset 0 0 20px rgba(139, 154, 123, 0.2),
+                    0 5px 20px rgba(122, 107, 93, 0.25);
+            }
+            50% {
+                box-shadow:
+                    inset 0 0 15px rgba(198, 126, 95, 0.4),
+                    inset 0 0 30px rgba(139, 154, 123, 0.3),
+                    0 8px 30px rgba(122, 107, 93, 0.35);
+            }
+        }
+
+        /* Ultra fabric orb container */
+        .ultra-fabric-orb {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Main orb with enhanced texture */
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation:
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background:
+                /* Holographic layer */
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                /* Depth gradient */
+                radial-gradient(
+                    circle at 30% 30%,
+                    rgba(245, 238, 230, 0.8),
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 70% 70%,
+                    rgba(122, 107, 93, 0.4),
+                    transparent 50%
+                ),
+                /* Base texture */
+                linear-gradient(135deg,
+                    var(--fabric-silk) 0%,
+                    var(--fabric-linen) 50%,
+                    var(--fabric-wool) 100%
+                );
+            background-size: 200% 200%, 100% 100%, 100% 100%, 100% 100%;
+            background-blend-mode: multiply, overlay, normal, normal;
+        }
+
+        /* Complex weaving pattern - Layer 1 */
+        .ultra-fabric-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                /* Vertical threads */
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(198, 126, 95, 0.2) 3px,
+                    rgba(198, 126, 95, 0.2) 4px
+                ),
+                /* Horizontal threads */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(139, 154, 123, 0.2) 3px,
+                    rgba(139, 154, 123, 0.2) 4px
+                );
+            animation: ultraWeave 30s linear infinite;
+            mix-blend-mode: multiply;
+        }
+
+        /* Individual fiber strands - Layer 2 */
+        .ultra-fabric-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background:
+                radial-gradient(
+                    ellipse at 35% 35%,
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.4) 30%,
+                    transparent 60%
+                );
+            animation: fiberFlow 5s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* Extra depth layer */
+        .fabric-depth-layer {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background:
+                conic-gradient(
+                    from 180deg at 50% 50%,
+                    transparent,
+                    rgba(198, 126, 95, 0.1),
+                    transparent,
+                    rgba(139, 154, 123, 0.1),
+                    transparent
+                );
+            animation: ultraWeave 20s linear infinite reverse;
+            pointer-events: none;
+        }
+
+        /* Particle fibers floating */
+        .fabric-particles {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fabric-particle {
+            position: absolute;
+            width: 1px;
+            height: 8px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(212, 165, 116, 0.6),
+                transparent
+            );
+            animation: particleFloat 10s infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.3;
+            }
+            80% {
+                opacity: 0.6;
+            }
+        }
+
+        .fabric-particle:nth-child(1) {
+            left: 20%;
+            top: 50%;
+            animation-delay: 0s;
+        }
+
+        .fabric-particle:nth-child(2) {
+            left: 50%;
+            top: 20%;
+            animation-delay: 2s;
+        }
+
+        .fabric-particle:nth-child(3) {
+            left: 80%;
+            top: 50%;
+            animation-delay: 4s;
+        }
+
+        .fabric-particle:nth-child(4) {
+            left: 50%;
+            top: 80%;
+            animation-delay: 6s;
+        }
+
+        .fabric-particle:nth-child(5) {
+            left: 35%;
+            top: 35%;
+            animation-delay: 8s;
+        }
+
+        /* Small version for chat messages */
+        .ultra-fabric-orb-small {
+            width: 32px;
+            height: 32px;
+        }
+
+        .ultra-fabric-orb-small .ultra-fabric-sphere {
+            animation-duration: 6s, 12s;
+        }
+
+        /* Hover state */
+        .ultra-fabric-orb:hover .ultra-fabric-sphere {
+            transform: scale(1.05) rotateX(5deg) rotateY(-5deg);
+            box-shadow:
+                inset 0 0 20px rgba(198, 126, 95, 0.5),
+                inset 0 0 40px rgba(139, 154, 123, 0.4),
+                0 10px 40px rgba(122, 107, 93, 0.4);
         }
     </style>
 </head>
