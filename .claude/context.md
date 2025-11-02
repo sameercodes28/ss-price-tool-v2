@@ -1235,6 +1235,197 @@ Helps identify which version is deployed.
 
 ---
 
+## 🎯 PIECE 3: Follow-up Suggestions (Completed ✅)
+
+**Feature:** Context-aware clickable suggestion chips that predict next user questions
+
+**User Requirements:**
+- Show 3-4 clickable prompts relevant to previous conversation
+- Update dynamically based on each new prompt
+- Predict salesperson/client questions intelligently
+- No prompts that yield empty responses or need clarifications
+- Handle edge cases like footstool sizing (show 3 prices for S/M/L)
+
+### Implementation Overview
+
+**Status:** ✅ Fully implemented and tested on live site
+
+**Components:**
+1. Backend SYSTEM_PROMPT instructions (main.py)
+2. Frontend parsing logic (index.html)
+3. CSS styling for chip UI
+4. Click behavior (auto-fill + auto-send)
+
+### Backend Implementation
+
+**File:** main.py (lines 140-160)
+
+Added FOLLOW-UP SUGGESTIONS section to SYSTEM_PROMPT:
+
+```python
+## FOLLOW-UP SUGGESTIONS
+
+Always end with 3-4 clickable follow-up questions:
+
+### 💬 What would you like to know next?
+- Question 1 (under 8 words)
+- Question 2 (under 8 words)
+- Question 3 (under 8 words)
+
+RULES:
+- Questions must be answerable with tools (no clarifications)
+- Base on conversation context
+- Vary types: comparisons, add-ons, alternatives, colors
+- Be specific (e.g. "Compare Alwinton 2 vs 3 seater" not "Compare sizes")
+
+EXAMPLES:
+After price query: "Compare with 2 seater", "Show matching footstool", "See blue fabrics"
+After comparison: "Add footstool to both", "Upgrade to Premium", "Search under £3,000"
+```
+
+**Grok Output Format (verified via curl):**
+```
+### 💬 What would you like to know next?
+- Compare Alwinton 2 seater
+- Price of matching footstool
+- Show grey fabrics
+```
+
+### Frontend Implementation
+
+**File:** index.html
+
+**1. Parsing Logic (lines 802, 831-837, 931-947):**
+```javascript
+let suggestions = [];  // Initialize array
+
+// Detect suggestions section
+if (line.startsWith('### 💬')) {
+    console.log('[SUGGESTIONS] Section detected');
+    if (currentSection === 'opportunities') html += '</div>';
+    currentSection = 'suggestions';
+    continue;
+}
+
+// Extract suggestion bullets
+if (currentSection === 'suggestions' && (line.startsWith('-') || line.startsWith('•'))) {
+    const suggestion = line.substring(1).trim();
+    console.log('[SUGGESTION] Found:', suggestion);
+    suggestions.push(suggestion);
+    continue;
+}
+```
+
+**2. Rendering Logic (lines 967-978):**
+```javascript
+if (suggestions.length > 0) {
+    console.log('[SUGGESTIONS] Rendering', suggestions.length, 'suggestions');
+    html += '<div class="suggestions-section">';
+    html += '<div class="section-header suggestions-header">💬 What next?</div>';
+    html += '<div class="suggestions-chips">';
+    suggestions.forEach(suggestion => {
+        html += `<button class="suggestion-chip" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
+    });
+    html += '</div></div>';
+}
+```
+
+**3. Click Handler (lines 988-998):**
+```javascript
+function handleSuggestionClick(suggestionText) {
+    console.log('[CLICK] Suggestion clicked:', suggestionText);
+    messageInput.value = suggestionText;
+    sendMessage();  // Auto-send
+}
+```
+
+**4. CSS Styling (lines 301-348):**
+```css
+.suggestions-section {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #0ea5e9;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+}
+
+.suggestion-chip {
+    background: white;
+    border: 2px solid #38bdf8;
+    border-radius: 9999px;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #0369a1;
+    cursor: pointer;
+    min-height: 44px;  /* Touch-friendly */
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
+}
+
+.suggestion-chip:hover {
+    background: #0ea5e9;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+}
+```
+
+### Testing Approach
+
+**Method:** Debug-first methodology (learned from TOTAL price formatting issue)
+
+**Steps Taken:**
+1. ✅ Added SYSTEM_PROMPT instructions to backend
+2. ✅ Deployed to GCF v2
+3. ✅ Tested with curl to verify Grok format
+4. ✅ Added debug console logs BEFORE implementation
+5. ✅ Implemented parser with logs active
+6. ✅ Added CSS styling
+7. ✅ Tested on live site
+8. ✅ Verified click behavior works
+
+**curl Test Results:**
+- Response time: ~5-6 seconds (Grok-4-fast)
+- Format: Consistent with SYSTEM_PROMPT instructions
+- Suggestions: Always 3 relevant questions
+
+### Key Design Decisions
+
+**1. Auto-send on click:** Clicking a chip immediately sends the question (no manual Send button press needed)
+
+**2. Blue color scheme:** Distinguishes suggestions from:
+- Green (price section)
+- Purple (opportunities section)
+- Makes them stand out as interactive elements
+
+**3. Pill-shaped chips:**
+- Modern, friendly UI
+- Clear clickable affordance
+- Mobile-friendly with 44px min-height
+
+**4. Context-aware suggestions:** Grok analyzes conversation history to generate relevant next questions
+
+### Known Edge Cases
+
+**Footstool Sizing:**
+- User note: Footstools require size selection (S/M/L)
+- Approach: Grok should show 3 prices in response or suggest specific size
+- Example: "Small footstool (£495)" vs "Choose footstool size"
+
+### Future Considerations
+
+**Potential Enhancements:**
+- Track which suggestions get clicked (analytics)
+- A/B test different suggestion styles
+- Limit suggestion history to prevent repetition
+- Add "shuffle" button for more suggestions
+
+**Status:** ✅ Feature complete and working on live site
+
+---
+
 ## 💬 Communication Style
 
 When working on v2:
