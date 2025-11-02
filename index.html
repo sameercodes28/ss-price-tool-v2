@@ -3,473 +3,753 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S&S Voice Price Check</title>
+    <title>Sofas and Stuff - Pricing Companion</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Load modern fonts for testing -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=Urbanist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #FFF5EB 0%, #FFE4CC 50%, #FFD4A8 100%);
         }
-        /* Custom animation for the pulsing button */
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+
+        /* Beautiful heading font */
+        h1, h2, h3, .heading-font {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        /* Full-screen chat layout */
+        #chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+
+        /* Smooth scroll for messages */
+        #messages-container {
+            scroll-behavior: smooth;
+            background: transparent;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        #messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #messages-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #messages-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        #messages-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Typing indicator animation */
+        .typing-indicator {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #fb923c;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
             }
-            50% {
-                transform: scale(1.05);
-                box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
             }
         }
-        .listening {
-            animation: pulse 1.5s infinite;
+
+        /* Message fade-in animation */
+        .message-fade-in {
+            animation: fadeIn 0.3s ease-out;
         }
-        /* Simple transition for results */
-        #result-card {
-            transition: all 0.3s ease-out;
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        /* Hide scrollbar */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
+
+        /* Input area focus ring */
+        #message-input:focus {
+            outline: none;
+            border-color: #fb923c;
+            box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15);
         }
-        .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+
+        /* Send button hover effect */
+        #send-button:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        #send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Magical Glowing Orb Animation */
+        .orb-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .orb {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80px;
+            height: 80px;
+            margin: -40px 0 0 -40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,
+                #8B5CF6,  /* Vivid Purple */
+                #EC4899,  /* Bright Pink */
+                #F43F5E,  /* Rose */
+                #FB923C,  /* Orange */
+                #FBBF24,  /* Amber */
+                #FACC15,  /* Yellow */
+                #A3E635,  /* Lime */
+                #22C55E,  /* Green */
+                #10B981,  /* Emerald */
+                #14B8A6,  /* Teal */
+                #06B6D4,  /* Cyan */
+                #0EA5E9,  /* Sky Blue */
+                #3B82F6,  /* Blue */
+                #6366F1,  /* Indigo */
+                #8B5CF6,  /* Purple */
+                #A855F7,  /* Violet */
+                #C026D3,  /* Fuchsia */
+                #E11D48,  /* Red */
+                #F97316,  /* Deep Orange */
+                #EAB308,  /* Gold */
+                #84CC16,  /* Light Green */
+                #8B5CF6   /* Back to Purple for smooth loop */
+            );
+            background-size: 2200% 2200%;
+            animation: orbColorShift 15s ease-in-out infinite, orbFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 60px rgba(139, 92, 246, 0.8);
+        }
+
+        .orb-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            margin: -50px 0 0 -50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.6), transparent 70%);
+            animation: orbPulse 2s ease-in-out infinite, glowColorShift 15s ease-in-out infinite;
+        }
+
+        .orb-pulse {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120px;
+            height: 120px;
+            margin: -60px 0 0 -60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.4), transparent 70%);
+            animation: orbPulse 2s ease-in-out infinite 1s, glowColorShift 15s ease-in-out infinite 7.5s;
+        }
+
+        @keyframes glowColorShift {
+            0%, 100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(360deg); }
+        }
+
+        @keyframes orbColorShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes orbFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes orbPulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* Orb movement when typing starts */
+        .orb-container.move-down {
+            animation: moveToButton 0.6s ease-out forwards;
+        }
+
+        @keyframes moveToButton {
+            to {
+                transform: scale(0.4) translateY(300px);
+                opacity: 0.7;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12 px-4">
-    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full">
-        
+<body>
+    <!-- Full-screen chat container -->
+    <div id="chat-container">
+
         <!-- Header -->
-        <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">S&S Voice Price Check</h1>
-            <p class="text-gray-500 text-sm mt-2">
-                e.g., "Alwinton snuggler pacific" or "Arles super king bed waves"
-            </p>
-        </div>
-
-        <!-- Voice Button -->
-        <div class="flex justify-center mb-4">
-            <button id="mic-button" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-6 transition-all duration-200 shadow-lg">
-                <svg id="mic-icon" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a.75.75 0 00.75-.75V6.31l.011-.005a3.375 3.375 0 00-6.75 0l.01.005v11.735A.75.75 0 0012 18.75zM12 6.31v11.735" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.31a3.375 3.375 0 016.74 0l.01.005v11.735a3.375 3.375 0 01-6.75 0l.011-.005V6.31zM4.5 12.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75v-.01zM18 12.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zM12 21a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01a.75.75 0 01.75-.75h.01z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zM15 15a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01z" />
-                </svg>
-            </button>
-        </div>
-
-        <!-- Manual Input Fallback (Critique #4) -->
-        <div class="flex gap-2 mb-4">
-            <input type="text" id="manual-input" placeholder="Or type manually..." class="flex-grow w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="search-button" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all duration-200">
-                Search
-            </button>
-        </div>
-
-        <!-- Status Text -->
-        <div class="text-center h-6 mb-4">
-            <p id="status-text" class="text-gray-600 text-lg"></p>
-            <div id="loading-spinner" class="hidden h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        </div>
-
-        <!-- Result Card -->
-        <div id="result-card" class="bg-gray-50 border border-gray-200 rounded-xl shadow-inner p-5 max-h-0 overflow-hidden opacity-0">
-            
-            <!-- Image Carousel (Critique #12) -->
-            <div id="image-container" class="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 hidden">
-                <div id="image-carousel" class="w-full h-full flex transition-transform duration-300">
-                    <!-- Images will be inserted here by JS -->
+        <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-3">
+                <div id="logo-container" class="w-12 h-12 rounded-3xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #fb923c, #ea580c);">
+                    <!-- Cute bubbly couch with happy face -->
+                    <svg class="w-8 h-8" viewBox="0 0 48 48" fill="none">
+                        <!-- Couch body (rounded/bubbly) -->
+                        <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Left armrest -->
+                        <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
+                        <!-- Right armrest -->
+                        <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
+                        <!-- Cute happy face -->
+                        <circle id="logo-eye-left" cx="20" cy="20" r="1.5" fill="#fb923c"/>
+                        <circle id="logo-eye-right" cx="28" cy="20" r="1.5" fill="#fb923c"/>
+                        <path id="logo-smile" d="M20 25C20 25 22 27 24 27C26 27 28 25 28 25" stroke="#fb923c" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
                 </div>
-                <button id="prev-button" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hidden">&lt;</button>
-                <button id="next-button" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hidden">&gt;</button>
-                <div id="no-image" class="w-full h-full flex items-center justify-center text-gray-500 text-lg hidden">
-                    No Image Available
-                </div>
-            </div>
-
-            <!-- Price & Title -->
-            <div class="flex justify-between items-start mb-4">
                 <div>
-                    <h2 id="product-name" class="text-2xl font-bold text-gray-900"></h2>
-                    <p id="fabric-name" class="text-lg text-gray-700"></p>
-                </div>
-                <div class="text-right flex-shrink-0 ml-4">
-                    <p id="price" class="text-3xl font-bold text-blue-600"></p>
-                    <p id="old-price" class="text-lg text-gray-500 line-through"></p>
+                    <h1 class="text-2xl font-bold text-gray-900" style="letter-spacing: -0.02em;">Sofas and Stuff</h1>
+                    <p class="text-xs text-gray-600 font-light" style="letter-spacing: 0.02em;">Pricing Companion</p>
                 </div>
             </div>
+            <button id="new-conversation-btn" class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-150 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span class="hidden sm:inline">New Conversation</span>
+                <span class="sm:hidden">New</span>
+            </button>
+        </header>
 
-            <!-- Tabs -->
-            <div class="mb-4">
-                <div class="border-b border-gray-200">
-                    <nav class="-mb-px flex gap-6" aria-label="Tabs">
-                        <button id="tab-specs" class="tab-button border-blue-500 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Specifications</button>
-                        <button id="tab-fabric" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Fabric Details</button>
-                    </nav>
-                </div>
-            </div>
+        <!-- Messages Area (scrollable) -->
+        <main id="messages-container" class="flex-1 overflow-y-auto px-4 py-8">
+            <div class="max-w-3xl mx-auto">
 
-            <!-- Tab Content -->
-            <div id="content-specs" class="tab-content">
-                <ul id="specs-list" class="list-disc pl-5 space-y-1 text-gray-700">
-                    <!-- Specs will be inserted here by JS -->
-                </ul>
-                <p id="no-specs" class="text-gray-500 hidden">No specifications available for this product.</p>
-            </div>
-            
-            <div id="content-fabric" class="tab-content hidden">
-                <div class="flex items-center gap-4">
-                    <img id="fabric-swatch" src="" alt="Fabric Swatch" class="w-20 h-20 rounded-lg border border-gray-300">
-                    <div>
-                        <p class="text-sm text-gray-600">Collection: <span id="fabric-tier" class="font-semibold text-gray-800"></span></p>
-                        <p id="fabric-desc" class="text-sm text-gray-600 mt-1"></p>
+                <!-- Welcome Message (shown when no messages) -->
+                <div id="welcome-message" class="flex items-center justify-center" style="min-height: 60vh;">
+                    <div class="text-center">
+                        <!-- Magical glowing orb -->
+                        <div id="magic-orb" class="mx-auto mb-8 relative">
+                            <!-- Main glowing sphere -->
+                            <div class="orb-container">
+                                <div class="orb"></div>
+                                <div class="orb-glow"></div>
+                                <div class="orb-pulse"></div>
+                            </div>
+                        </div>
+
+                        <!-- Subtle example questions below orb -->
+                        <p id="example-question" class="text-sm text-gray-600 transition-opacity duration-500 max-w-md mx-auto px-4 font-light italic"></p>
                     </div>
                 </div>
-            </div>
 
-        </div>
-        
-        <!-- Recent Queries (Critique #19) -->
-        <div id="history-container" class="mt-8 hidden">
-            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Recent Queries</h3>
-            <div id="history-list" class="flex flex-col gap-2">
-                <!-- History items will be inserted here -->
+                <!-- Messages will be appended here -->
+                <div id="messages-list"></div>
+
+                <!-- Typing Indicator (hidden by default) -->
+                <div id="typing-indicator" class="flex items-start gap-3 hidden message-fade-in mb-8">
+                    <div class="w-8 h-8 bg-gradient-to-br rounded-full flex items-center justify-center flex-shrink-0 shadow-sm agent-avatar">
+                        <svg class="w-5 h-5 text-white" viewBox="0 0 48 48" fill="none">
+                            <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
+                            <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                        <div class="typing-indicator">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-        </div>
+        </main>
+
+        <!-- Input Area (fixed at bottom) -->
+        <footer class="bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex gap-3 items-end">
+                    <textarea
+                        id="message-input"
+                        rows="1"
+                        placeholder="Ask about products, pricing, or options..."
+                        class="flex-1 px-4 py-3 border rounded-xl resize-none focus:outline-none transition-all duration-150"
+                        style="max-height: 150px; line-height: 1.5; min-height: 48px;"
+                    ></textarea>
+                    <button
+                        id="send-button"
+                        class="text-white rounded-xl shadow-md transition-all duration-150"
+                        aria-label="Send message"
+                        style="flex-shrink: 0; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fb923c, #f97316);"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 text-center font-light">
+                    Session expires after 1 hour of inactivity
+                </p>
+            </div>
+        </footer>
+
     </div>
 
     <script>
-        // --- DOM Elements ---
-        const micButton = document.getElementById('mic-button');
-        const micIcon = document.getElementById('mic-icon');
-        const statusText = document.getElementById('status-text');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const resultCard = document.getElementById('result-card');
-        
-        const manualInput = document.getElementById('manual-input');
-        const searchButton = document.getElementById('search-button');
+        // ========================================
+        // CHAT UI JAVASCRIPT
+        // ========================================
 
-        const productName = document.getElementById('product-name');
-        const fabricName = document.getElementById('fabric-name');
-        const price = document.getElementById('price');
-        const oldPrice = document.getElementById('old-price');
+        // DOM Elements
+        const messagesContainer = document.getElementById('messages-container');
+        const messagesList = document.getElementById('messages-list');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const newConversationBtn = document.getElementById('new-conversation-btn');
 
-        // Image Carousel
-        const imageContainer = document.getElementById('image-container');
-        const imageCarousel = document.getElementById('image-carousel');
-        const noImage = document.getElementById('no-image');
-        const prevButton = document.getElementById('prev-button');
-        const nextButton = document.getElementById('next-button');
+        // Session Management
+        let sessionId = null;
+        let messageCount = 0;
 
-        // Tabs
-        const tabSpecs = document.getElementById('tab-specs');
-        const tabFabric = document.getElementById('tab-fabric');
-        const contentSpecs = document.getElementById('content-specs');
-        const contentFabric = document.getElementById('content-fabric');
-        const specsList = document.getElementById('specs-list');
-        const noSpecs = document.getElementById('no-specs');
-        
-        const fabricSwatch = document.getElementById('fabric-swatch');
-        const fabricTier = document.getElementById('fabric-tier');
-        const fabricDesc = document.getElementById('fabric-desc');
+        // Backend API URL (v2)
+        const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
 
-        // History
-        const historyContainer = document.getElementById('history-container');
-        const historyList = document.getElementById('history-list');
+        // ========================================
+        // RANDOM THEME SELECTION
+        // ========================================
 
-        let currentImageIndex = 0;
-        let totalImages = 0;
-
-        // --- Config ---
-        // v2 Backend API URL (separate from v1)
-        const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2/getPrice';
-
-        // // (Critique #7) To enable auth, uncomment this and set the key
-        // const API_KEY = 'YOUR_API_KEY_HERE';
-
-        // Check if the URL has been replaced
-        if (BACKEND_API_URL.includes('YOUR_GOOGLE_CLOUD_FUNCTION_URL_HERE')) {
-            showError('ERROR: Backend URL not set in HTML file.');
-            micButton.disabled = true;
-            searchButton.disabled = true;
-            micButton.classList.add('opacity-50', 'cursor-not-allowed');
-            searchButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-
-        // --- Speech Recognition ---
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'en-US';
-            recognition.interimResults = false;
-            recognition.maxAlternatives = 1;
-
-            recognition.onstart = () => {
-                statusText.textContent = 'Listening...';
-                micButton.classList.add('listening', 'bg-red-500');
-                micButton.classList.remove('bg-blue-500');
-            };
-
-            recognition.onresult = (event) => {
-                const query = event.results[0][0].transcript;
-                manualInput.value = query; // Put recognized text in the box
-                fetchPrice(query);
-            };
-
-            recognition.onerror = (event) => {
-                if (event.error === 'no-speech') {
-                    showError('No speech detected. Please try again.');
-                } else if (event.error === 'not-allowed') {
-                    showError('Microphone access denied. Please enable it in your browser settings.');
-                } else {
-                    showError('An error occurred with speech recognition.');
-                }
-            };
-
-            recognition.onend = () => {
-                statusText.textContent = '';
-                micButton.classList.remove('listening', 'bg-red-500');
-                micButton.classList.add('bg-blue-500');
-            };
-
-            micButton.onclick = () => {
-                recognition.start();
-            };
-
-        } else {
-            // (Critique #3) No Speech API. Disable mic and show a message.
-            micButton.disabled = true;
-            micButton.classList.add('opacity-50', 'cursor-not-allowed');
-            statusText.textContent = 'Voice recognition not supported in this browser.';
-        }
-
-        // --- Manual Search ---
-        searchButton.onclick = () => {
-            const query = manualInput.value;
-            if (query) {
-                fetchPrice(query);
-            } else {
-                showError('Please type a query first.');
+        const themes = {
+            warmSunset: {
+                name: 'Warm Sunset',
+                bgGradient: 'linear-gradient(135deg, #FFF5EB 0%, #FFE4CC 50%, #FFD4A8 100%)',
+                buttonGradient: 'linear-gradient(135deg, #fb923c, #f97316)',
+                logoGradient: 'linear-gradient(135deg, #fb923c, #ea580c)',
+                accentColor: '#fb923c',
+                logoFaceColor: '#fb923c',
+                inputBorderColor: '#fb923c',
+                inputFocusShadow: 'rgba(251, 146, 60, 0.15)',
+                userBubbleGradient: 'linear-gradient(135deg, #fb923c, #f97316)',
+                agentAvatarGradient: 'linear-gradient(135deg, #fb923c, #ea580c)'
+            },
+            softLavender: {
+                name: 'Soft Lavender',
+                bgGradient: 'linear-gradient(135deg, #F8F7FF 0%, #F0EBFF 50%, #E8E0FF 100%)',
+                buttonGradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
+                logoGradient: 'linear-gradient(135deg, #a855f7, #c026d3)',
+                accentColor: '#a855f7',
+                logoFaceColor: '#a855f7',
+                inputBorderColor: '#a855f7',
+                inputFocusShadow: 'rgba(168, 85, 247, 0.15)',
+                userBubbleGradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
+                agentAvatarGradient: 'linear-gradient(135deg, #a855f7, #c026d3)'
             }
         };
 
-        manualInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                searchButton.click();
+        /**
+         * Apply theme colors to all elements
+         * Why: Ensures consistent theming across logo, button, and accents
+         */
+        function applyTheme(theme) {
+            // Update background
+            document.body.style.background = theme.bgGradient;
+
+            // Update submit button
+            const sendButton = document.getElementById('send-button');
+            if (sendButton) {
+                sendButton.style.background = theme.buttonGradient;
+            }
+
+            // Update logo container
+            const logoContainer = document.getElementById('logo-container');
+            if (logoContainer) {
+                logoContainer.style.background = theme.logoGradient;
+            }
+
+            // Update logo face elements (eyes and smile)
+            const eyeLeft = document.getElementById('logo-eye-left');
+            const eyeRight = document.getElementById('logo-eye-right');
+            const smile = document.getElementById('logo-smile');
+
+            if (eyeLeft) eyeLeft.setAttribute('fill', theme.logoFaceColor);
+            if (eyeRight) eyeRight.setAttribute('fill', theme.logoFaceColor);
+            if (smile) smile.setAttribute('stroke', theme.logoFaceColor);
+
+            // Update message input border
+            const messageInput = document.getElementById('message-input');
+            if (messageInput) {
+                messageInput.style.borderColor = theme.inputBorderColor;
+            }
+
+            // Update all agent avatars (messages and typing indicator)
+            const agentAvatars = document.querySelectorAll('.agent-avatar');
+            agentAvatars.forEach(avatar => {
+                avatar.style.background = theme.agentAvatarGradient;
+            });
+
+            // Update typing indicator dots and input focus state
+            const style = document.createElement('style');
+            style.textContent = `
+                .typing-dot { background: ${theme.accentColor} !important; }
+                #message-input:focus {
+                    border-color: ${theme.inputBorderColor} !important;
+                    box-shadow: 0 0 0 3px ${theme.inputFocusShadow} !important;
+                }
+                .agent-avatar { background: ${theme.agentAvatarGradient} !important; }
+            `;
+            document.head.appendChild(style);
+
+            console.log(`Theme applied: ${theme.name}`);
+        }
+
+        /**
+         * Randomly select and apply theme on page load
+         * Why: Provides variety while keeping just two beautiful options
+         */
+        function initializeRandomTheme() {
+            const themeKeys = Object.keys(themes);
+            const randomTheme = themes[themeKeys[Math.floor(Math.random() * themeKeys.length)]];
+            applyTheme(randomTheme);
+        }
+
+        // Apply random theme on load
+        initializeRandomTheme();
+
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
+
+        /**
+         * Auto-resize textarea as user types
+         * Why: Better UX for multi-line messages without manual resizing
+         */
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        /**
+         * Scroll to bottom of messages
+         * Why: Always show latest message (like WhatsApp/ChatGPT)
+         */
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        /**
+         * Show typing indicator
+         * Why: Let user know agent is "thinking" (better perceived performance)
+         */
+        function showTypingIndicator() {
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+        }
+
+        /**
+         * Hide typing indicator
+         */
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('hidden');
+        }
+
+        /**
+         * Add message to chat UI
+         * @param {string} content - Message text
+         * @param {boolean} isUser - True if user message, false if agent
+         * @param {object} data - Optional structured data (for product cards, etc.)
+         */
+        function addMessage(content, isUser, data = null) {
+            // Hide welcome message on first message
+            if (messageCount === 0) {
+                welcomeMessage.classList.add('hidden');
+            }
+            messageCount++;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', 'items-start', 'gap-3', 'message-fade-in', 'mb-8');
+
+            if (isUser) {
+                // User message (right side, dark slate gray)
+                messageDiv.classList.add('flex-row-reverse');
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-[85%] shadow-md">
+                        <p class="text-sm leading-relaxed">${escapeHtml(content)}</p>
+                    </div>
+                `;
+            } else {
+                // Agent message (left side, white with couch avatar)
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-br rounded-full flex items-center justify-center flex-shrink-0 shadow-sm agent-avatar">
+                        <svg class="w-5 h-5 text-white" viewBox="0 0 48 48" fill="none">
+                            <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
+                            <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-3 max-w-[85%] shadow-md">
+                        <p class="text-sm leading-relaxed text-gray-800">${escapeHtml(content)}</p>
+                    </div>
+                `;
+            }
+
+            messagesList.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        /**
+         * Escape HTML to prevent XSS
+         * Why: Security - never trust user input
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Send message to backend
+         * Why: Main function for user interaction
+         */
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to UI
+            addMessage(message, true);
+
+            // Clear input and reset height
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                // TODO: Replace with actual backend call once session endpoints are ready
+                // For now, simulate a response
+                await simulateBackendResponse(message);
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+                addMessage('Sorry, I encountered an error. Please try again.', false);
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        /**
+         * Temporary function to simulate backend responses
+         * Why: Test UI before backend is ready
+         * TODO: Remove this when backend integration is complete
+         */
+        async function simulateBackendResponse(message) {
+            // Simulate network delay (500ms-1500ms)
+            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
+
+            hideTypingIndicator();
+
+            // Simple mock responses for testing
+            const lowerMessage = message.toLowerCase();
+            if (lowerMessage.includes('price') || lowerMessage.includes('alwinton')) {
+                addMessage('The Alwinton 3-seater in House Wool is £2,450. Would you like to see other fabric options or compare it with another model?', false);
+            } else if (lowerMessage.includes('compare')) {
+                addMessage('I can help you compare products! Which two models would you like to compare?', false);
+            } else if (lowerMessage.includes('budget') || lowerMessage.includes('under')) {
+                addMessage('I can help you find sofas within your budget. What\'s your maximum price range?', false);
+            } else {
+                addMessage('I understand you\'re asking about: "' + message + '". Let me help you with that! (Note: Backend integration coming soon)', false);
+            }
+        }
+
+        /**
+         * Start new conversation
+         * Why: Sales staff need to start fresh for new customers
+         */
+        function startNewConversation() {
+            if (messageCount > 0 && !confirm('Start a new conversation? Current chat will be cleared.')) {
+                return;
+            }
+
+            // Clear messages
+            messagesList.innerHTML = '';
+            messageCount = 0;
+
+            // Show welcome message
+            welcomeMessage.classList.remove('hidden');
+
+            // Reset session
+            sessionId = null;
+
+            // Reset orb animation state
+            hasStartedTyping = false;
+            const orbContainer = document.querySelector('.orb-container');
+            if (orbContainer) {
+                orbContainer.classList.remove('move-down');
+            }
+
+            // Restart orb animation
+            startOrbAnimation();
+
+            // Focus input
+            messageInput.focus();
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enter key to send (Shift+Enter for new line)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
             }
         });
 
+        // New conversation button
+        newConversationBtn.addEventListener('click', startNewConversation);
 
-        // --- API Call ---
-        async function fetchPrice(query) {
-            hideResult();
-            statusText.textContent = '';
-            loadingSpinner.classList.remove('hidden');
-            searchButton.disabled = true;
-            searchButton.classList.add('opacity-50');
+        // Focus input on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            messageInput.focus();
+            startOrbAnimation();
+        });
 
-            try {
-                const response = await fetch(BACKEND_API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // // (Critique #7) To enable auth, uncomment this line
-                        // 'Authorization': `Bearer ${API_KEY}`
-                    },
-                    body: JSON.stringify({ query: query })
-                });
+        // ========================================
+        // MAGICAL ORB & QUESTION ANIMATION
+        // ========================================
 
-                const data = await response.json();
+        /**
+         * Cycle through example questions with fade effect
+         * Why: Shows users what they can ask in a subtle, elegant way
+         */
+        const exampleQuestions = [
+            "What's the price for Alwinton in House Wool?",
+            "Show me all options for Berkeley sofa",
+            "Compare Alwinton vs Aldingbourne",
+            "What 3-seaters are under £3000?",
+            "Find me fabrics in sage green",
+            "Which sofas come in velvet?",
+            "Show me corner sofas under £4000"
+        ];
 
-                if (!response.ok) {
-                    // Use the helpful error from the backend
-                    throw new Error(data.error || 'An unknown error occurred.');
+        let questionIndex = 0;
+        let questionInterval;
+        let hasStartedTyping = false;
+
+        function cycleQuestions() {
+            const exampleQuestionEl = document.getElementById('example-question');
+            if (!exampleQuestionEl) return;
+
+            // Fade out
+            exampleQuestionEl.style.opacity = '0';
+
+            setTimeout(() => {
+                // Change text
+                exampleQuestionEl.textContent = exampleQuestions[questionIndex];
+                questionIndex = (questionIndex + 1) % exampleQuestions.length;
+
+                // Fade in
+                exampleQuestionEl.style.opacity = '1';
+            }, 500);
+        }
+
+        function startOrbAnimation() {
+            // Only animate if welcome message is visible
+            if (!welcomeMessage.classList.contains('hidden')) {
+                // Start with first question
+                const exampleQuestionEl = document.getElementById('example-question');
+                if (exampleQuestionEl) {
+                    exampleQuestionEl.textContent = exampleQuestions[0];
+                    exampleQuestionEl.style.opacity = '1';
                 }
-                
-                statusText.textContent = 'Success!';
-                statusText.classList.remove('text-red-500');
-                statusText.classList.add('text-green-500');
-                displayResult(data, query);
-                saveToHistory(query, data.price);
-                loadHistory();
 
-            } catch (error) {
-                // (Critique #9) User-friendly error handling
-                console.error('Fetch error:', error);
-                let userMessage = 'An error occurred. Please try again.';
-                
-                if (error.message.includes('Product not found')) {
-                    userMessage = error.message;
-                } else if (error.message.includes('Ambiguous fabric')) {
-                    userMessage = error.message;
-                } else if (error.message.includes('Could not find a size')) {
-                    userMessage = error.message;
-                } else if (error.message.includes('API request failed')) {
-                    userMessage = "Could not price this item. Please check the combination and try again.";
-                } else if (error.message.includes('timed out')) {
-                    userMessage = 'Request timed out. The S&S server may be slow. Please try again.';
-                } else if (error.message.includes('Failed to fetch')) {
-                    userMessage = 'Network error. Please check your connection or the backend URL.';
-                }
-                
-                showError(userMessage);
-
-            } finally {
-                loadingSpinner.classList.add('hidden');
-                searchButton.disabled = false;
-                searchButton.classList.remove('opacity-50');
+                // Cycle questions every 3 seconds
+                questionInterval = setInterval(cycleQuestions, 3000);
             }
         }
 
-        // --- UI Display ---
+        /**
+         * Animate orb down to submit button when user starts typing
+         * Why: Creates magical transition from welcome to chat mode
+         */
+        function moveOrbDown() {
+            if (hasStartedTyping) return;
+            hasStartedTyping = true;
 
-        function displayResult(data, query) {
-            productName.textContent = data.productName;
-            fabricName.textContent = data.fabricName;
-            price.textContent = data.price;
-            oldPrice.textContent = data.oldPrice || '';
-            oldPrice.classList.toggle('hidden', !data.oldPrice);
+            const orbContainer = document.querySelector('.orb-container');
+            const exampleQuestionEl = document.getElementById('example-question');
 
-            // Fabric Details
-            fabricTier.textContent = data.fabricDetails.tier;
-            fabricDesc.textContent = data.fabricDetails.description;
-            fabricSwatch.src = data.fabricDetails.swatchUrl || '';
-            fabricSwatch.classList.toggle('hidden', !data.fabricDetails.swatchUrl);
-
-            // Specs
-            specsList.innerHTML = ''; // Clear old specs
-            if (data.specs && data.specs.length > 0) {
-                noSpecs.classList.add('hidden');
-                data.specs.forEach(spec => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span class="font-semibold">${spec.Label}:</span> ${spec.Value}`;
-                    specsList.appendChild(li);
-                });
-            } else {
-                noSpecs.classList.remove('hidden');
+            if (orbContainer) {
+                orbContainer.classList.add('move-down');
             }
 
-            // Image Carousel (Critique #12)
-            imageCarousel.innerHTML = ''; // Clear old images
-            if (data.imageUrls && data.imageUrls.length > 0) {
-                totalImages = data.imageUrls.length;
-                currentImageIndex = 0;
-                imageContainer.classList.remove('hidden');
-                noImage.classList.add('hidden');
-
-                data.imageUrls.forEach(url => {
-                    const img = document.createElement('img');
-                    img.src = url;
-                    img.alt = data.productName;
-                    img.className = 'w-full h-full object-contain flex-shrink-0';
-                    imageCarousel.appendChild(img);
-                });
-                
-                prevButton.classList.toggle('hidden', totalImages <= 1);
-                nextButton.classList.toggle('hidden', totalImages <= 1);
-                updateCarousel();
-
-            } else {
-                imageContainer.classList.remove('hidden');
-                noImage.classList.remove('hidden');
-                prevButton.classList.add('hidden');
-                nextButton.classList.add('hidden');
+            if (exampleQuestionEl) {
+                exampleQuestionEl.style.opacity = '0';
             }
 
-            // Show the card
-            resultCard.style.maxHeight = '1000px'; // Set to a large value
-            resultCard.style.opacity = '1';
-            resultCard.style.padding = '1.25rem'; // 20px
-        }
-
-        function hideResult() {
-            resultCard.style.maxHeight = '0';
-            resultCard.style.opacity = '0';
-            resultCard.style.padding = '0';
-        }
-
-        function showError(message) {
-            statusText.textContent = message;
-            statusText.classList.add('text-red-500');
-            statusText.classList.remove('text-green-500');
-            hideResult();
-        }
-
-        // --- Carousel Logic ---
-        prevButton.onclick = () => {
-            currentImageIndex = (currentImageIndex > 0) ? currentImageIndex - 1 : totalImages - 1;
-            updateCarousel();
-        };
-
-        nextButton.onclick = () => {
-            currentImageIndex = (currentImageIndex < totalImages - 1) ? currentImageIndex + 1 : 0;
-            updateCarousel();
-        };
-
-        function updateCarousel() {
-            imageCarousel.style.transform = `translateX(-${currentImageIndex * 100}%)`;
-        }
-        
-        // --- Tabs Logic ---
-        function switchTab(isSpecs) {
-            if (isSpecs) {
-                tabSpecs.classList.add('border-blue-500', 'text-blue-600');
-                tabSpecs.classList.remove('border-transparent', 'text-gray-500');
-                tabFabric.classList.add('border-transparent', 'text-gray-500');
-                tabFabric.classList.remove('border-blue-500', 'text-blue-600');
-                
-                contentSpecs.classList.remove('hidden');
-                contentFabric.classList.add('hidden');
-            } else {
-                tabFabric.classList.add('border-blue-500', 'text-blue-600');
-                tabFabric.classList.remove('border-transparent', 'text-gray-500');
-                tabSpecs.classList.add('border-transparent', 'text-gray-500');
-                tabSpecs.classList.remove('border-blue-500', 'text-blue-600');
-
-                contentFabric.classList.remove('hidden');
-                contentSpecs.classList.add('hidden');
-            }
-        }
-        
-        tabSpecs.onclick = () => switchTab(true);
-        tabFabric.onclick = () => switchTab(false);
-        
-        // --- History Logic (Critique #19) ---
-        function saveToHistory(query, price) {
-            let history = JSON.parse(localStorage.getItem('queryHistory') || '[]');
-            // Add new item to the start
-            history.unshift({ query: query, price: price, timestamp: Date.now() });
-            // Keep only the last 5
-            history = history.slice(0, 5); 
-            localStorage.setItem('queryHistory', JSON.stringify(history));
-        }
-
-        function loadHistory() {
-            let history = JSON.parse(localStorage.getItem('queryHistory') || '[]');
-            historyList.innerHTML = ''; // Clear list
-            
-            if (history.length > 0) {
-                historyContainer.classList.remove('hidden');
-                history.forEach(item => {
-                    const button = document.createElement('button');
-                    button.className = 'text-left text-sm text-blue-600 hover:underline p-2 bg-blue-50 rounded-lg';
-                    button.textContent = `"${item.query}" (${item.price})`;
-                    button.onclick = () => {
-                        manualInput.value = item.query;
-                        fetchPrice(item.query);
-                    };
-                    historyList.appendChild(button);
-                });
+            // Stop cycling questions
+            if (questionInterval) {
+                clearInterval(questionInterval);
             }
         }
 
-        // Load history on page load
-        document.addEventListener('DOMContentLoaded', loadHistory);
+        // Trigger orb animation when user starts typing
+        messageInput.addEventListener('input', function() {
+            if (this.value.length === 1 && !hasStartedTyping) {
+                moveOrbDown();
+            }
+        });
+
+        messageInput.addEventListener('focus', function() {
+            // Don't move orb on focus, only on actual typing
+        });
 
     </script>
 </body>
