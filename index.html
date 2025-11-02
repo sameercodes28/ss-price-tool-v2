@@ -338,12 +338,42 @@
         const sendButton = document.getElementById('send-button');
         const newConversationBtn = document.getElementById('new-conversation-btn');
 
-        // Session Management
-        let sessionId = null;
-        let messageCount = 0;
+        // ========================================
+        // LLM CONFIGURATION (Phase 1C)
+        // ========================================
+
+        // Feature flag: Use LLM (/chat) vs Direct matching (/getPrice)
+        const USE_LLM = true; // LLM features enabled (Phase 1C)
 
         // Backend API URL (v2)
         const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        // Session Management
+        let sessionId = null;
+        let messageCount = 0;
+        let conversationHistory = []; // Tracks full conversation for LLM
+
+        /**
+         * Generate unique session ID
+         * Why: Allows backend to track conversations (Phase 1B will use this for memory)
+         */
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+        }
+
+        /**
+         * Reset conversation (new session)
+         * Why: Lets user start fresh without page refresh
+         */
+        function resetConversation() {
+            conversationHistory = [];
+            sessionId = generateSessionId();
+            console.log('[Frontend] Conversation reset. New session:', sessionId);
+        }
+
+        // Initialize session on load
+        sessionId = generateSessionId();
+        console.log('[Frontend] Session initialized:', sessionId);
 
         // ========================================
         // RANDOM THEME SELECTION
@@ -564,71 +594,146 @@
             showTypingIndicator();
 
             try {
-                // Check for greetings or casual queries first
-                const lowerMessage = message.toLowerCase().trim();
-                const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
-                if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                if (USE_LLM) {
+                    // ========================================
+                    // LLM PATH (/chat endpoint with Grok)
+                    // ========================================
+
+                    // Add user message to conversation history
+                    conversationHistory.push({
+                        role: 'user',
+                        content: message
+                    });
+
+                    console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
+
+                    // Call /chat endpoint with full conversation history
+                    const response = await fetch(`${BACKEND_API_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messages: conversationHistory,
+                            session_id: sessionId
+                        })
+                    });
+
+                    const data = await response.json();
                     hideTypingIndicator();
-                    addMessage(
-                        "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
-                        "Try asking me something like:\n" +
-                        "• \"alwinton snuggler pacific\"\n" +
-                        "• \"aldingbourne snuggler waves\"\n" +
-                        "• \"rye snuggler pacific\"\n\n" +
-                        "Format: product name + size + color",
-                        false
-                    );
-                    return;
-                }
 
-                // Call real backend API
-                const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query: message })
-                });
+                    if (response.ok && data.response) {
+                        // Success - show LLM response
+                        addMessage(data.response, false);
 
-                const data = await response.json();
-                hideTypingIndicator();
+                        // Add assistant response to conversation history
+                        conversationHistory.push({
+                            role: 'assistant',
+                            content: data.response
+                        });
 
-                // Handle response
-                if (response.ok && data.price) {
-                    // Success - format the price response
-                    const responseText = formatPriceResponse(data);
-                    addMessage(responseText, false);
-                } else if (data.error) {
-                    // Error from backend - provide helpful guidance
-                    let helpfulError = "I couldn't find that exact product.\n\n";
+                        // Log metadata
+                        if (data.metadata) {
+                            console.log('[Frontend] LLM Response metadata:', {
+                                tokens: data.metadata.tokens,
+                                iterations: data.metadata.iterations,
+                                model: data.metadata.model
+                            });
+                        }
 
-                    // Check if it might be a typo
-                    if (lowerMessage.length > 3) {
-                        helpfulError += "💡 Try:\n" +
-                            "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
-                            "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
-                            "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
+                    } else if (data.error) {
+                        // Error from LLM
+                        addMessage(
+                            "Sorry, I encountered an issue processing your request.\n\n" +
+                            (data.details ? `Details: ${data.details}` : "Please try again or rephrase your question."),
+                            false
+                        );
+
+                        // Remove failed user message from history
+                        conversationHistory.pop();
+                    } else {
+                        // Unexpected response
+                        addMessage("Hmm, something unexpected happened. Please try again.", false);
+                        conversationHistory.pop();
                     }
 
-                    helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
-
-                    addMessage(helpfulError, false);
                 } else {
-                    // Unexpected response
-                    addMessage(
-                        "Hmm, I'm not sure about that.\n\n" +
-                        "I work best when you give me:\n" +
-                        "• Product name (e.g., Alwinton)\n" +
-                        "• Size (e.g., 3 seater, snuggler)\n" +
-                        "• Fabric (e.g., Sussex Plain, Velvet)",
-                        false
-                    );
+                    // ========================================
+                    // NON-LLM PATH (/getPrice endpoint - direct keyword matching)
+                    // ========================================
+
+                    // Check for greetings or casual queries first
+                    const lowerMessage = message.toLowerCase().trim();
+                    const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
+                    if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                        hideTypingIndicator();
+                        addMessage(
+                            "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
+                            "Try asking me something like:\n" +
+                            "• \"alwinton snuggler pacific\"\n" +
+                            "• \"aldingbourne snuggler waves\"\n" +
+                            "• \"rye snuggler pacific\"\n\n" +
+                            "Format: product name + size + color",
+                            false
+                        );
+                        return;
+                    }
+
+                    // Call /getPrice endpoint (existing Phase 1.5 logic)
+                    const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ query: message })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    // Handle response
+                    if (response.ok && data.price) {
+                        // Success - format the price response
+                        const responseText = formatPriceResponse(data);
+                        addMessage(responseText, false);
+                    } else if (data.error) {
+                        // Error from backend - provide helpful guidance
+                        let helpfulError = "I couldn't find that exact product.\n\n";
+
+                        // Check if it might be a typo
+                        if (lowerMessage.length > 3) {
+                            helpfulError += "💡 Try:\n" +
+                                "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
+                                "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
+                                "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
+                        }
+
+                        helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
+
+                        addMessage(helpfulError, false);
+                    } else {
+                        // Unexpected response
+                        addMessage(
+                            "Hmm, I'm not sure about that.\n\n" +
+                            "I work best when you give me:\n" +
+                            "• Product name (e.g., Alwinton)\n" +
+                            "• Size (e.g., 3 seater, snuggler)\n" +
+                            "• Fabric (e.g., Sussex Plain, Velvet)",
+                            false
+                        );
+                    }
                 }
 
             } catch (error) {
                 console.error('Error sending message:', error);
                 hideTypingIndicator();
                 addMessage('Sorry, I encountered a connection error. Please try again.', false);
+
+                // Remove failed message from history if using LLM
+                if (USE_LLM && conversationHistory.length > 0 &&
+                    conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
             } finally {
                 // Re-enable input
                 messageInput.disabled = false;
@@ -689,8 +794,8 @@
             // Show welcome message
             welcomeMessage.classList.remove('hidden');
 
-            // Reset session
-            sessionId = null;
+            // Reset conversation history and session (Phase 1C)
+            resetConversation();
 
             // Reset orb animation state
             hasStartedTyping = false;
