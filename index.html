@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S&S Voice Price Check</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom animation for the pulsing button */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 12px rgba(59, 130, 246, 0);
+            }
+        }
+        .listening {
+            animation: pulse 1.5s infinite;
+        }
+        /* Simple transition for results */
+        #result-card {
+            transition: all 0.3s ease-out;
+        }
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-12 px-4">
+    <div class="bg-white rounded-2xl shadow-xl p-6 sm:p-8 max-w-2xl w-full">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">S&S Voice Price Check</h1>
+            <p class="text-gray-500 text-sm mt-2">
+                e.g., "Alwinton snuggler pacific" or "Arles super king bed waves"
+            </p>
+        </div>
+
+        <!-- Voice Button -->
+        <div class="flex justify-center mb-4">
+            <button id="mic-button" class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-6 transition-all duration-200 shadow-lg">
+                <svg id="mic-icon" class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a.75.75 0 00.75-.75V6.31l.011-.005a3.375 3.375 0 00-6.75 0l.01.005v11.735A.75.75 0 0012 18.75zM12 6.31v11.735" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.31a3.375 3.375 0 016.74 0l.01.005v11.735a3.375 3.375 0 01-6.75 0l.011-.005V6.31zM4.5 12.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75v-.01zM18 12.75a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zM12 21a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01a.75.75 0 01.75-.75h.01z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01zM15 15a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75h-.01a.75.75 0 01-.75-.75v-.01z" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Manual Input Fallback (Critique #4) -->
+        <div class="flex gap-2 mb-4">
+            <input type="text" id="manual-input" placeholder="Or type manually..." class="flex-grow w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="search-button" class="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded-xl shadow-sm transition-all duration-200">
+                Search
+            </button>
+        </div>
+
+        <!-- Status Text -->
+        <div class="text-center h-6 mb-4">
+            <p id="status-text" class="text-gray-600 text-lg"></p>
+            <div id="loading-spinner" class="hidden h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+
+        <!-- Result Card -->
+        <div id="result-card" class="bg-gray-50 border border-gray-200 rounded-xl shadow-inner p-5 max-h-0 overflow-hidden opacity-0">
+            
+            <!-- Image Carousel (Critique #12) -->
+            <div id="image-container" class="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden mb-4 hidden">
+                <div id="image-carousel" class="w-full h-full flex transition-transform duration-300">
+                    <!-- Images will be inserted here by JS -->
+                </div>
+                <button id="prev-button" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hidden">&lt;</button>
+                <button id="next-button" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hidden">&gt;</button>
+                <div id="no-image" class="w-full h-full flex items-center justify-center text-gray-500 text-lg hidden">
+                    No Image Available
+                </div>
+            </div>
+
+            <!-- Price & Title -->
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 id="product-name" class="text-2xl font-bold text-gray-900"></h2>
+                    <p id="fabric-name" class="text-lg text-gray-700"></p>
+                </div>
+                <div class="text-right flex-shrink-0 ml-4">
+                    <p id="price" class="text-3xl font-bold text-blue-600"></p>
+                    <p id="old-price" class="text-lg text-gray-500 line-through"></p>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-4">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex gap-6" aria-label="Tabs">
+                        <button id="tab-specs" class="tab-button border-blue-500 text-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Specifications</button>
+                        <button id="tab-fabric" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Fabric Details</button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="content-specs" class="tab-content">
+                <ul id="specs-list" class="list-disc pl-5 space-y-1 text-gray-700">
+                    <!-- Specs will be inserted here by JS -->
+                </ul>
+                <p id="no-specs" class="text-gray-500 hidden">No specifications available for this product.</p>
+            </div>
+            
+            <div id="content-fabric" class="tab-content hidden">
+                <div class="flex items-center gap-4">
+                    <img id="fabric-swatch" src="" alt="Fabric Swatch" class="w-20 h-20 rounded-lg border border-gray-300">
+                    <div>
+                        <p class="text-sm text-gray-600">Collection: <span id="fabric-tier" class="font-semibold text-gray-800"></span></p>
+                        <p id="fabric-desc" class="text-sm text-gray-600 mt-1"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Recent Queries (Critique #19) -->
+        <div id="history-container" class="mt-8 hidden">
+            <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-2">Recent Queries</h3>
+            <div id="history-list" class="flex flex-col gap-2">
+                <!-- History items will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const micButton = document.getElementById('mic-button');
+        const micIcon = document.getElementById('mic-icon');
+        const statusText = document.getElementById('status-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultCard = document.getElementById('result-card');
+        
+        const manualInput = document.getElementById('manual-input');
+        const searchButton = document.getElementById('search-button');
+
+        const productName = document.getElementById('product-name');
+        const fabricName = document.getElementById('fabric-name');
+        const price = document.getElementById('price');
+        const oldPrice = document.getElementById('old-price');
+
+        // Image Carousel
+        const imageContainer = document.getElementById('image-container');
+        const imageCarousel = document.getElementById('image-carousel');
+        const noImage = document.getElementById('no-image');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+
+        // Tabs
+        const tabSpecs = document.getElementById('tab-specs');
+        const tabFabric = document.getElementById('tab-fabric');
+        const contentSpecs = document.getElementById('content-specs');
+        const contentFabric = document.getElementById('content-fabric');
+        const specsList = document.getElementById('specs-list');
+        const noSpecs = document.getElementById('no-specs');
+        
+        const fabricSwatch = document.getElementById('fabric-swatch');
+        const fabricTier = document.getElementById('fabric-tier');
+        const fabricDesc = document.getElementById('fabric-desc');
+
+        // History
+        const historyContainer = document.getElementById('history-container');
+        const historyList = document.getElementById('history-list');
+
+        let currentImageIndex = 0;
+        let totalImages = 0;
+
+        // --- Config ---
+        // Backend API URL (configured for production deployment)
+        const BACKEND_API_URL = 'https://europe-west2-sofaproject-476903.cloudfunctions.net/sofa-price-calculator/getPrice';
+
+        // // (Critique #7) To enable auth, uncomment this and set the key
+        // const API_KEY = 'YOUR_API_KEY_HERE';
+
+        // Check if the URL has been replaced
+        if (BACKEND_API_URL.includes('YOUR_GOOGLE_CLOUD_FUNCTION_URL_HERE')) {
+            showError('ERROR: Backend URL not set in HTML file.');
+            micButton.disabled = true;
+            searchButton.disabled = true;
+            micButton.classList.add('opacity-50', 'cursor-not-allowed');
+            searchButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        // --- Speech Recognition ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onstart = () => {
+                statusText.textContent = 'Listening...';
+                micButton.classList.add('listening', 'bg-red-500');
+                micButton.classList.remove('bg-blue-500');
+            };
+
+            recognition.onresult = (event) => {
+                const query = event.results[0][0].transcript;
+                manualInput.value = query; // Put recognized text in the box
+                fetchPrice(query);
+            };
+
+            recognition.onerror = (event) => {
+                if (event.error === 'no-speech') {
+                    showError('No speech detected. Please try again.');
+                } else if (event.error === 'not-allowed') {
+                    showError('Microphone access denied. Please enable it in your browser settings.');
+                } else {
+                    showError('An error occurred with speech recognition.');
+                }
+            };
+
+            recognition.onend = () => {
+                statusText.textContent = '';
+                micButton.classList.remove('listening', 'bg-red-500');
+                micButton.classList.add('bg-blue-500');
+            };
+
+            micButton.onclick = () => {
+                recognition.start();
+            };
+
+        } else {
+            // (Critique #3) No Speech API. Disable mic and show a message.
+            micButton.disabled = true;
+            micButton.classList.add('opacity-50', 'cursor-not-allowed');
+            statusText.textContent = 'Voice recognition not supported in this browser.';
+        }
+
+        // --- Manual Search ---
+        searchButton.onclick = () => {
+            const query = manualInput.value;
+            if (query) {
+                fetchPrice(query);
+            } else {
+                showError('Please type a query first.');
+            }
+        };
+
+        manualInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+
+
+        // --- API Call ---
+        async function fetchPrice(query) {
+            hideResult();
+            statusText.textContent = '';
+            loadingSpinner.classList.remove('hidden');
+            searchButton.disabled = true;
+            searchButton.classList.add('opacity-50');
+
+            try {
+                const response = await fetch(BACKEND_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // // (Critique #7) To enable auth, uncomment this line
+                        // 'Authorization': `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    // Use the helpful error from the backend
+                    throw new Error(data.error || 'An unknown error occurred.');
+                }
+                
+                statusText.textContent = 'Success!';
+                statusText.classList.remove('text-red-500');
+                statusText.classList.add('text-green-500');
+                displayResult(data, query);
+                saveToHistory(query, data.price);
+                loadHistory();
+
+            } catch (error) {
+                // (Critique #9) User-friendly error handling
+                console.error('Fetch error:', error);
+                let userMessage = 'An error occurred. Please try again.';
+                
+                if (error.message.includes('Product not found')) {
+                    userMessage = error.message;
+                } else if (error.message.includes('Ambiguous fabric')) {
+                    userMessage = error.message;
+                } else if (error.message.includes('Could not find a size')) {
+                    userMessage = error.message;
+                } else if (error.message.includes('API request failed')) {
+                    userMessage = "Could not price this item. Please check the combination and try again.";
+                } else if (error.message.includes('timed out')) {
+                    userMessage = 'Request timed out. The S&S server may be slow. Please try again.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    userMessage = 'Network error. Please check your connection or the backend URL.';
+                }
+                
+                showError(userMessage);
+
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                searchButton.disabled = false;
+                searchButton.classList.remove('opacity-50');
+            }
+        }
+
+        // --- UI Display ---
+
+        function displayResult(data, query) {
+            productName.textContent = data.productName;
+            fabricName.textContent = data.fabricName;
+            price.textContent = data.price;
+            oldPrice.textContent = data.oldPrice || '';
+            oldPrice.classList.toggle('hidden', !data.oldPrice);
+
+            // Fabric Details
+            fabricTier.textContent = data.fabricDetails.tier;
+            fabricDesc.textContent = data.fabricDetails.description;
+            fabricSwatch.src = data.fabricDetails.swatchUrl || '';
+            fabricSwatch.classList.toggle('hidden', !data.fabricDetails.swatchUrl);
+
+            // Specs
+            specsList.innerHTML = ''; // Clear old specs
+            if (data.specs && data.specs.length > 0) {
+                noSpecs.classList.add('hidden');
+                data.specs.forEach(spec => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span class="font-semibold">${spec.Label}:</span> ${spec.Value}`;
+                    specsList.appendChild(li);
+                });
+            } else {
+                noSpecs.classList.remove('hidden');
+            }
+
+            // Image Carousel (Critique #12)
+            imageCarousel.innerHTML = ''; // Clear old images
+            if (data.imageUrls && data.imageUrls.length > 0) {
+                totalImages = data.imageUrls.length;
+                currentImageIndex = 0;
+                imageContainer.classList.remove('hidden');
+                noImage.classList.add('hidden');
+
+                data.imageUrls.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.alt = data.productName;
+                    img.className = 'w-full h-full object-contain flex-shrink-0';
+                    imageCarousel.appendChild(img);
+                });
+                
+                prevButton.classList.toggle('hidden', totalImages <= 1);
+                nextButton.classList.toggle('hidden', totalImages <= 1);
+                updateCarousel();
+
+            } else {
+                imageContainer.classList.remove('hidden');
+                noImage.classList.remove('hidden');
+                prevButton.classList.add('hidden');
+                nextButton.classList.add('hidden');
+            }
+
+            // Show the card
+            resultCard.style.maxHeight = '1000px'; // Set to a large value
+            resultCard.style.opacity = '1';
+            resultCard.style.padding = '1.25rem'; // 20px
+        }
+
+        function hideResult() {
+            resultCard.style.maxHeight = '0';
+            resultCard.style.opacity = '0';
+            resultCard.style.padding = '0';
+        }
+
+        function showError(message) {
+            statusText.textContent = message;
+            statusText.classList.add('text-red-500');
+            statusText.classList.remove('text-green-500');
+            hideResult();
+        }
+
+        // --- Carousel Logic ---
+        prevButton.onclick = () => {
+            currentImageIndex = (currentImageIndex > 0) ? currentImageIndex - 1 : totalImages - 1;
+            updateCarousel();
+        };
+
+        nextButton.onclick = () => {
+            currentImageIndex = (currentImageIndex < totalImages - 1) ? currentImageIndex + 1 : 0;
+            updateCarousel();
+        };
+
+        function updateCarousel() {
+            imageCarousel.style.transform = `translateX(-${currentImageIndex * 100}%)`;
+        }
+        
+        // --- Tabs Logic ---
+        function switchTab(isSpecs) {
+            if (isSpecs) {
+                tabSpecs.classList.add('border-blue-500', 'text-blue-600');
+                tabSpecs.classList.remove('border-transparent', 'text-gray-500');
+                tabFabric.classList.add('border-transparent', 'text-gray-500');
+                tabFabric.classList.remove('border-blue-500', 'text-blue-600');
+                
+                contentSpecs.classList.remove('hidden');
+                contentFabric.classList.add('hidden');
+            } else {
+                tabFabric.classList.add('border-blue-500', 'text-blue-600');
+                tabFabric.classList.remove('border-transparent', 'text-gray-500');
+                tabSpecs.classList.add('border-transparent', 'text-gray-500');
+                tabSpecs.classList.remove('border-blue-500', 'text-blue-600');
+
+                contentFabric.classList.remove('hidden');
+                contentSpecs.classList.add('hidden');
+            }
+        }
+        
+        tabSpecs.onclick = () => switchTab(true);
+        tabFabric.onclick = () => switchTab(false);
+        
+        // --- History Logic (Critique #19) ---
+        function saveToHistory(query, price) {
+            let history = JSON.parse(localStorage.getItem('queryHistory') || '[]');
+            // Add new item to the start
+            history.unshift({ query: query, price: price, timestamp: Date.now() });
+            // Keep only the last 5
+            history = history.slice(0, 5); 
+            localStorage.setItem('queryHistory', JSON.stringify(history));
+        }
+
+        function loadHistory() {
+            let history = JSON.parse(localStorage.getItem('queryHistory') || '[]');
+            historyList.innerHTML = ''; // Clear list
+            
+            if (history.length > 0) {
+                historyContainer.classList.remove('hidden');
+                history.forEach(item => {
+                    const button = document.createElement('button');
+                    button.className = 'text-left text-sm text-blue-600 hover:underline p-2 bg-blue-50 rounded-lg';
+                    button.textContent = `"${item.query}" (${item.price})`;
+                    button.onclick = ()D => {
+                        manualInput.value = item.query;
+                        fetchPrice(item.query);
+                    };
+                    historyList.appendChild(button);
+                });
+            }
+        }
+
+        // Load history on page load
+        document.addEventListener('DOMContentLoaded', loadHistory);
+
+    </script>
+</body>
+</html>
