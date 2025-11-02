@@ -10,6 +10,7 @@ from requests.adapters import HTTPAdapter
 from flask import jsonify # GCF's functions_framework includes Flask for helpers
 from fuzzywuzzy import process # For fuzzy matching
 from urllib.parse import quote # For URL encoding image paths
+from openai import OpenAI # For Grok LLM integration via OpenRouter
 
 # --- Setup: Session with Retries (Critique #6) ---
 # Create a reusable session to handle connections and retries
@@ -58,6 +59,22 @@ print("Dictionaries loaded successfully.")
 # --- The Sofas & Stuff API Endpoints we found (FINAL) ---
 SOFA_API_URL = "https://sofasandstuff.com/ProductExtend/ChangeProductSize"
 BED_API_URL = "https://sofasandstuff.com/Category/ProductPrice"
+
+# --- OpenRouter/Grok Configuration (Phase 1C) ---
+# Environment variables for OpenRouter API integration
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+GROK_MODEL = os.getenv('GROK_MODEL', 'x-ai/grok-4')  # Default to grok-4
+
+# Initialize OpenRouter client (only if API key is available)
+openrouter_client = None
+if OPENROUTER_API_KEY:
+    openrouter_client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=OPENROUTER_API_KEY
+    )
+    print(f"OpenRouter client initialized with model: {GROK_MODEL}")
+else:
+    print("[WARNING] OPENROUTER_API_KEY not found. Chat endpoint will not work.")
 
 # --- CORS Helper (Critique #9) ---
 def _build_cors_preflight_response():
