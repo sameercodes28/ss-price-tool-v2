@@ -278,6 +278,57 @@ Pacific, Moss, Rose, Truffle, Arctic, Stucco, Shadow, Bianco (White), Lagoon, Mi
 
 You are here to make furniture shopping easy and enjoyable!"""
 
+# --- TOOLS REGISTRY (Phase 1C Piece 3.3) ---
+# Extensible pattern: Each tool has OpenAI-format definition + handler function
+# Format follows OpenAI function calling spec: https://platform.openai.com/docs/guides/function-calling
+
+TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_price",
+            "description": "Get the exact price for a specific sofa or bed configuration. Use this when the customer asks for a price of a specific product with size, fabric, and optional cover type. Returns precise pricing based on product SKU, size, fabric tier, and cover type.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "The customer's product query including product name, size, fabric/color, and optionally cover type. Examples: 'Alwinton snuggler pacific', 'Rye 3 seater waves loose', 'Dog bed large linen'"
+                    }
+                },
+                "required": ["query"]
+            }
+        }
+    }
+]
+
+def get_price_tool_handler(query):
+    """
+    Tool handler wrapper for get_price.
+
+    Takes query string directly (not Flask request) and calls existing get_price_logic.
+    Returns: (result_dict, status_code)
+
+    This wrapper allows Grok to call get_price as a tool without needing Flask request object.
+    """
+    # Create a mock request object with the query
+    class MockRequest:
+        def __init__(self, query):
+            self._json = {"query": query}
+            self.headers = {"User-Agent": "Grok-LLM-Tool"}
+
+        def get_json(self):
+            return self._json
+
+    mock_request = MockRequest(query)
+
+    # Call existing get_price_logic
+    result, status_code = get_price_logic(mock_request)
+
+    print(f"  [Tool:get_price] Query: '{query}' -> Status: {status_code}")
+
+    return result, status_code
+
 # --- CORS Helper (Critique #9) ---
 def _build_cors_preflight_response():
     """Builds a response for a CORS preflight (OPTIONS) request."""
@@ -624,33 +675,118 @@ def chat_handler(request):
 
         print(f"[Chat] Processing {len(messages)} messages for session: {session_id}")
 
-        # Call Grok (basic version without tools - tools added in Piece 3.3)
-        response = openrouter_client.chat.completions.create(
-            model=GROK_MODEL,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                *messages
-            ]
-        )
+        # Build conversation with system prompt
+        conversation = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            *messages
+        ]
 
-        # Extract response
-        assistant_message = response.choices[0].message.content
+        total_tokens = 0
+        max_iterations = 5  # Prevent infinite loops
+        iteration = 0
 
-        # Log token usage
-        tokens_used = 0
-        if response.usage:
-            tokens_used = response.usage.total_tokens
-            print(f"[Chat] Session: {session_id}, Tokens: {tokens_used}, Model: {GROK_MODEL}")
+        # Tool calling loop: Keep calling Grok until no more tool calls
+        while iteration < max_iterations:
+            iteration += 1
+            print(f"[Chat] Iteration {iteration}: Calling Grok...")
 
-        # Return response
+            # Call Grok with tools
+            response = openrouter_client.chat.completions.create(
+                model=GROK_MODEL,
+                messages=conversation,
+                tools=TOOLS
+            )
+
+            # Track tokens
+            if response.usage:
+                total_tokens += response.usage.total_tokens
+
+            assistant_message = response.choices[0].message
+
+            # Check if Grok wants to call tools
+            if assistant_message.tool_calls:
+                print(f"[Chat] Grok requested {len(assistant_message.tool_calls)} tool call(s)")
+
+                # Add assistant's tool call message to conversation
+                conversation.append({
+                    "role": "assistant",
+                    "content": assistant_message.content or "",
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": tc.type,
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments
+                            }
+                        }
+                        for tc in assistant_message.tool_calls
+                    ]
+                })
+
+                # Execute each tool call
+                for tool_call in assistant_message.tool_calls:
+                    tool_name = tool_call.function.name
+                    tool_args_json = tool_call.function.arguments
+
+                    print(f"  [Tool] Executing: {tool_name} with args: {tool_args_json}")
+
+                    # Parse arguments
+                    import json
+                    try:
+                        tool_args = json.loads(tool_args_json)
+                    except json.JSONDecodeError as e:
+                        print(f"  [ERROR] Failed to parse tool arguments: {e}")
+                        tool_result = {"error": "Invalid tool arguments"}
+                        tool_status = 400
+                    else:
+                        # Route to correct tool handler
+                        if tool_name == "get_price":
+                            query = tool_args.get("query", "")
+                            tool_result, tool_status = get_price_tool_handler(query)
+                        else:
+                            tool_result = {"error": f"Unknown tool: {tool_name}"}
+                            tool_status = 400
+
+                    # Add tool result to conversation
+                    conversation.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": json.dumps(tool_result)
+                    })
+
+                    print(f"  [Tool] Result status: {tool_status}")
+
+                # Continue loop to get Grok's response based on tool results
+                continue
+
+            else:
+                # No tool calls - Grok has final response
+                print(f"[Chat] Grok returned final response (no tool calls)")
+                final_response = assistant_message.content or ""
+
+                print(f"[Chat] Session: {session_id}, Total Tokens: {total_tokens}, Model: {GROK_MODEL}")
+
+                # Return response
+                return {
+                    "response": final_response,
+                    "metadata": {
+                        "tokens": total_tokens,
+                        "session_id": session_id,
+                        "model": GROK_MODEL,
+                        "iterations": iteration
+                    }
+                }, 200
+
+        # Max iterations reached
+        print(f"[WARNING] Max iterations ({max_iterations}) reached for session: {session_id}")
         return {
-            "response": assistant_message,
+            "error": "Maximum tool calling iterations reached. Please try rephrasing your question.",
             "metadata": {
-                "tokens": tokens_used,
-                "session_id": session_id,
-                "model": GROK_MODEL
+                "tokens": total_tokens,
+                "session_id": session_id
             }
-        }, 200
+        }, 500
 
     except Exception as e:
         print(f"[ERROR] Chat handler failed: {e}")
