@@ -40,15 +40,90 @@ This ensures continuity between sessions and prevents hallucinations.
 
 ---
 
+## 🚨 MANDATORY ENFORCEMENT CHECKLISTS (STOP AND VERIFY)
+
+### ⛔ BEFORE Suggesting ANY Example to User
+
+**MANDATORY CHECKLIST - Cannot skip:**
+
+1. ☐ Check data file exists: `grep -i "product_name" products.json`
+2. ☐ Test with curl: `curl -X POST .../getPrice -d '{"query": "..."}'`
+3. ☐ Verify successful response (not error)
+4. ☐ Copy/paste curl output as evidence
+5. ☐ Only THEN suggest to user
+
+**If you skip ANY step, you WILL give wrong information.**
+
+**Example of CORRECT process:**
+```bash
+# STEP 1: Check product exists
+grep -i "aldingbourne" products.json → ✅ found
+
+# STEP 2: Test with curl
+curl -X POST https://.../getPrice -d '{"query": "aldingbourne snuggler waves"}'
+→ {"price":"£1,958"...} ✅ works
+
+# STEP 3: NOW suggest to user
+"Try: aldingbourne snuggler waves"
+```
+
+**RED FLAG - STOP IMMEDIATELY:**
+- ❌ Suggesting example without curl test shown above
+- ❌ Saying "this should work" without evidence
+- ❌ Assuming example works based on file check alone
+
+---
+
+### ⛔ BEFORE Any Git Commit
+
+**MANDATORY CHECKLIST - Cannot skip:**
+
+1. ☐ State what's being committed
+2. ☐ State which branch
+3. ☐ State whether it will be pushed
+4. ☐ State where it will be live (if applicable)
+5. ☐ Use template format (see Commit Communication Protocol)
+
+**Template (MUST use):**
+```
+✅ COMMITTING NOW
+
+What: [description]
+Branch: [main/feature]
+Will push: [YES/NO]
+Live URL: [if pushing to main]
+```
+
+---
+
+### ⛔ BEFORE Losing Track of Plan
+
+**MANDATORY CHECKLIST - Cannot skip:**
+
+1. ☐ TodoWrite includes ALL phases, not just current task
+2. ☐ After completing each piece, state next phase
+3. ☐ If diverging from plan, acknowledge it explicitly
+
+**Template (MUST use after each piece):**
+```
+✅ Completed: Phase X, Piece Y
+⏳ Next: Phase X, Piece Z
+🎯 Overall plan: [ref to comprehensive plan]
+```
+
+---
+
 ## Session Protocol
 
 **Start of Session:**
 1. Read `.claude/context.md` (mandatory)
-2. Check for recent changes
-3. Review ongoing tasks
+2. **Review MANDATORY ENFORCEMENT CHECKLISTS above**
+3. Check for recent changes
+4. Review ongoing tasks
 
 **During Session:**
 - Reference specific line numbers when discussing code
+- **Follow checklists for examples, commits, plan tracking**
 - Update context mentally as changes are made
 - Document any new gotchas discovered
 
@@ -58,6 +133,7 @@ This ensures continuity between sessions and prevents hallucinations.
   - Files modified
   - Decisions made
   - New tasks/issues discovered
+  - **Whether checklists were followed**
 
 ---
 
@@ -132,12 +208,29 @@ This ensures continuity between sessions and prevents hallucinations.
    - Test integration with other components
    - Document what was tested and the results
 
-6. **USE TODO LISTS**
+6. **USE TODO LISTS WITH MANDATORY TEST STEPS**
    - Create detailed todo lists using TodoWrite tool
    - Break tasks into granular steps
+   - **CRITICAL: Add separate "Test with curl" todo for examples**
+   - **CRITICAL: Add separate "Verify examples work" todo before suggesting**
    - Mark tasks as in_progress before starting
    - Mark tasks as completed immediately after testing
    - Never batch multiple tasks before marking complete
+
+   **Example (CORRECT):**
+   ```
+   ☐ Check product exists in products.json
+   ☐ Test example with curl - show output
+   ☐ Verify response is successful
+   ☐ Update greeting with tested example
+   ☐ Commit changes
+   ```
+
+   **Example (WRONG - will lead to mistakes):**
+   ```
+   ☐ Update greeting examples
+   ☐ Commit changes
+   ```
 
 ### After Implementation
 
