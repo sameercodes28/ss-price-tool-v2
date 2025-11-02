@@ -932,7 +932,8 @@ def chat_handler(request):
             response = openrouter_client.chat.completions.create(
                 model=GROK_MODEL,
                 messages=conversation,
-                tools=TOOLS
+                tools=TOOLS,
+                temperature=0.1  # Low temperature for precise, deterministic responses
             )
 
             # Track tokens
