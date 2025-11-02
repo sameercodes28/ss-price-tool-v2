@@ -1,6 +1,6 @@
 # Claude Context - Sofas & Stuff Price Tool - v2 (Experimental)
 
-**Last Updated:** 2025-11-02 (v2 initialized from v1.0.0)
+**Last Updated:** 2025-11-02 (v2 fully configured and references updated)
 **Current Version:** v2.0.0-alpha
 **Project Status:** 🚧 Experimental / Development
 
@@ -96,6 +96,58 @@ All infrastructure is deployed and operational!
 ---
 
 ## 🔧 Recent Changes
+
+### Session: 2025-11-02 (v2 Reference Cleanup & Memory System Verification)
+
+**Objective:** Ensure all v2 files reference v2 properly and verify Claude memory system works
+
+**Changes Made:**
+
+1. ✅ **Fixed placeholder usernames in README.md**
+   - Replaced "YOUR_USERNAME" with actual GitHub username (sameercodes28)
+   - Updated v1 repo link to correct URL
+
+2. ✅ **Updated PRD.md for v2**
+   - Changed from "v1.0.0 - Production" to "v2.0.0-alpha - Experimental"
+   - Added parent project reference to v1
+   - Updated executive summary to reflect v2 experimental status
+
+3. ✅ **Rewrote CHANGELOG.md for v2**
+   - Created v2-specific changelog (separate from v1)
+   - Documented v2 initial release (2.0.0-alpha)
+   - Included infrastructure details (separate repos, GCF projects)
+   - Added v2 development goals section
+
+4. ✅ **Updated .claude/instructions.md for v2**
+   - Changed project reference to "v2.0.0-alpha (EXPERIMENTAL)"
+   - Added parent project location (~/Desktop/SS-1)
+   - Clarified v2-specific documentation
+
+5. ✅ **Verified Claude memory system**
+   - Confirmed .claude/context.md is v2-specific
+   - Verified /update-context command exists and works
+   - All session continuity features operational
+
+**Files Modified:**
+- `README.md` - Fixed placeholder usernames, v1 repo links
+- `docs/PRD.md` - Updated to v2 experimental status
+- `CHANGELOG.md` - Completely rewritten for v2
+- `.claude/instructions.md` - Updated for v2 references
+- `.claude/context.md` - This file (added this session entry)
+
+**Decisions Made:**
+- v2 documentation should clearly state "experimental" status
+- All v1 references that indicate origin (forked from v1.0.0) should remain
+- CHANGELOG.md for v2 should be separate from v1 changelog
+- Claude memory system works identically in v2 as it did in v1
+
+**Additional Notes:**
+- All files now properly reference v2
+- Claude will auto-read context.md at start of each session (same as v1)
+- User can use /update-context command same as v1
+- v2 is now fully configured for experimentation
+
+---
 
 ### Session: 2025-11-02 (v2 Initialization)
 

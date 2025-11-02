@@ -2,7 +2,7 @@
 
 **Version:** 2.0.0-alpha
 **Status:** 🚧 Experimental / Development
-**Parent Project:** [v1.0.0](https://github.com/YOUR_USERNAME/ss-price-tool-v1) (Stable)
+**Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
 **Last Updated:** November 2, 2025
 
 > **⚠️ IMPORTANT:** This is v2 experimental development. The stable v1 is deployed separately and remains unaffected by changes here.
@@ -24,7 +24,7 @@ A voice-enabled price lookup tool for Sofas & Stuff salespeople. This v2 branch 
 
 ## 🔗 Related Projects
 
-- **v1 Stable:** [ss-price-tool-v1](https://github.com/YOUR_USERNAME/ss-price-tool-v1) - Production deployment
+- **v1 Stable:** [SS-1](https://github.com/sameercodes28/SS) - Production deployment (separate repo)
 - **v2 Experimental:** This repository - Active development
 
 ---
