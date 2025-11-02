@@ -1426,6 +1426,172 @@ function handleSuggestionClick(suggestionText) {
 
 ---
 
+## 🔗 PIECE 4: Product Links (Analysis Complete ✅ - Ready for Implementation)
+
+**Feature:** Make product names clickable with links to sofasandstuff.com, preserving exact configuration (size, fabric, color)
+
+**Status:** Planning and validation complete. Ready to implement when resumed.
+
+### User Question & Critical Discovery
+
+**User asked:** "Didn't I capture imageURLs somewhere - would that be helpful or even viable approach?"
+
+**Critical finding:** User's skepticism was CORRECT!
+- ❌ imageURLs from S&S API return HTTP 404 errors (same issue as v1)
+- ❌ Even if they worked, images show WRONG fabrics (generic hero shots)
+- ✅ Product URLs with SKU parameter work PERFECTLY
+
+### URL Testing Results (2025-11-02)
+
+**Test Query:** "alwinton snuggler pacific"
+
+**Image URLs (from API response):** ❌ FAILED
+```
+https://sofasandstuff.com/images/alw/Hero%20Images/snu/1-Alwinton-Snuggler-in-Lumino-Velvet-Wine.jpg
+Result: HTTP/2 404 Not Found
+```
+
+**Product URL (constructed):** ✅ SUCCESS
+```
+https://sofasandstuff.com/alwinton?sku=alwsnufitttpac
+Result: HTTP/2 200 OK
+```
+
+**SKU Breakdown:**
+- `alw` = Alwinton (product)
+- `snu` = Snuggler (size)
+- `fit` = Fitted cover
+- `ttp` = Sussex Plain fabric (fabric_sku)
+- `pac` = Pacific color (color_sku)
+
+**Page Verification:**
+- Website JavaScript reads SKU parameter
+- Auto-configures product with exact specification
+- Hidden inputs show: ProductSku=alw, SizeSku=snu, CoverSku=fit, FabricSku=ttp
+- Price matches tool quote (£1,958)
+
+### Implementation Options Analyzed
+
+**Option 1: Frontend-Only (Generic Links)** 🟡
+- No backend changes
+- Links to `/alwinton` without SKU
+- User lands on DEFAULT configuration
+- **Problem:** Price WON'T match quote - confusing/frustrating
+
+**Option 2: Backend Adds ProductUrl** ⭐⭐⭐ **RECOMMENDED**
+- Add `productUrl` to `simplified_response` in main.py
+- Same pattern as existing `imageUrls` field
+- querySku already built on line 655
+- Only 3 lines of code needed
+- Perfect user experience - exact configuration preserved
+
+### Recommended Implementation
+
+**Backend Change (main.py:735):**
+```python
+# After line 655 where query_sku is already built
+product_url = f"https://sofasandstuff.com/{product_name_keyword}?sku={query_sku}"
+
+simplified_response = {
+    "productName": full_name,
+    "fabricName": fabric_name,
+    "price": record.get('PriceText', 'N/A'),
+    "oldPrice": record.get('OldPriceText', None),
+    "imageUrls": image_urls,
+    "productUrl": product_url,  # NEW - same pattern as imageUrls!
+    "specs": record.get('ProductSizeAttributes', []),
+    "fabricDetails": {
+        "tier": fabric_match_data.get('tier', 'Unknown'),
+        "description": fabric_match_data.get('desc', ''),
+        "swatchUrl": fabric_match_data.get('swatch_url', '')
+    }
+}
+```
+
+**Variables Already Available:**
+- `product_name_keyword` (line 566) - e.g., "alwinton"
+- `query_sku` (line 655) - e.g., "alwsnufitttpac"
+
+**Risk Assessment:** 🟢 LOW (2/10)
+- Same pattern as imageUrls (already proven)
+- querySku construction already tested and working
+- Minimal code change (3 lines)
+- Easy rollback if needed
+
+### Implementation Steps (When Resumed)
+
+**Step 1: Backend Update**
+1. Modify `get_price_logic()` in main.py (line ~735)
+2. Add productUrl to simplified_response
+3. Deploy to GCF v2
+4. Test with curl to verify productUrl in response
+
+**Step 2: Verification**
+```bash
+curl -X POST .../getPrice -d '{"query": "alwinton snuggler pacific"}' | jq .productUrl
+# Expected: "https://sofasandstuff.com/alwinton?sku=alwsnufitttpac"
+```
+
+**Step 3: Frontend Integration (Multiple Options)**
+
+**Option A: Update SYSTEM_PROMPT** (Grok generates links)
+```python
+## PRODUCT LINKS
+When showing a product price, include a clickable link:
+[Product Name](productUrl from tool result)
+```
+
+**Option B: Frontend Parser** (JavaScript detects and links)
+- Detect product names in markdown
+- Extract productUrl from response
+- Wrap product names in `<a>` tags
+
+**Option C: Both** (redundancy for reliability)
+
+### Expected User Experience
+
+**Before:**
+1. User: "How much is alwinton snuggler pacific?"
+2. Tool: "£1,958"
+3. User manually searches website, configures product (2-3 minutes)
+
+**After:**
+1. User: "How much is alwinton snuggler pacific?"
+2. Tool: "**[Alwinton Snuggler](link)** in Pacific - £1,958"
+3. User clicks link
+4. Website loads with exact configuration
+5. User clicks "Add to Basket" (15 seconds total)
+
+**Impact:** 8-12x faster purchase journey!
+
+### Files for Reference
+
+**Analysis Documents Created:**
+- `/tmp/PIECE_4_ANALYSIS.md` - Comprehensive implementation analysis
+- `/tmp/PIECE_4_URL_VALIDATION.md` - URL testing results and recommendations
+
+**Key Code Locations:**
+- main.py:655 - querySku construction
+- main.py:566 - product_name_keyword extraction
+- main.py:723-735 - simplified_response definition
+- main.py:695-715 - imageUrls handling (reference pattern)
+
+### Next Session Action Items
+
+1. ✅ Analysis complete - understand the approach
+2. ⏳ Implement backend productUrl addition (15 min)
+3. ⏳ Deploy to GCF v2 (5 min)
+4. ⏳ Test with curl (5 min)
+5. ⏳ Choose frontend integration approach (10 min)
+6. ⏳ Implement frontend changes (20 min)
+7. ⏳ Test on live site (10 min)
+
+**Total Estimated Time:** 1-1.5 hours
+
+**Status:** Ready to implement. All planning and validation complete.
+
+---
+
 ## 💬 Communication Style
 
 When working on v2:
