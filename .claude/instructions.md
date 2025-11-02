@@ -228,6 +228,88 @@ Before marking ANY task as complete, verify:
 - Rushing to implement without planning
 - Batching multiple changes before testing
 - Assuming something works without verifying
+- **Modifying existing working code without explicit justification**
+
+### 🚨 CRITICAL RULE: Do Not Break Existing Functionality
+
+**Problem:** Claude sometimes accidentally modifies working code when adding new features, causing regressions.
+
+**Solution: The "Working Code Protection Protocol"**
+
+**Before changing ANY existing code:**
+
+1. **Read and understand it first**
+   - Read the entire file/function completely
+   - Understand what it currently does and why
+   - Identify its dependencies and callers
+
+2. **Test current functionality (baseline)**
+   - Test the existing feature BEFORE making changes
+   - Document current behavior as baseline
+   - Save test commands/results for comparison
+
+3. **Prefer additive changes**
+   - **First choice:** Add new code without touching existing code
+   - **Second choice:** Extend existing code (add parameters with defaults)
+   - **Last resort:** Modify existing code (requires explicit justification)
+
+4. **Justify ANY modification to existing working code**
+   - If you must modify existing code, explicitly state:
+     - **What** existing code you're changing
+     - **Why** it must be changed (not just added to)
+     - **What** could break as a result
+     - **How** you'll verify nothing breaks
+   - Get user confirmation before modifying working code
+
+5. **Test existing functionality after changes**
+   - Re-run baseline tests
+   - Compare with baseline results
+   - Verify NO regressions in existing features
+
+**Examples:**
+
+**❌ WRONG - Modifying existing code unnecessarily:**
+```python
+# Existing working code
+def get_price(query):
+    return api.fetch_price(query)
+
+# Claude changes it without justification
+def get_price(query, options=None):  # ← Why change this?
+    if options:
+        return api.fetch_price_with_options(query, options)
+    return api.fetch_price(query)
+```
+
+**✅ RIGHT - Adding new function, keeping existing intact:**
+```python
+# Existing working code - UNTOUCHED
+def get_price(query):
+    return api.fetch_price(query)
+
+# New function added separately
+def get_price_with_options(query, options):
+    return api.fetch_price_with_options(query, options)
+```
+
+**✅ ACCEPTABLE - Modifying with explicit justification:**
+```python
+# Must modify existing function because:
+# - All existing callers need the new behavior
+# - Adding new function would require changing 15 call sites
+# - Default parameter maintains backward compatibility
+# Tested: All existing calls work unchanged
+
+def get_price(query, cache=True):  # Added cache param with default
+    if cache:
+        return cached_api.fetch_price(query)
+    return api.fetch_price(query)
+```
+
+**When in doubt:**
+- ❌ Don't modify existing working code
+- ✅ Add new code alongside it
+- ✅ Ask user which approach they prefer
 
 ### Remember
 
