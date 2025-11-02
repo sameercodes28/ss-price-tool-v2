@@ -209,6 +209,32 @@ All infrastructure is deployed and operational!
 - Description: v2 baseline with all v1 functionality working
 - Status: ✅ Deployed and operational
 
+**Additional Changes:**
+9. ✅ **Added "Living Documentation Protocol"**
+   - Lines 162-351 in .claude/instructions.md: Comprehensive documentation maintenance protocol
+   - Five-part documentation workflow: comments, logging, architecture, design, context
+   - Documentation checklist before marking features complete
+   - Examples of good comments, logging, and doc updates
+   - Clear guidance on when and what to update
+
+**Living Documentation Protocol:**
+- **Code comments** - Explain WHY, not just WHAT
+- **Debug logging** - Log important operations with appropriate levels
+- **Architecture docs** - Update ARCHITECTURE.md and TECHNICAL_GUIDE.md when structure changes
+- **Design docs** - Update PRD.md, README.md, CHANGELOG.md when features change
+- **Context.md** - Update every session with what was built
+- **Key principle:** "Docs must evolve with code - stale docs are worse than no docs"
+
+**Documentation Checklist:**
+- [ ] Code comments explain WHY for non-obvious logic
+- [ ] Debug logging for important operations
+- [ ] ARCHITECTURE.md updated if architecture changed
+- [ ] TECHNICAL_GUIDE.md updated if technical approach changed
+- [ ] PRD.md updated if features changed
+- [ ] README.md updated if user-facing changes
+- [ ] CHANGELOG.md updated with version entry
+- [ ] .claude/context.md updated with session summary
+
 **Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
 - 3fe1741: "v2: Document session changes in context.md"
@@ -221,6 +247,11 @@ All infrastructure is deployed and operational!
 - 53f0021: "v2: Revise protocol to prefer simplicity and code removal over bloat"
 - 17e8fd3: "v2: Update context.md with revised protocol (simplicity over bloat)"
 - 79f3fe6: "v2: Add Demo-Ready State Protocol with feature branches and tags"
+- 30c9f0c: "v2: Document Demo-Ready State Protocol in context.md"
+- f36e0fa: "v2: Add Living Documentation Protocol - keep all docs synchronized"
+
+**Tags:**
+- demo-ready-2025-11-02-baseline: v2 baseline with all v1 functionality working
 
 ---
 
