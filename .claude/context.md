@@ -143,9 +143,23 @@ All infrastructure is deployed and operational!
 - Each file reviewed for consistency after updates
 - No "experimental" references remain in documentation
 
-**Commit:**
+**Additional Changes:**
+5. ✅ **Clarified testing approach**
+   - Lines 241-260 in .claude/instructions.md: No testing frameworks, Claude tests first
+   - Lines 377-382: Updated "WHAT NOT TO BUILD" to emphasize no test libraries
+   - Lines 183-196: Enhanced testing checklist with specific tools
+   - Lines 251-269 in .claude/context.md: Updated ongoing tasks, removed automated testing items
+
+**Testing Approach Established:**
+- Claude tests using Bash, curl, WebFetch tools directly
+- No testing frameworks (no pytest, unittest, jest, etc.)
+- User runs simple scripts only if Claude cannot test
+- Keeps codebase lean and focused
+
+**Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
-- Detailed commit message with what, why, how tested, and goal sections
+- 3fe1741: "v2: Document session changes in context.md"
+- 34d35ab: "v2: Clarify testing approach - Claude tests, no frameworks"
 
 ---
 
