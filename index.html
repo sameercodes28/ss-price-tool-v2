@@ -522,7 +522,7 @@
                         </svg>
                     </div>
                     <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-5 py-3 max-w-[85%] shadow-md">
-                        <p class="text-sm leading-relaxed text-gray-800">${escapeHtml(content)}</p>
+                        <p class="text-sm leading-relaxed text-gray-800" style="white-space: pre-wrap;">${escapeHtml(content)}</p>
                     </div>
                 `;
             }
@@ -564,14 +564,35 @@
             showTypingIndicator();
 
             try {
-                // TODO: Replace with actual backend call once session endpoints are ready
-                // For now, simulate a response
-                await simulateBackendResponse(message);
+                // Call real backend API
+                const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+
+                const data = await response.json();
+                hideTypingIndicator();
+
+                // Handle response
+                if (response.ok && data.price) {
+                    // Success - format the price response
+                    const responseText = formatPriceResponse(data);
+                    addMessage(responseText, false);
+                } else if (data.error) {
+                    // Error from backend
+                    addMessage(`I couldn't find that product. ${data.error}`, false);
+                } else {
+                    // Unexpected response
+                    addMessage('Sorry, I didn\'t understand that. Could you try rephrasing?', false);
+                }
 
             } catch (error) {
                 console.error('Error sending message:', error);
                 hideTypingIndicator();
-                addMessage('Sorry, I encountered an error. Please try again.', false);
+                addMessage('Sorry, I encountered a connection error. Please try again.', false);
             } finally {
                 // Re-enable input
                 messageInput.disabled = false;
@@ -581,27 +602,39 @@
         }
 
         /**
-         * Temporary function to simulate backend responses
-         * Why: Test UI before backend is ready
-         * TODO: Remove this when backend integration is complete
+         * Format price response from backend into friendly message
+         * Why: Make API response readable for sales staff
          */
-        async function simulateBackendResponse(message) {
-            // Simulate network delay (500ms-1500ms)
-            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
-
-            hideTypingIndicator();
-
-            // Simple mock responses for testing
-            const lowerMessage = message.toLowerCase();
-            if (lowerMessage.includes('price') || lowerMessage.includes('alwinton')) {
-                addMessage('The Alwinton 3-seater in House Wool is £2,450. Would you like to see other fabric options or compare it with another model?', false);
-            } else if (lowerMessage.includes('compare')) {
-                addMessage('I can help you compare products! Which two models would you like to compare?', false);
-            } else if (lowerMessage.includes('budget') || lowerMessage.includes('under')) {
-                addMessage('I can help you find sofas within your budget. What\'s your maximum price range?', false);
-            } else {
-                addMessage('I understand you\'re asking about: "' + message + '". Let me help you with that! (Note: Backend integration coming soon)', false);
+        function formatPriceResponse(data) {
+            // If no price found, return error message
+            if (!data.price) {
+                return "I couldn't find pricing for that. Could you try specifying the product, size, and fabric?";
             }
+
+            let response = '';
+
+            // Product name and price
+            if (data.productName && data.price) {
+                response = `${data.productName}\n`;
+                response += `💷 Price: ${data.price}`;
+            }
+
+            // Add old price if on sale
+            if (data.oldPrice) {
+                response += ` (was ${data.oldPrice})`;
+            }
+
+            // Add fabric info
+            if (data.fabricName) {
+                response += `\n\n🎨 Fabric: ${data.fabricName}`;
+            }
+
+            // Add fabric tier if available
+            if (data.fabricDetails && data.fabricDetails.tier) {
+                response += ` (${data.fabricDetails.tier})`;
+            }
+
+            return response;
         }
 
         /**
