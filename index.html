@@ -573,9 +573,9 @@
                         "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
                         "Try asking me something like:\n" +
                         "• \"alwinton snuggler pacific\"\n" +
-                        "• \"berkeley 3 seater sussex plain\"\n" +
-                        "• \"stockbridge sofa bed\"\n\n" +
-                        "Just tell me the product name, size, and fabric!",
+                        "• \"aldingbourne 3 seater waves\"\n" +
+                        "• \"saltdean 3 seater covertex\"\n\n" +
+                        "Format: product name + size + fabric/color",
                         false
                     );
                     return;
@@ -605,12 +605,12 @@
                     // Check if it might be a typo
                     if (lowerMessage.length > 3) {
                         helpfulError += "💡 Try:\n" +
-                            "• Check spelling (e.g., 'Berkeley' not 'Berekely')\n" +
+                            "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
                             "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
-                            "• Include fabric (e.g., 'sussex plain', 'velvet')\n\n";
+                            "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
                     }
 
-                    helpfulError += "Popular products: Alwinton, Berkeley, Stockbridge, Aldingbourne";
+                    helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
 
                     addMessage(helpfulError, false);
                 } else {
