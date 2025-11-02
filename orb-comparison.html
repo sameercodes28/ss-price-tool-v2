@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Before vs After - Ultra Fabric Orb</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .message-demo {
+            display: flex;
+            gap: 12px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        /* OLD STYLE (gradient avatar) */
+        .old-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7A6B5D 0%, #C67E5F 100%);
+            flex-shrink: 0;
+        }
+
+        /* NEW STYLE (from your index.html) */
+        :root {
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-gold: #D4A574;
+        }
+
+        .ultra-fabric-orb {
+            width: 32px;
+            height: 32px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            flex-shrink: 0;
+        }
+
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation:
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background:
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                radial-gradient(
+                    ellipse at 30% 30%,
+                    rgba(255, 255, 255, 0.4),
+                    transparent 50%
+                ),
+                linear-gradient(
+                    135deg,
+                    var(--fabric-sage),
+                    var(--fabric-bark)
+                );
+            box-shadow:
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes depthPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes holographicShift {
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+            33% { filter: hue-rotate(20deg) brightness(1.1); }
+            66% { filter: hue-rotate(-20deg) brightness(0.95); }
+        }
+
+        .message-content {
+            background: white;
+            border: 1px solid #e5e5e5;
+            padding: 12px 16px;
+            border-radius: 12px;
+            flex: 1;
+        }
+
+        .fail { color: red; font-weight: bold; }
+        .pass { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Ultra Fabric Orb - Visual Comparison</h1>
+
+    <div class="comparison">
+        <div class="panel">
+            <h2>❌ BEFORE (Old Design)</h2>
+            <p>Simple gradient circle avatar</p>
+            <div class="message-demo">
+                <div class="old-avatar"></div>
+                <div class="message-content">
+                    Hello! I can help you find the perfect sofa.
+                </div>
+            </div>
+            <ul>
+                <li>Static gradient background</li>
+                <li>No animation</li>
+                <li>Basic circular shape</li>
+            </ul>
+        </div>
+
+        <div class="panel">
+            <h2>✅ AFTER (New Ultra Fabric Orb)</h2>
+            <p>Animated fabric-inspired orb</p>
+            <div class="message-demo">
+                <div class="ultra-fabric-orb">
+                    <div class="ultra-fabric-sphere"></div>
+                </div>
+                <div class="message-content">
+                    Hello! I can help you find the perfect sofa.
+                </div>
+            </div>
+            <ul>
+                <li class="pass">Animated pulsing (4s cycle)</li>
+                <li class="pass">Color shifting effect</li>
+                <li class="pass">Fabric-inspired gradients</li>
+                <li class="pass">3D depth effects</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 12px; margin: 20px 0;">
+        <h2>🔧 Troubleshooting Steps</h2>
+        <ol>
+            <li><strong>Hard Refresh the Page:</strong>
+                <ul>
+                    <li>Windows/Linux: Ctrl + Shift + R</li>
+                    <li>Mac: Cmd + Shift + R</li>
+                </ul>
+            </li>
+            <li><strong>Clear Browser Cache:</strong>
+                <ul>
+                    <li>Open DevTools (F12)</li>
+                    <li>Right-click the refresh button</li>
+                    <li>Select "Empty Cache and Hard Reload"</li>
+                </ul>
+            </li>
+            <li><strong>Test by Sending a Message:</strong>
+                <ul>
+                    <li>Go to <a href="https://britishmade.ai" target="_blank">britishmade.ai</a></li>
+                    <li>Type "test" and send</li>
+                    <li>Look at the agent's response avatar (left side)</li>
+                    <li>Should see animated orb, not static circle</li>
+                </ul>
+            </li>
+            <li><strong>Check Console for Errors:</strong>
+                <ul>
+                    <li>Open DevTools Console (F12)</li>
+                    <li>Look for any red error messages</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div style="background: #fff3cd; padding: 20px; border-radius: 12px; border: 2px solid #ffc107;">
+        <h3>⚠️ Important Note</h3>
+        <p>The Ultra Fabric Orb <strong>only appears in agent chat messages</strong>, not in the initial UI. You need to:</p>
+        <ol>
+            <li>Send a message (e.g., "What's the price of Alwinton?")</li>
+            <li>Wait for the agent's response</li>
+            <li>The orb will appear on the left side of the agent's message</li>
+        </ol>
+    </div>
+
+    <script>
+        console.log('If you can see the animated orb on the right side above, the CSS is working correctly!');
+    </script>
+</body>
+</html>
