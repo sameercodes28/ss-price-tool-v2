@@ -108,18 +108,16 @@ curl .../chat -d '{"messages": [{"role": "user", "content": "Show me blue fabric
 - ✅ CHANGELOG.md - This entry
 - ✅ TECHNICAL_GUIDE.md - Updated with LLM architecture
 
-### 🔮 Known Limitations (To Be Addressed in Demo Polish Phase)
-- Temperature not set (defaults to 1.0, needs 0.1 for precise responses)
+### 🔮 Remaining Limitations (To Be Addressed)
 - Responses are plain text paragraphs (needs markdown formatting)
-- No follow-up question suggestions (planned: Perplexity-style chips)
 - No clickable product/fabric links (URLs available in data, needs integration)
 - No real-time streaming (uses loading dots, planned: SSE streaming)
 
-### 🎭 Demo Polish Phase - Planned Next
-- [ ] Piece 1: Set temperature=0.1 for deterministic responses
+### 🎭 Demo Polish Phase - Progress
+- [x] Piece 1: Set temperature=0.1 for deterministic responses ✅ Completed
 - [ ] Piece 2: Markdown formatting for better readability
-- [ ] Piece 3: Follow-up question suggestions as clickable chips
-- [ ] Piece 4: Clickable product/fabric links to sofasandstuff.com
+- [x] Piece 3: Follow-up question suggestions as clickable chips ✅ Completed
+- [ ] Piece 4: Clickable product/fabric links to sofasandstuff.com (planned, analysis complete)
 - [ ] Piece 5: Real-time streaming responses via SSE
 
 ---

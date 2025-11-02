@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 
+    ================================================================
+    SOFAS & STUFF INTELLIGENT PRICING PLATFORM V5
+    ================================================================
+    
+    VERSION 5 - ULTRA FABRIC ORB EDITION
+    - Enhanced multi-dimensional fabric orb
+    - Complex weaving patterns with depth
+    - Particle fiber effects
+    - Premium textile animations
+    - Holographic quality shifts
+    
+    ORB CONCEPT:
+    The orb represents a living fabric sample, with individual 
+    fibers visible, weaving patterns that shift, and a sense of
+    depth that suggests the rich textile heritage. It's both
+    a technical marvel and an artistic representation of
+    craftsmanship.
+    
+    ================================================================
+    -->
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sofas & Stuff Pricing Assistant - Showroom Tool">
+    <meta name="author" content="Sofas & Stuff">
+    <meta name="theme-color" content="#C67E5F">
+    
+    <title>Sofas & Stuff | Pricing Assistant</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ============================================
+           CSS VARIABLES - FABRIC INSPIRED PALETTE
+           ============================================ */
+        :root {
+            /* Core colors */
+            --bg-primary: #FAFAF8;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F5F3EE;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B6B6B;
+            --text-tertiary: #9B9B9B;
+            
+            /* Fabric-inspired colors */
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-linen: #E8DFD3;
+            --fabric-wool: #D4C5B9;
+            --fabric-silk: #F5EEE6;
+            --fabric-gold: #D4A574;
+            
+            /* UI colors */
+            --border-light: #E8E8E4;
+            --border-medium: #D4D4D0;
+            --hover-bg: #F0EDE6;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+            --shadow-fabric: 0 4px 20px rgba(198, 126, 95, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           ULTRA FABRIC ORB DESIGN SYSTEM
+           
+           Multi-layered textile visualization with:
+           - Complex weaving patterns
+           - Individual fiber strands
+           - Depth and dimension
+           - Holographic shimmer
+           - Living textile feel
+           ============================================ */
+        
+        /* Complex weaving animation */
+        @keyframes ultraWeave {
+            0% { 
+                transform: rotate(0deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            25% {
+                transform: rotate(90deg) scale(1.02);
+                filter: hue-rotate(10deg);
+            }
+            50% { 
+                transform: rotate(180deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            75% {
+                transform: rotate(270deg) scale(1.02);
+                filter: hue-rotate(-10deg);
+            }
+            100% { 
+                transform: rotate(360deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+        }
+        
+        /* Fiber movement animation */
+        @keyframes fiberFlow {
+            0%, 100% { 
+                transform: translateX(0) translateY(0);
+                opacity: 0.6;
+            }
+            33% { 
+                transform: translateX(2px) translateY(-1px);
+                opacity: 0.8;
+            }
+            66% { 
+                transform: translateX(-1px) translateY(2px);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Holographic shimmer */
+        @keyframes holographicShift {
+            0% { 
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+            50% { 
+                background-position: 100% 100%, 0% 0%, 50% 50%;
+                filter: brightness(1.1);
+            }
+            100% { 
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+        }
+        
+        /* Depth pulse */
+        @keyframes depthPulse {
+            0%, 100% { 
+                box-shadow: 
+                    inset 0 0 10px rgba(198, 126, 95, 0.3),
+                    inset 0 0 20px rgba(139, 154, 123, 0.2),
+                    0 5px 20px rgba(122, 107, 93, 0.25);
+            }
+            50% { 
+                box-shadow: 
+                    inset 0 0 15px rgba(198, 126, 95, 0.4),
+                    inset 0 0 30px rgba(139, 154, 123, 0.3),
+                    0 8px 30px rgba(122, 107, 93, 0.35);
+            }
+        }
+
+        /* Ultra fabric orb container */
+        .ultra-fabric-orb {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Main orb with enhanced texture */
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation: 
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background: 
+                /* Holographic layer */
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                /* Depth gradient */
+                radial-gradient(
+                    circle at 30% 30%,
+                    rgba(245, 238, 230, 0.8),
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 70% 70%,
+                    rgba(122, 107, 93, 0.4),
+                    transparent 50%
+                ),
+                /* Base texture */
+                linear-gradient(135deg, 
+                    var(--fabric-silk) 0%, 
+                    var(--fabric-linen) 50%, 
+                    var(--fabric-wool) 100%
+                );
+            background-size: 200% 200%, 100% 100%, 100% 100%, 100% 100%;
+            background-blend-mode: multiply, overlay, normal, normal;
+        }
+
+        /* Complex weaving pattern - Layer 1 */
+        .ultra-fabric-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: 
+                /* Vertical threads */
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(198, 126, 95, 0.2) 3px,
+                    rgba(198, 126, 95, 0.2) 4px
+                ),
+                /* Horizontal threads */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(139, 154, 123, 0.2) 3px,
+                    rgba(139, 154, 123, 0.2) 4px
+                ),
+                /* Diagonal weave 1 */
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(212, 165, 116, 0.15) 5px,
+                    rgba(212, 165, 116, 0.15) 6px
+                ),
+                /* Diagonal weave 2 */
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(122, 107, 93, 0.15) 5px,
+                    rgba(122, 107, 93, 0.15) 6px
+                );
+            animation: ultraWeave 30s linear infinite;
+            mix-blend-mode: multiply;
+        }
+
+        /* Individual fiber strands - Layer 2 */
+        .ultra-fabric-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background: 
+                /* Fine fibers */
+                repeating-conic-gradient(
+                    from 0deg at 50% 50%,
+                    transparent 0deg,
+                    rgba(255, 255, 255, 0.1) 1deg,
+                    transparent 2deg,
+                    transparent 10deg
+                ),
+                /* Shimmer highlight */
+                radial-gradient(
+                    ellipse at 35% 35%,
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.4) 30%,
+                    transparent 60%
+                );
+            animation: fiberFlow 5s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* Extra depth layer */
+        .fabric-depth-layer {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: 
+                conic-gradient(
+                    from 180deg at 50% 50%,
+                    transparent,
+                    rgba(198, 126, 95, 0.1),
+                    transparent,
+                    rgba(139, 154, 123, 0.1),
+                    transparent
+                );
+            animation: ultraWeave 20s linear infinite reverse;
+            pointer-events: none;
+        }
+
+        /* Particle fibers floating */
+        .fabric-particles {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fabric-particle {
+            position: absolute;
+            width: 1px;
+            height: 8px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(212, 165, 116, 0.6),
+                transparent
+            );
+            animation: particleFloat 10s infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.3;
+            }
+            80% {
+                opacity: 0.6;
+            }
+        }
+
+        .fabric-particle:nth-child(1) {
+            left: 20%;
+            top: 50%;
+            animation-delay: 0s;
+        }
+
+        .fabric-particle:nth-child(2) {
+            left: 50%;
+            top: 20%;
+            animation-delay: 2s;
+        }
+
+        .fabric-particle:nth-child(3) {
+            left: 80%;
+            top: 50%;
+            animation-delay: 4s;
+        }
+
+        .fabric-particle:nth-child(4) {
+            left: 50%;
+            top: 80%;
+            animation-delay: 6s;
+        }
+
+        .fabric-particle:nth-child(5) {
+            left: 35%;
+            top: 35%;
+            animation-delay: 8s;
+        }
+
+        /* Hover state - intensified */
+        .ultra-fabric-orb:hover .ultra-fabric-sphere {
+            transform: scale(1.1) rotateX(10deg) rotateY(-10deg);
+            box-shadow: 
+                inset 0 0 20px rgba(198, 126, 95, 0.5),
+                inset 0 0 40px rgba(139, 154, 123, 0.4),
+                0 10px 40px rgba(122, 107, 93, 0.4),
+                0 0 60px rgba(212, 165, 116, 0.2);
+        }
+
+        .ultra-fabric-orb:hover .fabric-particle {
+            animation-duration: 5s;
+        }
+
+        /* Small version for chat */
+        .ultra-fabric-orb-small {
+            width: 32px;
+            height: 32px;
+        }
+
+        .ultra-fabric-orb-small .ultra-fabric-sphere {
+            animation-duration: 6s, 10s;
+        }
+
+        /* ============================================
+           HEADER - MINIMAL WITH ULTRA FABRIC ORB
+           ============================================ */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .brand-tagline {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* ============================================
+           LANDING PAGE - ORIGINAL CENTERED LAYOUT
+           ============================================ */
+        .landing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .landing-container.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .welcome-section {
+            text-align: center;
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .welcome-heading {
+            font-family: 'Newsreader', serif;
+            font-size: 48px;
+            font-weight: 500;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .welcome-subheading {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.1s forwards;
+        }
+
+        /* ============================================
+           SEARCH WITH CLEAN PLACEHOLDER ANIMATION
+           ============================================ */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 640px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.2s forwards;
+            position: relative;
+        }
+
+        .search-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 4px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 3px rgba(198, 126, 95, 0.1), var(--shadow-md);
+        }
+
+        .search-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            position: relative;
+        }
+
+        .search-icon {
+            color: var(--text-tertiary);
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: transparent;
+            padding: 12px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .search-input::-webkit-input-placeholder { color: transparent; }
+        .search-input::-moz-placeholder { color: transparent; }
+        .search-input:-ms-input-placeholder { color: transparent; }
+        .search-input::placeholder { color: transparent; }
+
+        .animated-placeholder {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-tertiary);
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .search-input:focus ~ .animated-placeholder,
+        .search-input:not(:placeholder-shown) ~ .animated-placeholder {
+            display: none;
+        }
+
+        .placeholder-text {
+            display: inline-block;
+            margin-right: 2px;
+            transition: opacity 0.3s ease;
+        }
+
+        .placeholder-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background: var(--text-tertiary);
+            animation: blink 1s infinite;
+        }
+
+        .search-submit {
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .search-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .search-submit:active {
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           SUGGESTION CHIPS
+           ============================================ */
+        .suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+        }
+
+        .suggestion-chip {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INTERFACE
+           ============================================ */
+        .chat-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 73px);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        .messages-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        .message {
+            margin-bottom: 24px;
+            animation: messageSlideIn 0.3s ease;
+        }
+
+        @keyframes messageSlideIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .message.user .message-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message-author {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+
+        .message-content {
+            margin-left: 44px;
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+
+        .message.user .message-content {
+            background: var(--bg-tertiary);
+            padding: 14px 18px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* ============================================
+           PRICE CARD - CLEAN SHOWROOM VERSION
+           ============================================ */
+        .price-result-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .price-result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+
+        .product-details h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .product-specs {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .price-display {
+            text-align: right;
+        }
+
+        .price-label {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .price-amount {
+            font-family: 'Newsreader', serif;
+            font-size: 32px;
+            font-weight: 500;
+            color: var(--fabric-terracotta);
+        }
+
+        .price-breakdown {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .breakdown-row:not(:last-child) {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .breakdown-label {
+            color: var(--text-secondary);
+        }
+
+        .breakdown-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .breakdown-row.total {
+            margin-top: 8px;
+            padding-top: 12px;
+            font-weight: 600;
+        }
+
+        .breakdown-row.total .breakdown-value {
+            color: var(--fabric-terracotta);
+        }
+
+        /* ============================================
+           FOLLOW-UP QUESTIONS - EXTENDED SET
+           ============================================ */
+        .follow-up-questions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .follow-up-btn {
+            padding: 9px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .follow-up-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INPUT
+           ============================================ */
+        .chat-input-container {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-light);
+            padding: 20px 24px;
+        }
+
+        .chat-input-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .chat-input-field:focus {
+            border-color: var(--fabric-terracotta);
+            background: var(--bg-secondary);
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           TYPING INDICATOR WITH FABRIC ORBS
+           ============================================ */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-left: 44px;
+            margin-bottom: 16px;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-orb {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            opacity: 0.3;
+            animation: typingPulse 1.4s infinite;
+        }
+
+        @keyframes typingPulse {
+            0%, 60%, 100% { 
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            30% { 
+                opacity: 1;
+                transform: scale(1.3);
+            }
+        }
+
+        .typing-orb:nth-child(2) { animation-delay: 0.2s; }
+        .typing-orb:nth-child(3) { animation-delay: 0.4s; }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            .welcome-heading {
+                font-size: 36px;
+            }
+
+            .follow-up-questions {
+                gap: 6px;
+            }
+
+            .follow-up-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .chat-messages {
+                padding: 20px 16px;
+            }
+
+            .landing-container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-heading {
+                font-size: 28px;
+            }
+
+            .welcome-subheading {
+                font-size: 15px;
+            }
+
+            .price-amount {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    ================================================================
+    HEADER WITH ULTRA FABRIC ORB
+    ================================================================
+    -->
+    <header class="header">
+        <!-- Ultra fabric-inspired orb logo -->
+        <div class="ultra-fabric-orb" onclick="resetToLanding()" title="Return to search">
+            <div class="ultra-fabric-sphere">
+                <div class="fabric-depth-layer"></div>
+                <div class="fabric-particles">
+                    <div class="fabric-particle"></div>
+                    <div class="fabric-particle"></div>
+                    <div class="fabric-particle"></div>
+                    <div class="fabric-particle"></div>
+                    <div class="fabric-particle"></div>
+                </div>
+            </div>
+        </div>
+        <div class="brand-info">
+            <div class="brand-name">Sofas & Stuff</div>
+            <div class="brand-tagline">Pricing Assistant</div>
+        </div>
+    </header>
+
+    <!-- 
+    ================================================================
+    LANDING PAGE - ORIGINAL LAYOUT
+    ================================================================
+    -->
+    <div class="landing-container" id="landingContainer">
+        <div class="welcome-section">
+            <h1 class="welcome-heading" id="welcomeHeading">How can I help with pricing today?</h1>
+            <p class="welcome-subheading">Your personal assistant for British handmade furniture</p>
+            
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <div class="search-inner">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input 
+                            type="text" 
+                            class="search-input" 
+                            id="landingSearchInput"
+                            placeholder=" "
+                            autocomplete="off">
+                        <div class="animated-placeholder" id="animatedPlaceholder">
+                            <span class="placeholder-text" id="placeholderText"></span>
+                            <span class="placeholder-cursor"></span>
+                        </div>
+                        <button class="search-submit" onclick="startConversation()">Ask</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <button class="suggestion-chip" onclick="quickSearch('Alwinton pricing')">
+                    Alwinton pricing
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Velvet options')">
+                    Velvet options
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Under £2000')">
+                    Under £2000
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Chesterfield')">
+                    Chesterfield
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Pet-friendly')">
+                    Pet-friendly
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 
+    ================================================================
+    CHAT INTERFACE - JavaScript content remains the same as V2
+    ================================================================
+    -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-messages" id="chatMessages">
+            <div class="messages-wrapper" id="messagesWrapper"></div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea 
+                    class="chat-input-field" 
+                    id="chatInput"
+                    placeholder="Ask about models, fabrics, or pricing..."
+                    rows="1"></textarea>
+                <button class="chat-send-btn" onclick="sendMessage()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript remains identical to V2 -->
+    <script>
+        // [IDENTICAL JavaScript from V2 - not repeated for brevity]
+        // All functionality remains the same, just the orb design is enhanced
+        
+        const welcomeMessages = [
+            "How can I help with pricing today?",
+            "Ready to check a price for your client?",
+            "What pricing information do you need?",
+            "Let's find that price quickly",
+            "Which model shall we price up?",
+            "Need a quick price check?",
+            "Looking up pricing for a client?",
+            "What configuration are we pricing?",
+            "Ready to assist with pricing",
+            "Which sofa pricing do you need?"
+        ];
+
+        const timeBasedGreetings = {
+            morning: [
+                "Good morning! What pricing do you need?",
+                "Morning! Ready for today's consultations?",
+                "Starting the day - what can I price?"
+            ],
+            afternoon: [
+                "Good afternoon! Need a price check?",
+                "Afternoon! What are we pricing?",
+                "Busy afternoon? Let me help with pricing"
+            ],
+            evening: [
+                "Good evening! Still helping clients?",
+                "Evening consultation? I'll find that price",
+                "Late showing? Let's get that pricing"
+            ]
+        };
+
+        const placeholderExamples = [
+            "Alwinton 3 seater in Pacific velvet",
+            "Chester sofa leather options",
+            "Bramley 2 seater pricing",
+            "Corner sofas under £3000",
+            "Harrow in linen blend",
+            "Chesterfield configurations",
+            "Size options for Pembroke",
+            "Budget friendly 3 seaters"
+        ];
+
+        let currentPlaceholderIndex = 0;
+        let placeholderInterval;
+
+        function animatePlaceholder() {
+            const placeholderText = document.getElementById('placeholderText');
+            
+            placeholderText.style.opacity = '0';
+            
+            setTimeout(() => {
+                placeholderText.textContent = placeholderExamples[currentPlaceholderIndex];
+                placeholderText.style.opacity = '1';
+                currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
+            }, 300);
+        }
+
+        function getTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'morning';
+            if (hour < 18) return 'afternoon';
+            return 'evening';
+        }
+
+        function setRandomWelcomeMessage() {
+            const heading = document.getElementById('welcomeHeading');
+            const timeOfDay = getTimeOfDay();
+            const useTimeGreeting = Math.random() > 0.6;
+            
+            let message;
+            if (useTimeGreeting && timeBasedGreetings[timeOfDay]) {
+                const greetings = timeBasedGreetings[timeOfDay];
+                message = greetings[Math.floor(Math.random() * greetings.length)];
+            } else {
+                message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+            }
+            
+            heading.textContent = message;
+        }
+
+        function saveSearch(query) {
+            const recent = JSON.parse(localStorage.getItem('ssPricingSearches') || '[]');
+            recent.unshift(query);
+            const unique = [...new Set(recent)].slice(0, 10);
+            localStorage.setItem('ssPricingSearches', JSON.stringify(unique));
+        }
+
+        function resetToLanding() {
+            document.getElementById('landingContainer').classList.remove('hidden');
+            document.getElementById('chatContainer').classList.remove('active');
+            document.getElementById('landingSearchInput').value = '';
+            document.getElementById('landingSearchInput').focus();
+            setRandomWelcomeMessage();
+        }
+
+        function startConversation() {
+            const input = document.getElementById('landingSearchInput');
+            const query = input.value.trim();
+            
+            if (!query) {
+                input.focus();
+                return;
+            }
+
+            saveSearch(query);
+            
+            document.getElementById('landingContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.add('active');
+            
+            document.getElementById('messagesWrapper').innerHTML = '';
+            
+            addMessage('user', query);
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                hideTypingIndicator();
+                generateResponse(query);
+            }, 1200);
+        }
+
+        function quickSearch(query) {
+            document.getElementById('landingSearchInput').value = query;
+            startConversation();
+        }
+
+        function addMessage(type, content) {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            
+            const time = new Date().toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit' 
+            });
+            
+            if (type === 'user') {
+                message.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-avatar">👤</div>
+                        <span class="message-author">You</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(content)}</div>
+                `;
+            } else {
+                message.innerHTML = content;
+            }
+            
+            messagesWrapper.appendChild(message);
+            scrollToBottom();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function generateResponse(query) {
+            const time = new Date().toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit' 
+            });
+            
+            let responseContent = `
+                <div class="message-header">
+                    <div class="ultra-fabric-orb ultra-fabric-orb-small">
+                        <div class="ultra-fabric-sphere">
+                            <div class="fabric-depth-layer"></div>
+                            <div class="fabric-particles">
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="message-author">Assistant</span>
+                    <span class="message-time">${time}</span>
+                </div>
+                <div class="message-content">
+            `;
+            
+            if (query.toLowerCase().includes('alwinton')) {
+                responseContent += generateAlwintonResponse();
+            } else if (query.toLowerCase().includes('velvet') || query.toLowerCase().includes('pacific')) {
+                responseContent += generateVelvetResponse();
+            } else if (query.toLowerCase().includes('under') && query.match(/£?\d+/)) {
+                responseContent += generateBudgetResponse(query);
+            } else if (query.toLowerCase().includes('chester')) {
+                responseContent += generateChesterResponse();
+            } else {
+                responseContent += generateGenericResponse();
+            }
+            
+            responseContent += '</div>';
+            addMessage('assistant', responseContent);
+        }
+
+        function generateAlwintonResponse() {
+            const contextMessages = [
+                "Perfect timing - the Alwinton is particularly popular this season.",
+                "Great choice - let me show you the current Alwinton pricing.",
+                "The Alwinton remains one of our most requested models.",
+                "Here's everything you need for the Alwinton quote."
+            ];
+            const contextMessage = contextMessages[Math.floor(Math.random() * contextMessages.length)];
+            
+            const followUps = [
+                ['Compare with Bramley', 'Show all 3 seaters', 'Fabric grade options', 'Size variations'],
+                ['Alternative models', 'Leather pricing', 'Express options', 'Matching chairs'],
+                ['Similar price range', 'Customer favorites', 'Configuration options', 'Fabric samples available'],
+                ['Budget alternatives', 'Premium upgrades', '2 seater pricing', 'Corner configuration']
+            ];
+            const selectedFollowUps = followUps[Math.floor(Math.random() * followUps.length)];
+            
+            return `
+                <p>Here's the pricing for the <strong>Alwinton 3 Seater</strong> in <strong>Pacific velvet</strong>:</p>
+                
+                <div class="price-result-card">
+                    <div class="price-result-header">
+                        <div class="product-details">
+                            <h3>Alwinton 3 Seater</h3>
+                            <div class="product-specs">Pacific Velvet · W210cm × D95cm × H88cm</div>
+                        </div>
+                        <div class="price-display">
+                            <div class="price-label">Client Price</div>
+                            <div class="price-amount">£2,449</div>
+                        </div>
+                    </div>
+                    
+                    <div class="price-breakdown">
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Base Model</span>
+                            <span class="breakdown-value">£1,850</span>
+                        </div>
+                        <div class="breakdown-row">
+                            <span class="breakdown-label">Pacific Velvet (Grade C)</span>
+                            <span class="breakdown-value">+ £599</span>
+                        </div>
+                        <div class="breakdown-row total">
+                            <span class="breakdown-label">Total</span>
+                            <span class="breakdown-value">£2,449</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="margin-top: 20px;">${contextMessage}</p>
+
+                <div class="follow-up-questions">
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[0]}')">${selectedFollowUps[0]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[1]}')">${selectedFollowUps[1]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[2]}')">${selectedFollowUps[2]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[3]}')">${selectedFollowUps[3]}</button>
+                </div>
+            `;
+        }
+
+        function generateVelvetResponse() {
+            const contextMessages = [
+                "Our velvet collection offers excellent variety across price points.",
+                "Velvet remains our most popular fabric choice this quarter.",
+                "Here's our complete velvet range with current pricing.",
+                "Each velvet grade offers different benefits - let me explain."
+            ];
+            const contextMessage = contextMessages[Math.floor(Math.random() * contextMessages.length)];
+            
+            const followUps = [
+                ['Color swatches', 'Durability ratings', 'Pet-friendly options', 'Care instructions', 'Most popular'],
+                ['Price comparison', 'Luxe vs Pacific', 'Heritage benefits', 'Performance features', 'Sample availability'],
+                ['Matching fabrics', 'Grade differences', 'Cleaning guide', 'Warranty coverage', 'Texture comparison']
+            ];
+            const selectedFollowUps = followUps[Math.floor(Math.random() * followUps.length)];
+            
+            return `
+                <p><strong>Velvet fabric options</strong> and pricing tiers:</p>
+                
+                <ul style="margin: 16px 0; padding-left: 24px; line-height: 1.8;">
+                    <li><strong>Pacific Velvet</strong> - Grade C, £599 upgrade</li>
+                    <li><strong>Luxe Velvet</strong> - Grade D, £699 upgrade</li>
+                    <li><strong>Heritage Velvet</strong> - Grade B, £499 upgrade</li>
+                    <li><strong>Performance Velvet</strong> - Grade D+, £799 upgrade</li>
+                </ul>
+                
+                <p>${contextMessage}</p>
+                
+                <div class="follow-up-questions">
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[0]}')">${selectedFollowUps[0]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[1]}')">${selectedFollowUps[1]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[2]}')">${selectedFollowUps[2]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[3]}')">${selectedFollowUps[3]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[4]}')">${selectedFollowUps[4]}</button>
+                </div>
+            `;
+        }
+
+        function generateChesterResponse() {
+            const contextMessages = [
+                "The Chesterfield collection offers both traditional and contemporary styles.",
+                "Our Chester range can be customized extensively.",
+                "Chesterfields work beautifully in both fabric and leather.",
+                "The deep-buttoned design remains timelessly popular."
+            ];
+            const contextMessage = contextMessages[Math.floor(Math.random() * contextMessages.length)];
+            
+            const followUps = [
+                ['Leather options', 'Button configurations', 'Club chair pricing', 'Studding styles', 'Custom sizing'],
+                ['Traditional vs modern', 'Velvet Chesterfields', 'Two-tone options', 'Express availability', 'Leg finishes'],
+                ['Ottoman pricing', 'Footstool options', 'Care packages', 'Protection plans', 'Matching pieces']
+            ];
+            const selectedFollowUps = followUps[Math.floor(Math.random() * followUps.length)];
+            
+            return `
+                <p><strong>Chesterfield range</strong> pricing starts from:</p>
+                
+                <ul style="margin: 16px 0; padding-left: 24px; line-height: 1.8;">
+                    <li><strong>Classic Chester 3 Seater</strong> - From £2,250</li>
+                    <li><strong>Chester Club Chair</strong> - From £1,150</li>
+                    <li><strong>Chester Corner Sofa</strong> - From £3,450</li>
+                    <li><strong>Chester 2 Seater</strong> - From £1,850</li>
+                </ul>
+                
+                <p>${contextMessage}</p>
+                
+                <div class="follow-up-questions" style="margin-top: 16px;">
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[0]}')">${selectedFollowUps[0]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[1]}')">${selectedFollowUps[1]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[2]}')">${selectedFollowUps[2]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[3]}')">${selectedFollowUps[3]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[4]}')">${selectedFollowUps[4]}</button>
+                </div>
+            `;
+        }
+
+        function generateBudgetResponse(query) {
+            const match = query.match(/£?(\d+)/);
+            const budget = match ? parseInt(match[1]) : 2000;
+            
+            const contextMessages = [
+                `We have excellent options within the £${budget.toLocaleString()} range.`,
+                `Let me show you what's available at this price point.`,
+                `There are several configurations that work within £${budget.toLocaleString()}.`,
+                `Your budget opens up some great possibilities.`
+            ];
+            const contextMessage = contextMessages[Math.floor(Math.random() * contextMessages.length)];
+            
+            const followUps = [
+                ['Fabric options', 'Finance plans', 'Compare features', 'Best sellers'],
+                [`All under £${budget}`, 'Sale items', '2 seater options', 'Quick delivery'],
+                ['Grade A fabrics', 'Grade B fabrics', 'Clearance stock', 'Package deals'],
+                ['Customer favorites', 'New arrivals', 'Size options', 'Payment options']
+            ];
+            const selectedFollowUps = followUps[Math.floor(Math.random() * followUps.length)];
+            
+            return `
+                <p>Models within <strong>£${budget.toLocaleString()}</strong> budget:</p>
+                
+                <ul style="margin: 16px 0; padding-left: 24px; line-height: 1.8;">
+                    <li><strong>Bramley 2 Seater</strong> - From £${(budget * 0.7).toFixed(0)}</li>
+                    <li><strong>Harrow 3 Seater</strong> - From £${(budget * 0.85).toFixed(0)}</li>
+                    <li><strong>Pembroke Compact</strong> - From £${(budget * 0.8).toFixed(0)}</li>
+                </ul>
+                
+                <p>${contextMessage}</p>
+                
+                <div class="follow-up-questions">
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[0]}')">${selectedFollowUps[0]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[1]}')">${selectedFollowUps[1]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[2]}')">${selectedFollowUps[2]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[3]}')">${selectedFollowUps[3]}</button>
+                </div>
+            `;
+        }
+
+        function generateGenericResponse() {
+            const contextMessages = [
+                "I can quickly find any pricing information you need.",
+                "Let me know which specific model interests your client.",
+                "What particular aspect would help close this sale?",
+                "I'm here to support your consultation."
+            ];
+            const contextMessage = contextMessages[Math.floor(Math.random() * contextMessages.length)];
+            
+            const followUps = [
+                ['Best sellers', '3 seaters', 'Leather options', 'New arrivals', 'Corner sofas'],
+                ['Compact models', 'Sale items', 'Quick delivery', 'Fabric grades', 'Popular choices'],
+                ['Under £2000', 'Under £3000', 'Premium range', 'Finance options', 'Package deals']
+            ];
+            const selectedFollowUps = followUps[Math.floor(Math.random() * followUps.length)];
+            
+            return `
+                <p>I can help with pricing for any model. ${contextMessage}</p>
+                
+                <p>Quick access to:</p>
+                <ul style="margin: 16px 0; padding-left: 24px; line-height: 1.8;">
+                    <li>Model pricing by size and configuration</li>
+                    <li>Fabric grade pricing (A-D)</li>
+                    <li>Leather options and upgrades</li>
+                    <li>Current promotions and packages</li>
+                </ul>
+                
+                <div class="follow-up-questions">
+                    <button class="follow-up-btn" onclick="sendMessage('Show ${selectedFollowUps[0]}')">${selectedFollowUps[0]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[1]}')">${selectedFollowUps[1]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[2]}')">${selectedFollowUps[2]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[3]}')">${selectedFollowUps[3]}</button>
+                    <button class="follow-up-btn" onclick="sendMessage('${selectedFollowUps[4]}')">${selectedFollowUps[4]}</button>
+                </div>
+            `;
+        }
+
+        function showTypingIndicator() {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator active';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `
+                <div class="typing-orb"></div>
+                <div class="typing-orb"></div>
+                <div class="typing-orb"></div>
+            `;
+            messagesWrapper.appendChild(indicator);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function sendMessage(text) {
+            const chatInput = document.getElementById('chatInput');
+            const message = text || chatInput.value.trim();
+            
+            if (!message) return;
+            
+            addMessage('user', message);
+            
+            if (!text) {
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+            
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                hideTypingIndicator();
+                generateResponse(message);
+            }, 1200);
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        const chatInput = document.getElementById('chatInput');
+        const landingInput = document.getElementById('landingSearchInput');
+        const placeholderText = document.getElementById('placeholderText');
+
+        placeholderText.style.transition = 'opacity 0.3s ease';
+
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        landingInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startConversation();
+            }
+        });
+
+        landingInput.addEventListener('focus', () => {
+            clearInterval(placeholderInterval);
+            placeholderText.style.opacity = '0';
+        });
+
+        landingInput.addEventListener('blur', () => {
+            if (!landingInput.value) {
+                placeholderText.style.opacity = '1';
+                placeholderInterval = setInterval(animatePlaceholder, 3000);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            setRandomWelcomeMessage();
+            placeholderText.textContent = placeholderExamples[0];
+            placeholderInterval = setInterval(animatePlaceholder, 3000);
+            landingInput.focus();
+        });
+
+        window.addEventListener('beforeunload', () => {
+            clearInterval(placeholderInterval);
+        });
+    </script>
+</body>
+</html>

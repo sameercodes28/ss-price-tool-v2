@@ -25,12 +25,12 @@ An AI-powered conversational assistant for Sofas & Stuff salespeople. This v2 ve
 - [x] OpenRouter API integration for Grok-4 access
 - [x] Feature flag architecture (can toggle LLM on/off)
 
-### 🎭 Demo Polish Phase (In Planning)
+### 🎭 Demo Polish Phase
 - [ ] Real-time streaming responses (eliminate loading dots)
 - [ ] Markdown formatting for better readability
-- [ ] Follow-up question suggestions (Perplexity-style chips)
+- [x] Follow-up question suggestions (Perplexity-style chips) ✅ Completed
 - [ ] Clickable product/fabric links to sofasandstuff.com
-- [ ] Temperature optimization (0.1 for precise responses)
+- [x] Temperature optimization (0.1 for precise responses) ✅ Completed
 
 ### 🔮 Future Phases
 - [ ] **Phase 1B:** Session storage backend (Firestore/Redis)
