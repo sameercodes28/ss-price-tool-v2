@@ -809,13 +809,18 @@
                     html += '<div class="section-header price-header">💰 Price</div>';
                     continue;
                 } else if (line.startsWith('### ✨')) {
+                    // Close previous section (price or breakdown)
                     if (currentSection === 'price') html += '</div>';
+                    if (currentSection === 'breakdown') html += '</ul></div></div>';
                     html += '<div class="features-section">';
                     html += '<div class="section-header features-header">✨ Key Features</div>';
                     currentSection = 'features';
                     continue;
                 } else if (line.startsWith('### 🎯')) {
-                    if (currentSection) html += '</div>';
+                    // Close previous section (features or price)
+                    if (currentSection === 'features') html += '</div>';
+                    if (currentSection === 'price') html += '</div>';
+                    if (currentSection === 'breakdown') html += '</ul></div></div>';
                     html += '<div class="opportunities-section">';
                     html += '<div class="section-header opportunities-header">🎯 Opportunities to Enhance</div>';
                     currentSection = 'opportunities';
