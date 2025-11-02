@@ -1,13 +1,24 @@
 # Claude Code Project Instructions
 
-**IMPORTANT:** At the start of EVERY new conversation, read `.claude/context.md` first to understand:
-- Current project state
-- Recent changes
-- Ongoing tasks
-- Known issues
-- Important design decisions
+**CRITICAL - AUTOMATIC SESSION STARTUP:**
 
-This ensures continuity between sessions and prevents hallucinations.
+At the start of EVERY new conversation, automatically read these files WITHOUT waiting for user to ask:
+
+1. `.claude/context.md` - Complete project history and current state
+2. `.claude/KNOWLEDGE_BASE.md` - Proven patterns, code snippets, lessons learned
+
+Then immediately:
+- Understand where we left off
+- Know what's next to implement
+- Be ready to continue without user needing to say anything specific
+
+**User expects you to:**
+- Already know the current state
+- Understand what piece we're working on
+- Continue seamlessly from last session
+- NOT require "resume" commands or reminders
+
+This ensures perfect continuity between sessions and prevents hallucinations.
 
 ---
 
