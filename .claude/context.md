@@ -172,12 +172,28 @@ All infrastructure is deployed and operational!
 - **Phases** = work categories, not sequential steps (can do any order)
 - **Line numbers** = approximate references (will shift as code changes)
 
+**Additional Changes:**
+7. ✅ **Added "Working Code Protection Protocol"**
+   - Lines 231-312 in .claude/instructions.md: Comprehensive protocol to prevent regressions
+   - Establishes preference hierarchy: Add new code > Extend code > Modify code
+   - Requires explicit justification before modifying existing working code
+   - Includes three code examples (wrong, right, acceptable approaches)
+   - Added baseline testing requirement before/after any code changes
+
+**Working Code Protection Protocol:**
+- **1st choice:** Add new code without touching existing (safest)
+- **2nd choice:** Extend existing code with backward-compatible defaults
+- **Last resort:** Modify existing code (requires justification + user approval)
+- **Key principle:** "If it ain't broke, don't fix it - add to it instead"
+
 **Commits:**
 - e703f56: "v2: Remove all 'experimental' references - change to production development status"
 - 3fe1741: "v2: Document session changes in context.md"
 - 34d35ab: "v2: Clarify testing approach - Claude tests, no frameworks"
 - 87638c3: "v2: Update context.md with testing approach documentation"
 - 3ac6aa7: "v2: Clarify instructions - definitions, deployment, phases, line numbers"
+- c9b4203: "v2: Document instruction clarifications in context.md"
+- 8a694d7: "v2: Add 'Working Code Protection Protocol' to prevent regressions"
 
 ---
 
