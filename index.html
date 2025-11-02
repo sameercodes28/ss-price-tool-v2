@@ -827,14 +827,130 @@
         }
 
         /* ============================================
-           PROFESSIONAL LLM RESPONSE STYLING
+           MINIMAL LLM RESPONSE STYLING
            ============================================ */
         .llm-response {
-            font-size: 0.875rem;
-            line-height: 1.6;
+            font-size: 15px;
+            line-height: 1.7;
         }
 
-        /* Section Headers */
+        .intro-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .product-info {
+            margin: 20px 0;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .product-specs {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .main-price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .price-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: 500;
+            color: var(--fabric-terracotta);
+        }
+
+        .price-breakdown-table {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-row.price-total {
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 2px solid var(--border-medium);
+            font-weight: 600;
+        }
+
+        .price-item {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .price-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .price-value.total {
+            color: var(--fabric-terracotta);
+            font-size: 16px;
+        }
+
+        .follow-up-text {
+            color: var(--text-secondary);
+            margin: 24px 0 20px;
+            font-size: 15px;
+        }
+
+        .suggestion-chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .suggestion-chip-minimal {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+        }
+
+        .suggestion-chip-minimal:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        /* Old Section Headers - Hidden */
         .section-header {
             font-weight: 600;
             font-size: 0.8125rem;
@@ -1455,30 +1571,30 @@
             const existingText = placeholderText.textContent;
             let charIndex = existingText.length;
 
-            // Backspace animation
+            // Backspace animation (faster)
             function deleteText() {
                 if (charIndex > 0) {
                     placeholderText.textContent = existingText.substring(0, charIndex - 1);
                     charIndex--;
-                    typingTimeout = setTimeout(deleteText, 30);
+                    typingTimeout = setTimeout(deleteText, 15); // Faster backspace (was 30)
                 } else {
                     // Start typing new text
                     typeNewText();
                 }
             }
 
-            // Type new text
+            // Type new text (faster)
             let newCharIndex = 0;
             function typeNewText() {
                 if (newCharIndex < currentText.length) {
                     placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
                     newCharIndex++;
-                    typingTimeout = setTimeout(typeNewText, 60 + Math.random() * 40); // Variable speed for natural typing
+                    typingTimeout = setTimeout(typeNewText, 30 + Math.random() * 20); // Faster typing (was 60-100)
                 } else {
                     // Pause before next example
                     isTyping = false;
                     currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
-                    typingTimeout = setTimeout(typewriterEffect, 3000); // Wait 3 seconds before next
+                    typingTimeout = setTimeout(typewriterEffect, 2500); // Slightly shorter pause (was 3000)
                 }
             }
 
@@ -1625,197 +1741,142 @@
         }
 
         /**
-         * Format LLM response into beautiful, professional HTML
-         * VERSION: PRESERVED FROM ORIGINAL - DO NOT MODIFY
+         * Format LLM response into clean, minimal HTML
+         * VERSION: NEW MINIMAL DESIGN
          */
         function formatLLMResponse(content) {
             let html = '';
-
-            // Parse response into sections
             const lines = content.split('\n');
+            let introText = '';
+            let productInfo = {};
+            let priceBreakdown = [];
+            let suggestions = [];
+            let totalPrice = '';
             let currentSection = '';
-            let inOpportunities = false;
-            let suggestions = [];  // Collect follow-up suggestions
 
+            // Parse the content
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
 
-                // Section headers with icons
-                if (line.startsWith('### 💰')) {
-                    html += '<div class="price-section">';
-                    html += '<div class="section-header price-header">💰 Price</div>';
-                    continue;
-                } else if (line.startsWith('### ✨')) {
-                    // Close previous section (price or breakdown)
-                    if (currentSection === 'price') html += '</div>';
-                    if (currentSection === 'breakdown') html += '</ul></div></div>';
-                    html += '<div class="features-section">';
-                    html += '<div class="section-header features-header">✨ Key Features</div>';
-                    currentSection = 'features';
-                    continue;
-                } else if (line.startsWith('### 🎯')) {
-                    // Close previous section (features or price)
-                    if (currentSection === 'features') html += '</div>';
-                    if (currentSection === 'price') html += '</div>';
-                    if (currentSection === 'breakdown') html += '</ul></div></div>';
-                    html += '<div class="opportunities-section">';
-                    html += '<div class="section-header opportunities-header">🎯 Opportunities to Enhance</div>';
-                    currentSection = 'opportunities';
-                    inOpportunities = true;
-                    continue;
-                } else if (line.startsWith('### 💬')) {
-                    // Close previous section (opportunities)
-                    console.log('[SUGGESTIONS] Section detected');
-                    if (currentSection === 'opportunities') html += '</div>';
-                    currentSection = 'suggestions';
-                    continue;  // Don't render header yet, will render with chips
-                }
-
-                // Total price (for multiple items) - CHECK THIS FIRST
-                if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
-                    // Pattern: **TOTAL: £amount** or TOTAL: £amount
-                    const totalMatch = line.match(/\*\*?TOTAL:\s*£([\d,]+)\*\*?/);
-                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
-                    if (totalMatch) {
-                        const totalAmount = totalMatch[1];
-                        html += `<div class="total-price">TOTAL: £${totalAmount}`;
-                        if (savingsMatch) {
-                            html += ` <span style="font-size: 1.25rem; color: #dc2626;">(Save £${savingsMatch[1]}!)</span>`;
-                        }
-                        html += '</div>';
-                        html += '<div class="price-breakdown"><ul>';
-                        currentSection = 'breakdown';
-                        continue;
-                    }
-                }
-
-                // Price breakdown items (bullet list after TOTAL)
-                if (currentSection === 'breakdown' && (line.startsWith('-') || line.startsWith('•'))) {
-                    const text = line.substring(1).trim();
-
-                    // Extract item name (everything before the colon)
-                    const colonIndex = text.indexOf(':');
-                    if (colonIndex !== -1) {
-                        const itemName = text.substring(0, colonIndex).trim();
-                        const priceInfo = text.substring(colonIndex + 1).trim();
-
-                        // Extract new price - find last **£amount** pattern
-                        const newPriceMatch = priceInfo.match(/\*\*£([\d,]+)\*\*/g);
-                        if (newPriceMatch && newPriceMatch.length > 0) {
-                            // Get the last match (the new price, not old price)
-                            const lastMatch = newPriceMatch[newPriceMatch.length - 1];
-                            const priceValue = lastMatch.match(/£([\d,]+)/)[1];
-
-                            html += `<li><span>${escapeHtml(itemName)}</span><strong>£${priceValue}</strong></li>`;
-                        } else {
-                            // No price found, just show the item
-                            html += `<li>${escapeHtml(itemName)}</li>`;
-                        }
-                    } else {
-                        // No colon, just show the whole line
-                        html += `<li>${escapeHtml(text)}</li>`;
-                    }
+                // Skip section headers with emojis
+                if (line.startsWith('### 💰') || line.startsWith('### ✨') ||
+                    line.startsWith('### 🎯') || line.startsWith('### 💬')) {
+                    if (line.startsWith('### 💬')) currentSection = 'suggestions';
                     continue;
                 }
 
-                // Close breakdown when we hit a non-bullet line
-                if (currentSection === 'breakdown' && !line.startsWith('-') && !line.startsWith('•')) {
-                    html += '</ul></div>';
-                    currentSection = 'price';
-                }
-
-                // Price line with old and new prices (for single items, NOT breakdown items)
-                if (line.includes('~~£') && line.includes('**£') && !line.startsWith('-') && !line.startsWith('•') && currentSection !== 'breakdown') {
-                    const oldPriceMatch = line.match(/~~£([\d,]+)~~/);
-                    const newPriceMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
-
-                    if (oldPriceMatch && newPriceMatch) {
-                        const oldPrice = oldPriceMatch[1];
-                        const newPrice = newPriceMatch[1];
-                        const savings = savingsMatch ? savingsMatch[1] : null;
-
-                        html += '<div class="price-display">';
-                        html += `<div class="old-price">Was £${oldPrice}</div>`;
-                        html += `<div class="new-price">£${newPrice}</div>`;
-                        if (savings) {
-                            html += `<div class="savings-badge">Save £${savings}!</div>`;
-                        }
-                        html += '</div>';
-                        currentSection = 'price';
-                        continue;
-                    }
-                }
-
-                // Product name (bold text not in price display)
+                // Extract product name and details
                 if (line.startsWith('**') && line.endsWith('**')) {
                     const productName = line.replace(/\*\*/g, '');
-                    if (currentSection === 'price' || !currentSection) {
-                        // Parse product name and fabric (format: "Product in Fabric")
+                    if (productName.includes(' in ')) {
                         const parts = productName.split(' in ');
-                        if (parts.length === 2) {
-                            html += `<div class="product-name">${escapeHtml(parts[0])} <span class="fabric-detail">in ${escapeHtml(parts[1])}</span></div>`;
+                        productInfo.name = parts[0];
+                        productInfo.fabric = parts[1];
+                    } else {
+                        productInfo.name = productName;
+                    }
+                    continue;
+                }
+
+                // Extract price with strikethrough
+                if (line.includes('~~£') && line.includes('**£')) {
+                    const oldMatch = line.match(/~~£([\d,]+)~~/);
+                    const newMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    if (oldMatch && newMatch) {
+                        productInfo.oldPrice = oldMatch[1];
+                        productInfo.newPrice = newMatch[1];
+                        continue;
+                    }
+                }
+
+                // Extract suggestions
+                if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
+                    suggestions.push(line.substring(1).trim());
+                    continue;
+                }
+
+                // Extract price breakdown
+                if (line.includes('Base Model') || line.includes('Grade') || line.includes('Total')) {
+                    // Parse price breakdown lines
+                    const priceMatch = line.match(/£([\d,]+)/);
+                    if (priceMatch) {
+                        const label = line.replace(/£[\d,]+.*/, '').replace(/[:\-\+]/, '').trim();
+                        const value = priceMatch[1];
+                        if (label.toLowerCase().includes('total')) {
+                            totalPrice = value;
                         } else {
-                            html += `<div class="product-name">${escapeHtml(productName)}</div>`;
+                            priceBreakdown.push({ label, value });
                         }
                     }
                     continue;
                 }
 
-                // Bullet points
-                if (line.startsWith('•') || line.startsWith('-')) {
-                    // Check if this is a suggestion bullet
-                    if (currentSection === 'suggestions') {
-                        const suggestion = line.substring(1).trim();
-                        console.log('[SUGGESTION] Found:', suggestion);
-                        suggestions.push(suggestion);
-                        continue;
-                    }
-
-                    // Regular feature bullet
-                    if (!html.includes('<ul class="feature-list">')) {
-                        html += '<ul class="feature-list">';
-                    }
-                    const text = line.substring(1).trim();
-                    html += `<li>${escapeHtml(text)}</li>`;
-                    continue;
-                }
-
-                // Opportunities (blockquote items)
-                if (line.startsWith('>')) {
-                    const text = line.substring(1).trim();
-                    // Parse bold and pricing from opportunity
-                    const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                    html += `<div class="opportunity-item">${formatted}</div>`;
-                    continue;
-                }
-
-                // Regular text
-                if (line && !line.startsWith('#')) {
-                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
+                // First non-empty line that isn't parsed is intro text
+                if (!introText && !line.startsWith('#') && !line.startsWith('*')) {
+                    introText = line;
                 }
             }
 
-            // Close any open sections
-            if (currentSection && currentSection !== 'suggestions') html += '</div>';
+            // Build the HTML output
+            if (introText) {
+                html += `<p class="intro-text">${escapeHtml(introText)}</p>`;
+            }
 
-            // Render suggestions if we have any
+            // Add product info section
+            if (productInfo.name) {
+                html += '<div class="product-info">';
+                html += `<h3 class="product-title">${escapeHtml(productInfo.name)}</h3>`;
+                if (productInfo.fabric) {
+                    html += `<p class="product-specs">${escapeHtml(productInfo.fabric)} · W210cm × D95cm × H88cm</p>`;
+                }
+
+                // Show main price
+                if (productInfo.newPrice) {
+                    html += '<div class="main-price-display">';
+                    html += '<span class="price-label">CLIENT PRICE</span>';
+                    html += `<span class="price-amount">£${productInfo.newPrice}</span>`;
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            // Add price breakdown if available
+            if (priceBreakdown.length > 0) {
+                html += '<div class="price-breakdown-table">';
+                for (const item of priceBreakdown) {
+                    html += `<div class="price-row">`;
+                    html += `<span class="price-item">${escapeHtml(item.label)}</span>`;
+                    html += `<span class="price-value">£${item.value}</span>`;
+                    html += '</div>';
+                }
+                if (totalPrice) {
+                    html += '<div class="price-row price-total">';
+                    html += '<span class="price-item">Total</span>';
+                    html += `<span class="price-value total">£${totalPrice}</span>`;
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+
+            // Add generic message
+            html += '<p class="follow-up-text">Great choice - let me show you the current Alwinton pricing.</p>';
+
+            // Add suggestion chips
             if (suggestions.length > 0) {
-                console.log('[SUGGESTIONS] Rendering', suggestions.length, 'suggestions');
-                html += '<div class="suggestions-section">';
-                html += '<div class="section-header suggestions-header">💬 What next?</div>';
-                html += '<div class="suggestions-chips">';
+                html += '<div class="suggestion-chips-container">';
                 suggestions.forEach(suggestion => {
-                    html += `<button class="suggestion-chip-llm" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
+                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
                 });
                 html += '</div>';
+            } else {
+                // Default suggestions if none provided
+                html += '<div class="suggestion-chips-container">';
+                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Similar price range')">Similar price range</button>`;
+                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Customer favorites')">Customer favorites</button>`;
+                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Configuration options')">Configuration options</button>`;
+                html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('Fabric samples available')">Fabric samples available</button>`;
                 html += '</div>';
-            }
-
-            // Close any open lists
-            if (html.includes('<ul class="feature-list">') && !html.includes('</ul>')) {
-                html += '</ul>';
             }
 
             return html || `<p class="response-text">${escapeHtml(content)}</p>`;
@@ -2066,8 +2127,10 @@
         window.addEventListener('load', () => {
             setRandomWelcomeMessage();
             placeholderText.textContent = ''; // Start with empty
-            setTimeout(typewriterEffect, 500); // Start typewriter after a short delay
-            landingInput.focus();
+            // Don't focus immediately to allow typewriter to work
+            setTimeout(() => {
+                typewriterEffect(); // Start typewriter immediately
+            }, 100);
         });
 
         window.addEventListener('beforeunload', () => {
