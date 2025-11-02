@@ -395,12 +395,17 @@
 
         /* Small version for chat */
         .ultra-fabric-orb-small {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
         }
 
         .ultra-fabric-orb-small .ultra-fabric-sphere {
             animation-duration: 6s, 10s;
+        }
+
+        /* When used as message avatar */
+        .message-avatar.ultra-fabric-orb-small {
+            flex-shrink: 0;
         }
 
         /* ============================================
@@ -412,8 +417,16 @@
             padding: 16px 24px;
             display: flex;
             align-items: center;
-            gap: 16px;
+            justify-content: space-between;
             box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            text-decoration: none;
         }
 
         .brand-info {
@@ -432,6 +445,31 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-top: 2px;
+        }
+
+        .new-conversation-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .new-conversation-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .new-conversation-btn svg {
+            width: 16px;
+            height: 16px;
         }
 
         /* ============================================
@@ -690,8 +728,21 @@
         }
 
         .message {
-            margin-bottom: 24px;
+            margin-bottom: 16px;
             animation: messageSlideIn 0.3s ease;
+            display: flex;
+            gap: 12px;
+            padding: 8px 16px;
+        }
+
+        /* User messages - aligned RIGHT */
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        /* Assistant messages - aligned LEFT */
+        .message.assistant {
+            flex-direction: row;
         }
 
         @keyframes messageSlideIn {
@@ -705,48 +756,71 @@
             }
         }
 
+        .message-wrapper {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .message-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
+            gap: 8px;
+            font-size: 13px;
+            padding: 0 4px;
         }
 
-        .message.user .message-avatar {
-            width: 32px;
-            height: 32px;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+        .message.user .message-header {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
             flex-shrink: 0;
         }
 
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
         .message-author {
-            font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--text-secondary);
         }
 
         .message-time {
-            font-size: 12px;
             color: var(--text-tertiary);
+            font-size: 12px;
         }
 
         .message-content {
-            margin-left: 44px;
             font-size: 15px;
-            line-height: 1.7;
+            line-height: 1.6;
             color: var(--text-primary);
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
         }
 
         .message.user .message-content {
-            background: var(--bg-tertiary);
-            padding: 14px 18px;
-            border-radius: 12px;
-            display: inline-block;
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            color: white;
+            border: none;
+            border-radius: 18px 18px 4px 18px;
+        }
+
+        .message.assistant .message-content {
+            border-radius: 4px 18px 18px 18px;
         }
 
         /* ============================================
@@ -1173,23 +1247,32 @@
     ================================================================
     -->
     <header class="header">
-        <!-- Ultra fabric-inspired orb logo -->
-        <div class="ultra-fabric-orb" onclick="resetToLanding()" title="Return to search">
-            <div class="ultra-fabric-sphere">
-                <div class="fabric-depth-layer"></div>
-                <div class="fabric-particles">
-                    <div class="fabric-particle"></div>
-                    <div class="fabric-particle"></div>
-                    <div class="fabric-particle"></div>
-                    <div class="fabric-particle"></div>
-                    <div class="fabric-particle"></div>
+        <a href="https://britishmade.ai" class="header-left" title="Go to main site">
+            <!-- Ultra fabric-inspired orb logo -->
+            <div class="ultra-fabric-orb">
+                <div class="ultra-fabric-sphere">
+                    <div class="fabric-depth-layer"></div>
+                    <div class="fabric-particles">
+                        <div class="fabric-particle"></div>
+                        <div class="fabric-particle"></div>
+                        <div class="fabric-particle"></div>
+                        <div class="fabric-particle"></div>
+                        <div class="fabric-particle"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="brand-info">
-            <div class="brand-name">Sofas & Stuff</div>
-            <div class="brand-tagline">Pricing Assistant</div>
-        </div>
+            <div class="brand-info">
+                <div class="brand-name">Sofas & Stuff</div>
+                <div class="brand-tagline">Pricing Assistant</div>
+            </div>
+        </a>
+        <button class="new-conversation-btn" onclick="resetToLanding()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Conversation
+        </button>
     </header>
 
     <!--
@@ -1455,12 +1538,14 @@
 
             if (type === 'user') {
                 message.innerHTML = `
-                    <div class="message-header">
-                        <div class="message-avatar">👤</div>
-                        <span class="message-author">You</span>
-                        <span class="message-time">${time}</span>
+                    <div class="message-avatar">👤</div>
+                    <div class="message-wrapper">
+                        <div class="message-header">
+                            <span class="message-author">You</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${escapeHtml(content)}</div>
                     </div>
-                    <div class="message-content">${escapeHtml(content)}</div>
                 `;
             } else {
                 // Assistant message with ultra fabric orb
@@ -1469,22 +1554,24 @@
                     : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;
 
                 message.innerHTML = `
-                    <div class="message-header">
-                        <div class="ultra-fabric-orb ultra-fabric-orb-small">
-                            <div class="ultra-fabric-sphere">
-                                <div class="fabric-depth-layer"></div>
-                                <div class="fabric-particles">
-                                    <div class="fabric-particle"></div>
-                                    <div class="fabric-particle"></div>
-                                    <div class="fabric-particle"></div>
-                                </div>
+                    <div class="ultra-fabric-orb ultra-fabric-orb-small message-avatar">
+                        <div class="ultra-fabric-sphere">
+                            <div class="fabric-depth-layer"></div>
+                            <div class="fabric-particles">
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
                             </div>
                         </div>
-                        <span class="message-author">Assistant</span>
-                        <span class="message-time">${time}</span>
                     </div>
-                    <div class="message-content llm-response">
-                        ${formattedContent}
+                    <div class="message-wrapper">
+                        <div class="message-header">
+                            <span class="message-author">Assistant</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content llm-response">
+                            ${formattedContent}
+                        </div>
                     </div>
                 `;
             }
