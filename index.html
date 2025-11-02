@@ -830,12 +830,15 @@
 
                 <!-- Typing Indicator (hidden by default) -->
                 <div id="typing-indicator" class="flex items-start gap-3 hidden message-fade-in mb-8">
-                    <div class="w-8 h-8 bg-gradient-to-br rounded-full flex items-center justify-center flex-shrink-0 shadow-sm agent-avatar">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 48 48" fill="none">
-                            <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
-                            <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
-                        </svg>
+                    <div class="ultra-fabric-orb ultra-fabric-orb-small">
+                        <div class="ultra-fabric-sphere">
+                            <div class="fabric-depth-layer"></div>
+                            <div class="fabric-particles">
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
                         <div class="typing-indicator">
@@ -1114,12 +1117,15 @@
                     : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;  // Plain text fallback
 
                 messageDiv.innerHTML = `
-                    <div class="w-8 h-8 bg-gradient-to-br rounded-full flex items-center justify-center flex-shrink-0 shadow-sm agent-avatar">
-                        <svg class="w-5 h-5 text-white" viewBox="0 0 48 48" fill="none">
-                            <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
-                            <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
-                        </svg>
+                    <div class="ultra-fabric-orb ultra-fabric-orb-small">
+                        <div class="ultra-fabric-sphere">
+                            <div class="fabric-depth-layer"></div>
+                            <div class="fabric-particles">
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                                <div class="fabric-particle"></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-4 max-w-[90%] shadow-lg llm-response">
                         ${formattedContent}
