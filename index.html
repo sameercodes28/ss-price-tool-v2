@@ -836,7 +836,8 @@
                 // Total price (for multiple items) - CHECK THIS FIRST
                 if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
                     console.log('[TOTAL DETECTED] Line:', line);
-                    const totalMatch = line.match(/TOTAL:\s*\*\*?£([\d,]+)\*\*?/);
+                    // Pattern: **TOTAL: £amount** or TOTAL: £amount
+                    const totalMatch = line.match(/\*\*?TOTAL:\s*£([\d,]+)\*\*?/);
                     const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
                     console.log('[TOTAL] Match:', totalMatch, 'Savings:', savingsMatch);
                     if (totalMatch) {
