@@ -159,11 +159,196 @@ This ensures continuity between sessions and prevents hallucinations.
    - Verify error handling
    - Ensure code follows existing patterns
 
-9. **DOCUMENTATION**
-   - Update comments in code
+9. **DOCUMENTATION** (Critical - Nothing Should Be Stale)
+   - Update comments in code (explain WHY, not just WHAT)
+   - Add debug logging for important operations
    - Update relevant documentation files
    - Update `.claude/context.md` with changes
    - Document any gotchas or important decisions
+   - Keep all docs synchronized with code changes
+
+### 📝 CRITICAL: Living Documentation Protocol
+
+**Principle:** Documentation must evolve with code. Stale docs are worse than no docs.
+
+**Problem:** Code changes but docs don't get updated, leading to confusion and wasted time.
+
+**Solution: Active Documentation Maintenance**
+
+**For EVERY Code Change:**
+
+1. **Code Comments (Mandatory)**
+   - Add comments explaining **WHY**, not just what
+   - Document non-obvious logic and business rules
+   - Explain edge cases and special handling
+   - Use TODO comments for known issues
+
+   **Example:**
+   ```python
+   # GOOD - Explains WHY
+   # Cache for 5 minutes because API rate limit is 100 req/hour
+   # and typical sales session has 20+ queries
+   cache_ttl = 300
+
+   # BAD - States the obvious
+   # Set cache TTL to 300 seconds
+   cache_ttl = 300
+   ```
+
+2. **Debug Logging (For Important Operations)**
+   - Log important state changes
+   - Log API calls and responses
+   - Log error conditions with context
+   - Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)
+
+   **Example:**
+   ```python
+   import logging
+
+   logging.info(f"Fetching price for query: {query}")
+   logging.debug(f"Using API endpoint: {api_url}")
+   logging.warning(f"Cache miss for product: {product_id}")
+   logging.error(f"API call failed after 3 retries: {error}")
+   ```
+
+3. **Update Architecture Docs (When Structure Changes)**
+
+   Files to update when you change architecture:
+   - `ARCHITECTURE.md` - System design, components, data flow
+   - `TECHNICAL_GUIDE.md` - How things work technically
+
+   **When to update:**
+   - Add new component → Update component diagram/description
+   - Change data flow → Update data flow diagrams/explanation
+   - Modify API → Update API documentation
+   - Add new dependency → Document why and how it's used
+
+   **What to update:**
+   ```markdown
+   # ARCHITECTURE.md structure
+   - System Overview (keep current with actual architecture)
+   - Component Descriptions (add/update when components change)
+   - Data Flow (update when flow changes)
+   - Deployment (update when deployment changes)
+   ```
+
+4. **Update Design Docs (When Features Change)**
+
+   Files to update when you change features:
+   - `docs/PRD.md` - Product requirements and features
+   - `README.md` - User-facing features and capabilities
+   - `CHANGELOG.md` - Version history
+
+   **When to update:**
+   - Add feature → Update PRD and README with new capability
+   - Remove feature → Remove from docs, note in CHANGELOG
+   - Modify feature → Update description in all relevant docs
+
+   **What to update:**
+   ```markdown
+   # PRD.md - Update these sections:
+   - Features list (add/remove/modify features)
+   - User flows (update if UX changes)
+   - Success metrics (update if goals change)
+
+   # README.md - Update these sections:
+   - Features list (keep synchronized with actual features)
+   - Quick start (if setup process changes)
+   - Usage examples (if usage changes)
+
+   # CHANGELOG.md - Add entry for every feature:
+   - [2.1.0] - Added chat interface with memory
+   - What changed, why, and what's new
+   ```
+
+5. **Update Context.md (Every Session)**
+   - Document what was built in this session
+   - List files modified
+   - Record important decisions made
+   - Note any issues discovered
+   - Update "Current State" section
+
+**Claude's Documentation Workflow:**
+
+After implementing ANY feature piece:
+1. ✅ Add/update code comments explaining WHY
+2. ✅ Add debug logging for important operations
+3. ✅ Check if ARCHITECTURE.md needs updating (structure changes?)
+4. ✅ Check if TECHNICAL_GUIDE.md needs updating (how it works changes?)
+5. ✅ Check if PRD.md needs updating (features change?)
+6. ✅ Check if README.md needs updating (user-facing changes?)
+7. ✅ Update CHANGELOG.md if feature complete
+8. ✅ Update .claude/context.md at end of session
+
+**Documentation Checklist (Before Marking Feature Complete):**
+
+- [ ] Code has comments explaining WHY for non-obvious logic
+- [ ] Debug logging added for important operations
+- [ ] ARCHITECTURE.md updated if architecture changed
+- [ ] TECHNICAL_GUIDE.md updated if technical approach changed
+- [ ] PRD.md updated if features added/removed/modified
+- [ ] README.md updated if user-facing changes
+- [ ] CHANGELOG.md updated with version entry
+- [ ] .claude/context.md updated with session summary
+
+**Examples of Good Documentation Updates:**
+
+**Code Comment:**
+```python
+def get_price(query, cache=True):
+    """
+    Fetch product price with optional caching.
+
+    Args:
+        query: Natural language product query (e.g., "alwinton snuggler pacific")
+        cache: Use cache (default True). Disable for real-time pricing.
+
+    Returns:
+        dict: Price information with base price, fabric upgrades, etc.
+
+    Why cache=True by default:
+    - API has 100 req/hour rate limit
+    - Typical sales session has 20+ price checks
+    - Prices don't change intraday
+    - 5-minute cache prevents rate limiting
+    """
+    if cache:
+        logging.debug(f"Checking cache for query: {query}")
+        # ... cache logic
+```
+
+**ARCHITECTURE.md Update:**
+```markdown
+## Components (Updated 2025-11-02)
+
+### Frontend (index.html)
+- Voice input using browser Web Speech API
+- **NEW: Chat interface with message history** ← Added today
+- Text fallback for browsers without voice support
+- Deployed on GitHub Pages
+
+### Backend (main.py)
+- **NEW: Session memory system for context tracking** ← Added today
+- Natural language processing
+- 2-API routing (Sofa API vs Bed API)
+- Caching layer (5-minute TTL)
+```
+
+**README.md Update:**
+```markdown
+## Features
+
+- ✅ Voice-enabled price lookup
+- ✅ Support for 210 products
+- ✅ **NEW: Chat interface with conversation history** ← Added today
+- ✅ **NEW: Follow-up question support** ← Added today
+- ✅ Smart product matching with typo tolerance
+```
+
+**When in doubt:**
+- ✅ Over-document rather than under-document
+- ✅ Ask user if docs need updating for this change
+- ✅ Keep docs in sync with code IMMEDIATELY (not "later")
 
 ### Example Workflow
 
