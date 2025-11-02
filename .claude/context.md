@@ -178,7 +178,15 @@ All infrastructure is deployed and operational!
 - No enhanced tools (compare, budget search, etc.)
 
 **Commits:**
-- (To be created) "v2: Complete Phase 1A - Full-screen chat UI with themes and polish"
+- 59cd3e1: "v2: Complete Phase 1A - Full-screen chat UI with themes and polish"
+- 27ba86d: Merge Phase 1A to main (demo-ready)
+
+**Tags:**
+- demo-ready-v2.1.0-phase1a: Phase 1A complete - Beautiful full-screen chat UI with themes
+
+**Branches:**
+- main: ✅ Phase 1A merged and pushed
+- feature/chat-interface-with-memory: ✅ Ready for Phase 1B work
 
 ---
 
