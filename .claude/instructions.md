@@ -19,9 +19,11 @@ This ensures continuity between sessions and prevents hallucinations.
 **Parent:** v1.0.0 (stable) at ~/Desktop/SS-1
 
 **Key Files:**
-- `main.py` - Backend (line 188: entry point)
-- `index.html` - Frontend (line 187: v2 backend URL)
+- `main.py` - Backend (entry point function)
+- `index.html` - Frontend (contains backend URL configuration)
 - 4 JSON files - Translation dictionaries (loaded at startup)
+
+> **Note:** Line numbers mentioned in documentation are approximate and may shift as code changes.
 
 **Important:**
 - This is v2 - production quality, built incrementally
@@ -62,6 +64,26 @@ This ensures continuity between sessions and prevents hallucinations.
 ## 🎯 Development Protocol (CRITICAL - READ FOR EVERY TASK)
 
 **Philosophy:** Measure twice, cut once. Production quality requires careful planning and incremental development.
+
+### Key Definitions
+
+**Feature:** A complete user-facing capability that provides value to sales staff.
+- Example: "Chat interface with message history"
+- Example: "Product comparison view"
+- Composed of multiple small pieces
+- Deployed only after complete and tested
+
+**Piece:** A small implementation step within a feature (< 10-20 lines of code).
+- Example: "Add message input box to HTML"
+- Example: "Add send button click handler"
+- Tested immediately after implementation
+- Committed after testing validates it works
+
+**Local vs Deployed Testing:**
+- **Always test locally first** - use Bash tool with local server and curl
+- **Deploy only when feature is complete** - after all pieces tested and working
+- **Test deployed version after deployment** - verify it works in production
+- **Never deploy untested code** - local testing must pass first
 
 ### Before ANY Implementation
 
@@ -122,10 +144,13 @@ This ensures continuity between sessions and prevents hallucinations.
 7. **POST-IMPLEMENTATION TESTING**
    - Run ALL tests that were run pre-implementation
    - Compare results with baseline
-   - Test for regressions
-   - Test in local environment
-   - Test in deployed environment (if applicable)
-   - Document all test results
+   - Test for regressions in local environment
+   - **Local testing is mandatory for every piece**
+   - **Deployed testing only after complete feature:**
+     - Deploy to GCF only when entire feature is done
+     - Test deployed version to verify production works
+     - Never deploy individual pieces - deploy complete features only
+   - Document all test results (local and deployed)
 
 8. **CODE REVIEW**
    - Review your own changes line by line
@@ -267,25 +292,28 @@ curl -X POST http://localhost:8080/getPrice -H "Content-Type: application/json" 
 
 ### DEVELOPMENT PRIORITIES
 
-**Phase 1: Chat-Like Interface with Memory**
+> **Important:** These phases are **categories of work**, NOT a required sequence. You can work on any phase in any order based on user priorities. Phase numbering is for organization only.
+
+**Phase 1: Chat-Like Interface with Memory** _(Category: User Interface)_
 - Build a WhatsApp-style interface that sales staff already know how to use
 - Start with just sending and receiving messages
 - Add memory system to track conversation context
 - Make sure follow-up questions work naturally
 
-**Phase 2: Core Pricing Engine**
+**Phase 2: Core Pricing Engine** _(Category: Business Logic)_
 - Implement basic product pricing first
 - Add support for different sizes and fabrics
 - Include add-ons and alterations
 - Ensure 100% pricing accuracy
+- **Note:** v1 already has this - v2 inherited it
 
-**Phase 3: Natural Language Understanding**
+**Phase 3: Natural Language Understanding** _(Category: Intelligence)_
 - Handle incomplete queries gracefully
 - Add clarification dialogues
 - Support pronouns and context references
 - Make it understand sales speak
 
-**Phase 4: Data Optimization**
+**Phase 4: Data Optimization** _(Category: Performance)_
 - Convert CSVs to JSON for speed
 - Structure data for instant lookups
 - Cache frequently accessed data
