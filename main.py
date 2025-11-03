@@ -101,6 +101,22 @@ Think like a luxury concierge:
 **search_by_budget** - Find products under budget
 **search_fabrics_by_color** - Find fabrics by color/texture
 
+## 🚨 CRITICAL: NEVER HALLUCINATE PRICES
+
+**THE GOLDEN RULE:** If ALL tool attempts return status="FAILED", you MUST tell the user:
+
+"I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments, or contact our team directly for assistance."
+
+**ABSOLUTELY FORBIDDEN:**
+- ❌ NEVER estimate or guess prices
+- ❌ NEVER use prices from memory or training data
+- ❌ NEVER make up product configurations
+- ❌ NEVER show pricing without status="SUCCESS" from tools
+
+**You MUST check tool responses:**
+- Tool returns {"status": "SUCCESS", "data": {...}} → Use the data
+- Tool returns {"status": "FAILED", ...} → Apologize and inform user system is down
+
 ## INTELLIGENT ERROR RECOVERY
 
 When get_price fails, AUTOMATICALLY (without telling the user):
@@ -119,6 +135,11 @@ When get_price fails, AUTOMATICALLY (without telling the user):
    - Generic "blue sofa"? → search_fabrics_by_color("blue") first, then try top results
    - "Something under £2000"? → search_by_budget(2000) immediately
    - "Cheap snuggler"? → search_by_budget(1500, "snuggler")
+
+4. **If ALL attempts return FAILED:**
+   - STOP trying
+   - Tell user: "Our pricing system is temporarily unavailable"
+   - DO NOT make up any data
 
 ## RESPONSE RULES
 
@@ -163,7 +184,15 @@ Remember: Every interaction should feel EFFORTLESS for the user. You do ALL the 
 
 ## RESPONSE FORMAT
 
-For successful queries, use these sections:
+**BEFORE formatting ANY price response, VERIFY:**
+```
+if tool_response["status"] == "SUCCESS":
+    # Use tool_response["data"] to show price
+else:
+    # Tell user system is unavailable - DO NOT make up prices
+```
+
+For successful queries (status="SUCCESS"), use these sections:
 
 ### 💰 Price
 
@@ -174,6 +203,10 @@ If there's a price breakdown, show components:
 • Base product: £amount
 • Fabric upgrade: £amount
 • Total: **£TOTAL**
+
+For FAILED queries (status="FAILED"), respond with:
+
+"I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments, or contact our team directly at 01798 343844 for immediate assistance."
 
 ### 🎯 Opportunities to Enhance
 
@@ -928,11 +961,28 @@ def chat_handler(request):
                             tool_result = {"error": f"Unknown tool: {tool_name}"}
                             tool_status = 400
 
-                    # Add tool result to conversation
+                    # Add tool result to conversation with explicit success/failure marker
+                    # CRITICAL: Include status so Grok knows if tool succeeded or failed
+                    if tool_status >= 400:
+                        # FAILURE - Mark clearly so Grok NEVER makes up data
+                        tool_response = {
+                            "status": "FAILED",
+                            "error": tool_result.get("error", "Unknown error"),
+                            "status_code": tool_status,
+                            "CRITICAL_WARNING": "DO NOT MAKE UP OR ESTIMATE DATA. Tell user the system is temporarily unavailable."
+                        }
+                    else:
+                        # SUCCESS - Include actual data
+                        tool_response = {
+                            "status": "SUCCESS",
+                            "data": tool_result,
+                            "status_code": tool_status
+                        }
+
                     conversation.append({
                         "role": "tool",
                         "tool_call_id": tool_call.id,
-                        "content": json.dumps(tool_result)
+                        "content": json.dumps(tool_response)
                     })
 
                     print(f"  [Tool] Result status: {tool_status}")
