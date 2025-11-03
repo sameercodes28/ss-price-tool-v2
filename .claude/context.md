@@ -1,21 +1,29 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 3: Superior Grok UX Implementation)
+**Last Updated:** 2025-11-03 (Part 4: LLM Response Formatting & Documentation)
 **Current Version:** v2.3.0
 **Project Status:** 🚀 Production Development - Ready for Testing
 
 ## 📋 Next Session Priority
 
-**TEST THE NEW GROK IMPROVEMENTS:**
+**🔴 CRITICAL: Fix OpenRouter API Authentication**
 
-The system prompt has been completely rewritten with a "luxury concierge" mindset.
-Grok should now:
+The OpenRouter API key has been revoked/expired (401 error: "User not found").
+Cannot test any LLM features until this is fixed.
+
+**Immediate Actions Required:**
+1. Get new API key from https://openrouter.ai/settings/keys
+2. Deploy to GCF with: `gcloud functions deploy sofa-price-calculator-v2 --set-env-vars OPENROUTER_API_KEY=NEW_KEY`
+3. Test the formatting improvements (Key Features removed, simplified price display)
+4. Fix SKU generation issue in getPrice endpoint
+
+**Then Test Grok Improvements:**
 - Auto-correct ALL misspellings silently
 - Make intelligent assumptions
 - Try multiple tools automatically
 - Never burden the user
 
-**Test Cases to Run:**
+**Test Cases (once API fixed):**
 1. Misspellings: "alwington snugler pacfic"
 2. Vague queries: "blue sofa", "something under 2k"
 3. Partial info: just "midhurst" or "petworth"
@@ -51,7 +59,7 @@ GitHub Pages (free)     Google Cloud Functions (v2)      Sofa API + Bed API
 
 **Current Deployment:**
 - Backend: ✅ Deployed to GCF → https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2
-- Frontend: ✅ Deployed to GitHub Pages → https://sameercodes28.github.io/ss-price-tool-v2/
+- Frontend: ✅ Deployed to GitHub Pages → https://britishmade.ai/
 
 ---
 
@@ -166,6 +174,56 @@ All infrastructure is deployed and operational!
 **Commits:**
 - 87307c6: Initial error handling attempt
 - 232997c: Improve Grok system prompt for superior UX
+
+---
+
+### Session: 2025-11-03 Part 4 (LLM Response Formatting Fix & Documentation Cleanup)
+
+**Objective:** Fix LLM response formatting issues and clean up documentation drift
+
+**Changes Made:**
+
+1. ✅ **Fixed LLM Response Formatting**
+   - Removed "Key Features" section from system prompt (lines 179-183 in main.py)
+   - Removed "Key Features" parsing from formatLLMResponse (index.html)
+   - Simplified price display format to show product name and price clearly
+   - Fixed price parsing to handle new simplified format (**£PRICE** instead of ~~£OLD~~ → **£NEW**)
+
+2. ✅ **Documentation Drift Fixes**
+   - Updated README.md version from 2.1.0 → 2.3.0
+   - Changed status from "DEMO STAGE" → "PRODUCTION"
+   - Updated all URLs from github.io → britishmade.ai
+   - Fixed .claude/instructions.md version to 2.3.0
+   - Fixed TECHNICAL_GUIDE.md references from SS-1 → SS-2
+   - Updated GCF URL from v1 project → v2 project
+
+**Files Modified:**
+- Modified: `main.py` - Removed Key Features section from system prompt, simplified price format
+- Modified: `index.html` - Removed Key Features parsing from formatLLMResponse (lines 2905-3007)
+- Modified: `README.md` - Updated version to 2.3.0, status to PRODUCTION, URLs to britishmade.ai
+- Modified: `.claude/instructions.md` - Updated version to 2.3.0
+- Modified: `TECHNICAL_GUIDE.md` - Fixed directory paths and GCF URLs
+
+**Discovered Issues:**
+- 🔴 **CRITICAL: OpenRouter API key invalid (401 error)**
+  - Error: "User not found" - key was revoked/expired
+  - Needs new key from https://openrouter.ai/settings/keys
+  - Last working request at 01:48 UTC, failed starting 01:55 UTC
+- 🟡 **SKU generation issue in getPrice endpoint**
+  - Generating invalid SKUs for Sofas & Stuff API
+  - Example: "alw" base is not valid for their API
+  - Affects direct /getPrice endpoint, not just LLM
+
+**Decisions Made:**
+- Removed Key Features section entirely as it was showing fabric options incorrectly
+- Simplified price format for clearer display at top of response
+- All documentation should reference v2.3.0 and britishmade.ai consistently
+
+**Next Steps:**
+1. Get new OpenRouter API key from user
+2. Deploy new API key to GCF environment variables
+3. Test formatting improvements with working API
+4. Fix SKU generation issue in getPrice endpoint
 
 ---
 
