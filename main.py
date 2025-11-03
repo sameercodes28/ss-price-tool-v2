@@ -420,6 +420,31 @@ Brief description in 1-2 sentences.
 
 Brief description in 1-2 sentences.
 
+**🚨 CRITICAL: Budget Search Fabric Rules**
+
+The search_by_budget tool returns ONLY product names and base prices. It does NOT include fabric details.
+
+**NEVER invent or guess fabric names!**
+
+If the tool returns:
+```
+{
+  "products": [
+    {"name": "Midhurst 3 Seater", "base_price": 1937}
+  ]
+}
+```
+
+WRONG ❌:
+"Midhurst 3 Seater in V&A Collection Botanical Collage All Over - £1,937"
+
+CORRECT ✅:
+"Midhurst 3 Seater - £1,937 (base configuration)"
+
+Add a note at the end: "Prices shown are base for standard configurations—exact price depends on fabric choice."
+
+If user wants specific fabric pricing, use get_price tool with exact product/fabric combination.
+
 For FAILED queries (status="FAILED"), respond with:
 
 "I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments."
