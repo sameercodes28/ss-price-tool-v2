@@ -2817,6 +2817,29 @@
 
                     hideTypingIndicator();
 
+                    // Handle rate limiting (429)
+                    if (response.status === 429) {
+                        const retryAfter = data.details?.retry_after_seconds || 60;
+                        const limitType = data.details?.limit_type || 'unknown';
+
+                        addMessage('assistant',
+                            `⏸️ **Rate limit reached**\n\n` +
+                            `${data.error || "You're making requests too quickly."}\n\n` +
+                            `Please wait ${retryAfter} seconds before trying again.\n\n` +
+                            `_Limit type: ${limitType}_`
+                        );
+
+                        console.warn('[Rate Limit] Backend rate limit hit:', data);
+                        Analytics.track('rate_limit_backend', {
+                            limit_type: limitType,
+                            retry_after: retryAfter,
+                            error_code: data.error_code
+                        });
+
+                        conversationHistory.pop(); // Remove the failed query
+                        return;
+                    }
+
                     if (response.ok && data.response) {
                         // Log the raw response for debugging
                         console.log('[LLM Response]:', data.response.substring(0, 200) + '...');
@@ -2932,6 +2955,28 @@
 
                     const data = await response.json();
                     hideTypingIndicator();
+
+                    // Handle rate limiting (429)
+                    if (response.status === 429) {
+                        const retryAfter = data.details?.retry_after_seconds || 60;
+                        const limitType = data.details?.limit_type || 'unknown';
+
+                        addMessage('assistant',
+                            `⏸️ **Rate limit reached**\n\n` +
+                            `${data.error || "You're making requests too quickly."}\n\n` +
+                            `Please wait ${retryAfter} seconds before trying again.\n\n` +
+                            `_Limit type: ${limitType}_`
+                        );
+
+                        console.warn('[Rate Limit] Backend rate limit hit:', data);
+                        Analytics.track('rate_limit_backend', {
+                            limit_type: limitType,
+                            retry_after: retryAfter,
+                            error_code: data.error_code
+                        });
+
+                        return;
+                    }
 
                     if (response.ok && data.price) {
                         const responseText = formatPriceResponse(data);
@@ -3058,6 +3103,37 @@
             const message = text || chatInput.value.trim();
 
             if (!message) return;
+
+            // Client-side rate limiting (v2.5.0 Phase 4)
+            // Prevent accidental spam - max 20 requests per minute
+            if (!window.requestTimestamps) {
+                window.requestTimestamps = [];
+            }
+
+            const now = Date.now();
+            const oneMinuteAgo = now - 60000;
+
+            // Clean old timestamps
+            window.requestTimestamps = window.requestTimestamps.filter(ts => ts > oneMinuteAgo);
+
+            // Check limit (20 per minute client-side, backend allows 30)
+            if (window.requestTimestamps.length >= 20) {
+                const oldestRequest = Math.min(...window.requestTimestamps);
+                const retryAfter = Math.ceil((oldestRequest + 60000 - now) / 1000);
+
+                addMessage('assistant',
+                    `⏸️ **Please slow down**\n\n` +
+                    `You're sending requests too quickly. Please wait ${retryAfter} seconds before trying again.\n\n` +
+                    `This helps us keep costs under control and ensures good service for everyone.`
+                );
+
+                console.warn('[Rate Limit] Client-side rate limit hit (20 req/min)');
+                Analytics.track('rate_limit_client', { requests_in_window: window.requestTimestamps.length });
+                return;
+            }
+
+            // Record this request
+            window.requestTimestamps.push(now);
 
             // Track query if typed by user
             if (!text) {

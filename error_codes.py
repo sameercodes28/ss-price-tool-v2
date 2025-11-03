@@ -67,6 +67,12 @@ ERROR_CODES = {
         "user_message": "Chat service not configured.",
         "suggested_action": "Contact system administrator."
     },
+    "E1007": {
+        "name": "INTERNAL_RATE_LIMIT",
+        "description": "Too many requests from this session or globally",
+        "user_message": "You're making requests too quickly. Please slow down.",
+        "suggested_action": "Wait a moment before trying again."
+    },
 
     # E2xxx: Validation & Data Errors
     "E2001": {

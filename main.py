@@ -107,6 +107,76 @@ class LRUCache:
 response_cache = LRUCache(max_size=1000, ttl=300)
 CACHE_TTL = 300  # 5 minutes (kept for compatibility)
 
+# --- Setup: Rate Limiting (v2.5.0 Phase 4) ---
+class RateLimiter:
+    """
+    Sliding window rate limiter to protect against abuse and cost overruns.
+
+    Tracks requests per session and globally. Uses sliding window to prevent
+    burst attacks and accidental infinite loops from causing runaway costs.
+
+    Limits:
+        - Per session: 30 requests per minute
+        - Global: 200 requests per minute
+    """
+    def __init__(self, per_session_limit=30, global_limit=200, window_seconds=60):
+        self.per_session_limit = per_session_limit
+        self.global_limit = global_limit
+        self.window_seconds = window_seconds
+        self.session_requests = {}  # session_id -> [timestamps]
+        self.global_requests = []   # [timestamps]
+
+    def _clean_old_requests(self, request_list, current_time):
+        """Remove requests older than the time window."""
+        cutoff_time = current_time - self.window_seconds
+        return [ts for ts in request_list if ts > cutoff_time]
+
+    def is_allowed(self, session_id):
+        """
+        Check if request is allowed for this session.
+
+        Args:
+            session_id (str): Session identifier
+
+        Returns:
+            tuple: (allowed: bool, reason: str, retry_after: int)
+                - allowed: True if request should be processed
+                - reason: "session" or "global" if rate limited
+                - retry_after: Seconds until rate limit resets
+        """
+        current_time = time.time()
+
+        # Clean up old global requests
+        self.global_requests = self._clean_old_requests(self.global_requests, current_time)
+
+        # Check global limit
+        if len(self.global_requests) >= self.global_limit:
+            oldest_request = min(self.global_requests)
+            retry_after = int(self.window_seconds - (current_time - oldest_request))
+            return (False, "global", retry_after)
+
+        # Clean up old session requests
+        if session_id in self.session_requests:
+            self.session_requests[session_id] = self._clean_old_requests(
+                self.session_requests[session_id], current_time
+            )
+        else:
+            self.session_requests[session_id] = []
+
+        # Check session limit
+        if len(self.session_requests[session_id]) >= self.per_session_limit:
+            oldest_request = min(self.session_requests[session_id])
+            retry_after = int(self.window_seconds - (current_time - oldest_request))
+            return (False, "session", retry_after)
+
+        # Allow request - record it
+        self.global_requests.append(current_time)
+        self.session_requests[session_id].append(current_time)
+
+        return (True, None, 0)
+
+rate_limiter = RateLimiter(per_session_limit=30, global_limit=200, window_seconds=60)
+
 # --- (Critique #7: Authentication - COMMENTED OUT) ---
 # To enable, set this in your GCF Environment Variables
 # API_KEY = os.environ.get('YOUR_APP_API_KEY', 'default-key-change-me')
@@ -1319,6 +1389,34 @@ def http_entry_point(request):
     # Handle CORS preflight (OPTIONS) requests
     if request.method == 'OPTIONS':
         return _build_cors_preflight_response()
+
+    # Rate limiting check (v2.5.0 Phase 4)
+    # Extract session_id for rate limiting (from request body or headers)
+    session_id = 'no-session'
+    if request.method == 'POST':
+        try:
+            data = request.get_json(silent=True)
+            if data:
+                session_id = data.get('session_id', 'no-session')
+        except:
+            pass  # Use default if parsing fails
+
+    # Check rate limit
+    allowed, reason, retry_after = rate_limiter.is_allowed(session_id)
+    if not allowed:
+        print(f"[Rate Limit] Blocked {session_id} ({reason} limit exceeded, retry after {retry_after}s)")
+        error_response = create_error_response(
+            "E1007",
+            details={
+                "limit_type": reason,
+                "retry_after_seconds": retry_after,
+                "session_id": session_id
+            }
+        )
+        response = jsonify(error_response)
+        response.status_code = 429
+        response.headers['Retry-After'] = str(retry_after)
+        return _add_cors_headers(response)
 
     # Handle the /chat endpoint (Phase 1C: Grok LLM conversations)
     if request.path == '/chat' and request.method == 'POST':
