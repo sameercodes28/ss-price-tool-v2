@@ -945,15 +945,21 @@
 
         .feature-list li {
             padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
             color: var(--text-primary);
             font-size: 14px;
             line-height: 1.5;
         }
 
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--text-primary);
+        }
+
         .opportunities-section {
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            padding: 16px;
             margin: 20px 0;
         }
 
@@ -988,6 +994,12 @@
             font-size: 14px;
             font-weight: 500;
             margin-left: 12px;
+        }
+
+        .price-breakdown-item {
+            padding: 4px 0 4px 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
         }
 
         .follow-up-text {
@@ -1156,41 +1168,9 @@
             margin: 1rem 0;
         }
 
-        .feature-list {
-            list-style: none;
-            padding: 0;
-            margin: 0.75rem 0;
-        }
+        /* Removed duplicate feature-list styles - using the ones above */
 
-        .feature-list li {
-            padding: 0.5rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-            color: #374151;
-            font-size: 0.875rem;
-            line-height: 1.5;
-        }
-
-        .feature-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #22c55e;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        /* Opportunities Section */
-        .opportunities-section {
-            margin: 1rem 0;
-            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-            border: 2px solid #a855f7;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
-        }
-
-        /* Removed duplicate opportunity-item styles - now using opportunity-button */
+        /* Removed duplicate opportunities-section - using the one above */
 
         /* Suggestions Section */
         .suggestions-section {
@@ -1843,13 +1823,35 @@
 
                         if (oldMatch && newMatch) {
                             html += '<div class="main-price-display">';
-                            html += '<span class="price-label">CLIENT PRICE</span>';
+                            // No label needed since product details are shown above
                             html += `<span class="price-amount">£${newMatch[1]}</span>`;
                             if (saveMatch) {
                                 html += `<span class="savings-text">Save £${saveMatch[1]}!</span>`;
                             }
                             html += '</div>';
                             priceShown = true;
+                        }
+                        continue;
+                    }
+
+                    // Handle price breakdown for added items
+                    if (line.includes('Total:') && line.includes('£')) {
+                        const totalMatch = line.match(/Total:.*£([\d,]+)/);
+                        if (totalMatch) {
+                            html += '<div class="main-price-display">';
+                            html += '<span class="price-label" style="display: block;">TOTAL</span>';
+                            html += `<span class="price-amount">£${totalMatch[1]}</span>`;
+                            html += '</div>';
+                            priceShown = true;
+                        }
+                        continue;
+                    }
+
+                    // Handle breakdown items
+                    if (currentSection === 'price' && line.includes('•') && line.includes('£')) {
+                        const itemMatch = line.match(/•\s*(.+?):\s*£([\d,]+)/);
+                        if (itemMatch) {
+                            html += `<div class="price-breakdown-item">• ${escapeHtml(itemMatch[1])}: £${itemMatch[2]}</div>`;
                         }
                         continue;
                     }
@@ -1880,7 +1882,7 @@
                 html += '<h4 class="section-title">✨ Key Features</h4>';
                 html += '<ul class="feature-list">';
                 features.forEach(feature => {
-                    html += `<li>✓ ${escapeHtml(feature)}</li>`;
+                    html += `<li>${escapeHtml(feature)}</li>`;
                 });
                 html += '</ul>';
                 html += '</div>';
@@ -1923,8 +1925,10 @@
 
         function handleOpportunityClick(opportunityText) {
             console.log('[CLICK] Opportunity clicked:', opportunityText);
-            // Build a query that adds the opportunity to the current configuration
-            let query = `Add ${opportunityText} to my current selection`;
+            // Clean up the opportunity text and create a proper query
+            // Remove any "Add" prefix if it exists to avoid duplication
+            let cleanText = opportunityText.replace(/^Add\s+/i, '');
+            let query = `Add ${cleanText} to my current selection`;
             document.getElementById('chatInput').value = query;
             sendChatMessage();
         }
