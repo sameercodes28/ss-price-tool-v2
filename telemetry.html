@@ -891,7 +891,19 @@
             </p>
         </div>
 
+        <!-- P1 Error Alert -->
+        <div class="alert-banner" id="p1AlertBanner" style="background: #fee2e2; border-color: #ef4444; display: none;">
+            <h4>🚨 P1 CRITICAL: No Price Errors Detected</h4>
+            <p id="p1AlertMessage" style="margin-bottom: 10px;"></p>
+            <div id="p1ErrorDetails" style="font-size: 12px; background: white; padding: 10px; border-radius: 6px; margin-top: 10px;"></div>
+        </div>
+
         <div class="stats-grid">
+            <div class="stat-card" style="border-top: 4px solid #ef4444;">
+                <h3 style="color: #dc2626;">P1 ERRORS</h3>
+                <div class="stat-value" id="p1ErrorCount" style="color: #dc2626;">0</div>
+                <div class="stat-label">No price returned</div>
+            </div>
             <div class="stat-card">
                 <h3>Errors Today</h3>
                 <div class="stat-value" id="errorsToday">0</div>
@@ -906,11 +918,6 @@
                 <h3>Failed Queries</h3>
                 <div class="stat-value" id="failedQueries">0</div>
                 <div class="stat-label">No results found</div>
-            </div>
-            <div class="stat-card">
-                <h3>Timeouts</h3>
-                <div class="stat-value" id="timeouts">0</div>
-                <div class="stat-label">Response > 10s</div>
             </div>
         </div>
 
@@ -1245,7 +1252,7 @@
         }
 
         // Update errors
-        function updateErrors(events) {
+        function updateErrors(events, analytics) {
             const now = Date.now();
             const todayStart = new Date().setHours(0, 0, 0, 0);
             const last24Hours = now - 86400000;
@@ -1255,8 +1262,49 @@
             const recentErrors = errors.filter(e => e.timestamp > last24Hours);
             const timeouts = events.filter(e => e.data && e.data.responseTime > 10000);
 
+            // Check for P1 errors
+            const p1Errors = events.filter(e => e.eventName === 'p1_error');
+            const p1ErrorData = analytics.p1Errors || { noPriceErrors: [], totalCount: 0 };
+
+            // Update P1 error display
+            document.getElementById('p1ErrorCount').textContent = p1ErrorData.totalCount;
+            document.getElementById('p1ErrorCount').style.color = p1ErrorData.totalCount > 0 ? '#dc2626' : '#1a1a1a';
+
+            // Show P1 alert if there are recent P1 errors
+            if (p1ErrorData.noPriceErrors && p1ErrorData.noPriceErrors.length > 0) {
+                const recentP1 = p1ErrorData.noPriceErrors.filter(e => now - e.timestamp < 86400000);
+                if (recentP1.length > 0) {
+                    const p1Banner = document.getElementById('p1AlertBanner');
+                    const p1Message = document.getElementById('p1AlertMessage');
+                    const p1Details = document.getElementById('p1ErrorDetails');
+
+                    p1Banner.style.display = 'block';
+                    p1Message.textContent = `${recentP1.length} queries failed to return prices in the last 24 hours. This is a critical issue that needs immediate attention.`;
+
+                    // Show recent P1 error examples
+                    const examples = recentP1.slice(-3).map(e => `
+                        <div style="margin: 5px 0; padding: 5px; background: #fef2f2; border-left: 3px solid #ef4444;">
+                            <strong>Query:</strong> "${e.query}"<br>
+                            <strong>Time:</strong> ${formatTimestamp(e.timestamp)}<br>
+                            <strong>Session:</strong> ${e.sessionId.slice(0, 8)}...
+                        </div>
+                    `).join('');
+                    p1Details.innerHTML = '<strong>Recent Examples:</strong>' + examples;
+
+                    // Also add badge to errors tab
+                    const errorTab = document.querySelector('.nav-tab[data-tab="errors"]');
+                    const badge = errorTab.querySelector('.badge') || document.createElement('span');
+                    badge.className = 'badge';
+                    badge.textContent = recentP1.length;
+                    badge.style.display = 'inline-block';
+                    if (!errorTab.querySelector('.badge')) {
+                        errorTab.appendChild(badge);
+                    }
+                }
+            }
+
             document.getElementById('errorsToday').textContent = todayErrors.length;
-            document.getElementById('timeouts').textContent = timeouts.length;
+            document.getElementById('failedQueries').textContent = p1ErrorData.totalCount;
 
             // Error rate
             const recentQueries = events.filter(e => e.timestamp > last24Hours && e.eventName === 'user_query');
@@ -1357,7 +1405,7 @@
             updateQueryPatterns(analytics);
             updateUserJourneys(analytics);
             updateFeedback(events);
-            updateErrors(events);
+            updateErrors(events, analytics);
 
             // Initialize charts
             initCharts(analytics, events);

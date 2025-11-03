@@ -1959,6 +1959,11 @@
                 sequences: [], // Query sequences
                 deadEnds: [], // Queries with no results
             },
+            p1Errors: {
+                noPriceErrors: [], // Critical: queries that returned no price
+                totalCount: 0,
+                lastOccurred: null
+            },
             userJourneys: {
                 paths: new Map(), // Session -> path array
                 timeToSuccess: [],
@@ -2164,6 +2169,7 @@
                     },
                     peakUsage: this.peakUsage,
                     nluScoring: this.nluScoring,
+                    p1Errors: this.p1Errors,
                     timestamp: Date.now()
                 };
 
@@ -2223,6 +2229,9 @@
 
                         this.peakUsage = data.peakUsage || { hourly: new Array(24).fill(0), daily: new Array(7).fill(0) };
                         this.nluScoring = data.nluScoring || { confidenceScores: [], uncertainQueries: [], fallbacks: [] };
+
+                        // Load P1 errors
+                        this.p1Errors = data.p1Errors || { noPriceErrors: [], totalCount: 0, lastOccurred: null };
 
                         console.log('[Analytics] Loaded persisted data from', new Date(data.timestamp || 0).toISOString());
                     } else {
@@ -2447,7 +2456,38 @@
                     }
                 }
 
-                // Check for dead ends (no price, no useful info)
+                // Check for P1 errors - NO PRICE is critical
+                if (!hasPrice) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        const errorEvent = {
+                            query: lastQuery,
+                            response: response.substring(0, 200), // First 200 chars
+                            timestamp: Date.now(),
+                            sessionId: this.sessionId,
+                            severity: 'P1',
+                            type: 'NO_PRICE_RETURNED'
+                        };
+
+                        // Track as P1 error
+                        this.p1Errors.noPriceErrors.push(errorEvent);
+                        this.p1Errors.totalCount++;
+                        this.p1Errors.lastOccurred = Date.now();
+
+                        // Also track as critical error event
+                        this.track('p1_error', {
+                            type: 'no_price',
+                            query: lastQuery,
+                            severity: 'P1',
+                            message: 'Query returned no price information'
+                        });
+
+                        console.error('[P1 ERROR] No price returned for query:', lastQuery);
+                    }
+                }
+
+                // Check for other dead ends (no useful info at all)
                 if (!hasPrice && !hasFeatures && !hasOpportunities) {
                     const queries = this.events.filter(e => e.eventName === 'user_query');
                     if (queries.length > 0) {
