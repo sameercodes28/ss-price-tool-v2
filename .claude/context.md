@@ -1,8 +1,70 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 9: Critical Bug Fixes & Simplification)
+**Last Updated:** 2025-11-03 (Part 9: Critical Bug Fixes + LESSONS LEARNED)
 **Current Version:** v2.5.0 (Production Hardened - Hotfixed)
 **Project Status:** 🚀 Production - Stable after CORS + Timing Bug Fixes
+
+## 🔥 CRITICAL: SIMPLICITY PRINCIPLE
+
+**NEVER repeat the markdown rendering disaster (2025-11-03).**
+
+When implementing ANY rendering/parsing feature:
+
+### Rule 1: Start Simple, Stay Simple
+- ❌ DON'T: Add external library + fallback + try/catch
+- ✅ DO: Write 10 lines of simple regex, test it, ship it
+
+### Rule 2: Test Locally FIRST
+- Create `/test.html` with the EXACT code
+- Test in browser locally BEFORE deploying
+- If it doesn't work locally, it won't work deployed
+
+### Rule 3: Believe The User
+- If user says "not working in Safari (fresh browser)", STOP blaming cache
+- That means YOUR CODE IS BROKEN
+- Go back to local testing
+
+### Rule 4: One Code Path Only
+- Multiple code paths = multiple failure modes
+- If you add a fallback, you DOUBLE the testing burden
+- Avoid: primary path → fallback path → error handler
+- Prefer: one simple path that always works
+
+### Rule 5: No "Fix It Later"
+- Don't deploy broken code and debug in production
+- Don't make user test 5 times while you fumble
+- Get it working locally, THEN deploy ONCE
+
+### Example: Markdown Rendering
+
+**❌ WHAT I DID (WRONG):**
+```javascript
+// 60 lines, 2 libraries, 3 code paths, untested fallback
+if (typeof marked !== 'undefined') {
+    try { return marked.parse(content); }
+    catch { /* fallback with escapeHtml bug */ }
+}
+```
+
+**✅ WHAT I SHOULD HAVE DONE:**
+```javascript
+// 15 lines, zero dependencies, one path, easy to test
+return content
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/_([^_]+)_/g, '<em>$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+```
+
+**If this ever happens again:**
+1. STOP immediately
+2. Create `/test-markdown.html` with 20 lines
+3. Test the regex locally
+4. If it works, copy to main code
+5. Deploy ONCE
+6. User confirms working
+7. Done
+
+---
 
 ## 📋 Next Session Priority
 
