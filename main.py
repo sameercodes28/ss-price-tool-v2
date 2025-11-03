@@ -816,18 +816,10 @@ def find_best_matches(query, mapping, fuzziness=85):
         matches.sort(key=lambda x: x[2], reverse=True)
         return matches
 
-    # 2. If no regex match, try fuzzy matching (slower)
-    # Extract the "best" fuzzy match
-    # process.extractOne returns (match_string, score, key)
-    best_fuzzy_match = process.extractOne(query, mapping.keys(), score_cutoff=fuzziness)
-    
-    if best_fuzzy_match:
-        keyword, score = best_fuzzy_match[0], best_fuzzy_match[1]
-        value = mapping[keyword]
-        print(f"  [Fuzzy Match] Found '{keyword}' with score {score}")
-        matches.append((keyword, value, score))
-
-    matches.sort(key=lambda x: x[2], reverse=True)
+    # 2. NO FUZZY MATCHING - Causes dangerous errors like 3-seater→4-seater
+    # Grok handles typo correction at the LLM layer
+    # If no exact match, return empty list and let Grok try alternative queries
+    print(f"  [No Exact Match] Query '{query}' found no exact matches in mapping")
     return matches
 
 
