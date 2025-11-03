@@ -1,19 +1,28 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 8: v2.5.0 Production Deployment)
-**Current Version:** v2.5.0 (Production Hardened)
-**Project Status:** 🚀 Production - Deployed with Rate Limiting & Health Monitoring
+**Last Updated:** 2025-11-03 (Part 9: Critical Bug Fixes & Simplification)
+**Current Version:** v2.5.0 (Production Hardened - Hotfixed)
+**Project Status:** 🚀 Production - Stable after CORS + Timing Bug Fixes
 
 ## 📋 Next Session Priority
 
-**✅ v2.5.0 DEPLOYED TO PRODUCTION**
+**✅ v2.5.0 STABLE - HOTFIXES DEPLOYED**
 
-Deployment successful: revision 00019-nin
-- Auto-retry with exponential backoff
-- Dual-layer rate limiting (client + server)
-- Comprehensive health check endpoint
-- Enhanced error messages with examples
-- Request ID tracing for debugging
+Backend: revision 00021-luw (CORS fix)
+Frontend: Latest deployment (timing tracking removed)
+
+**Status:** 🟢 **ALL SYSTEMS OPERATIONAL**
+- CORS configuration fixed ✅
+- JavaScript crash bug fixed ✅
+- Timing tracking removed for simplicity ✅
+- Markdown rendering working ✅
+
+**✅ COMPLETED SESSION (Part 9):**
+1. ✅ **CRITICAL:** Fixed CORS configuration (added X-Request-ID header)
+2. ✅ **CRITICAL:** Fixed Analytics initialization crash
+3. ✅ **SIMPLIFICATION:** Removed timing tracking (57 lines)
+4. ✅ **DOCS:** Comprehensive debugging session documentation
+5. ✅ **PREVENTION:** Added checklists and protocols for future
 
 **🟡 KNOWN ISSUE: Sofas & Stuff Website Down**
 
@@ -22,14 +31,6 @@ External dependency - S&S website showing contact page only.
 - Our system handles this gracefully (returns fallback message)
 - Will auto-resume when S&S website recovers
 - **This is not our bug** - external service downtime
-
-**✅ COMPLETED THIS SESSION (Part 8):**
-1. ✅ **SECURITY:** Removed phone number from error messages
-2. ✅ **Phase 3 Task 7:** Improved error messages (7 codes enhanced)
-3. ✅ **Phase 4:** Comprehensive rate limiting (frontend + backend)
-4. ✅ **Phase 4:** Health check endpoint with full metrics
-5. ✅ **DEPLOYED:** v2.5.0 to production (8 commits)
-6. ✅ **DOCS:** Updated CHANGELOG, README, context.md
 
 **⏭️ FUTURE CONSIDERATIONS (DEFERRED):**
 - Structured JSON logging (not critical)
@@ -55,10 +56,300 @@ This gives Claude:
 
 Future improvements to debug dashboard (implement as needed):
 - Add GCF log streaming (show backend errors in real-time)
-- Add "Test All APIs" button (one-click health check)
+- Add "Test All APIs" button (one-check health check)
 - Add query replay (reproduce exact user scenario)
 - Add comparison mode (before/after for debugging regressions)
 - Export bug report as GitHub issue template
+
+---
+
+## 🚨 CRITICAL LEARNING: PART 9 DEBUGGING SESSION (2025-11-03)
+
+**Context:** User reported "connection error" on ALL queries despite backend working perfectly.
+
+### Three Cascading Bugs Found & Fixed:
+
+#### **Bug 1: CORS Configuration Missing X-Request-ID Header** 🔴 CRITICAL
+**Impact:** ALL frontend requests failed with CORS preflight errors
+**Root Cause:** Phase 3 added `X-Request-ID` header for request tracing, but forgot to update backend CORS configuration
+**Error Message:** `Request header field x-request-id is not allowed by Access-Control-Allow-Headers in preflight response`
+
+**Fix:** Added `X-Request-ID` to CORS allowed headers in `main.py:753`
+```python
+# BEFORE
+response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+
+# AFTER
+response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Request-ID')
+```
+
+**Commit:** `5046fa6` - CRITICAL FIX: Add X-Request-ID to CORS allowed headers
+**Deployed:** Backend revision 00021-luw
+
+---
+
+#### **Bug 2: Analytics timingBreakdowns Array Not Initialized** 🔴 CRITICAL
+**Impact:** After CORS fix, queries succeeded but responses crashed before displaying
+**Root Cause:** Phase 3 added `debugData.timingBreakdowns` array, but `loadData()` fallback didn't initialize it
+**Error Message:** `TypeError: Cannot read properties of undefined (reading 'push')`
+
+**The Insidious Flow:**
+1. Backend returns response ✅
+2. Frontend calls `addMessage()` and formats response ✅
+3. Then calls `Analytics.trackTiming()` at line 2882
+4. **JavaScript crashes** trying to push to undefined array 💥
+5. Error handler shows "connection error" instead of formatted response
+6. User sees error despite response being perfectly formatted in memory
+
+**Fix:** Added `timingBreakdowns: []` to debugData fallback in `index.html:2326`
+
+**Commit:** `3fb0768` - FIX: Initialize timingBreakdowns array in Analytics loadData
+
+---
+
+#### **Bug 3: Timing Tracking Added Unnecessary Complexity** 🟡 DESIGN FLAW
+**Impact:** Caused Bug #2, added 57 lines of complexity with minimal value
+**Root Cause:** Phase 3 added performance timing as "nice to have" without considering cost/benefit
+
+**What it did:**
+- Tracked network time, parse time, render time
+- Stored 100 timing objects in localStorage
+- Added 6 variables + 1 function + multiple tracking calls
+
+**Why it wasn't worth keeping:**
+- ❌ Just caused production crash
+- ❌ Not actively monitored or used
+- ❌ Debug dashboard already has essential metrics
+- ❌ Added maintenance burden
+
+**Fix:** Removed entire timing tracking subsystem (57 lines)
+- Removed `trackTiming()` function
+- Removed all `performance.now()` timing variables
+- Removed `timingBreakdowns` array
+- Kept essential debug tracking (errors, responses, API logs)
+
+**Commit:** `a31ae2b` - Simplify analytics: Remove timing breakdown tracking
+
+---
+
+### Root Cause Analysis
+
+**Why did this happen?**
+
+1. **Incomplete feature implementation** - Added `X-Request-ID` header to frontend, but forgot backend CORS update
+2. **Insufficient testing** - Phase 3 changes weren't tested end-to-end before deployment
+3. **Feature creep** - Added "nice to have" timing tracking that introduced bugs
+4. **Poor error visibility** - Real error (undefined array) was masked by generic "connection error"
+
+**Why was it hard to debug?**
+
+1. **Browser caching** - User kept seeing old cached code even after fixes deployed
+2. **Multiple simultaneous bugs** - CORS issue masked the timing issue
+3. **Confusing error messages** - "Connection error" appeared even when backend was healthy
+4. **Missing tools** - Initially didn't use debug.html to see client-side errors
+
+---
+
+### Prevention Strategies
+
+#### **1. CORS Header Checklist (CRITICAL)**
+
+**RULE:** Whenever you add a new custom header to frontend requests, IMMEDIATELY update backend CORS.
+
+**Checklist:**
+- [ ] Added header to frontend? (e.g., `X-Request-ID`)
+- [ ] Updated `main.py` OPTIONS handler to allow it
+- [ ] Tested with curl CORS preflight request
+- [ ] Verified in browser DevTools Network tab
+
+**Example Test:**
+```bash
+curl -X OPTIONS "https://[backend-url]/chat" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type,X-New-Header" \
+  -H "Origin: https://[frontend-url]" -i
+```
+
+#### **2. Analytics Initialization Pattern**
+
+**RULE:** All arrays used in Analytics MUST be initialized in THREE places:
+
+1. **Initial object definition** (line ~2057)
+2. **loadData() fallback** (line ~2285)
+3. **Any place that might clear/reset the object**
+
+**Example:**
+```javascript
+// 1. Initial definition
+debugData: {
+    newArray: [],  // ✅ Add here
+    // ...
+}
+
+// 2. loadData() fallback
+this.debugData = data.debugData || {
+    newArray: [],  // ✅ AND here
+    // ...
+}
+```
+
+#### **3. Feature Addition Checklist**
+
+Before adding ANY new tracking/monitoring feature:
+
+**Ask:**
+- [ ] **Is this actively monitored?** Will anyone look at this data regularly?
+- [ ] **Does it solve a real problem?** Do we have evidence of the issue it's tracking?
+- [ ] **What's the cost?** Code complexity, localStorage space, performance impact
+- [ ] **What are alternatives?** Can we use existing tools (debug.html, logs)?
+- [ ] **Test thoroughly** - Can I break this? What are edge cases?
+
+**Examples:**
+- ✅ **Keep:** Error stacks (used for debugging), API logs (used for debugging)
+- ❌ **Remove:** Timing breakdowns (not monitored, caused bugs)
+
+#### **4. Deployment Testing Protocol**
+
+**After ANY deploy to production:**
+
+1. **Wait 2-3 minutes** for GitHub Pages to deploy
+2. **Open incognito window** (avoid cache)
+3. **Open DevTools Console** BEFORE testing
+4. **Test core flows:**
+   - Price query: "How much is alwinton snuggler pacific?"
+   - Fabric search: "Velvet options"
+   - Budget search: "Under £2000"
+5. **Check for errors:**
+   - Red errors in Console tab
+   - Failed requests in Network tab (look for CORS, 400, 500 errors)
+6. **If user reports issue:**
+   - Ask for debug.html report IMMEDIATELY
+   - Check browser console for JavaScript errors
+   - Don't assume caching - verify with curl
+
+#### **5. Emergency Debug Workflow**
+
+**When user reports "connection error" or "not working":**
+
+1. **Get debug data:**
+   - Ask user to visit `/debug.html`
+   - Get console logs (screenshot or copy/paste)
+   - Check Network tab for failed requests
+
+2. **Verify backend first:**
+   ```bash
+   curl -X POST '[backend-url]/chat' \
+     -H 'Content-Type: application/json' \
+     -d '{"messages": [{"role": "user", "content": "test"}], "session_id": "debug"}'
+   ```
+
+3. **Check CORS if backend works:**
+   ```bash
+   curl -X OPTIONS '[backend-url]/chat' \
+     -H 'Access-Control-Request-Headers: Content-Type,X-Request-ID' \
+     -i | grep -i access-control
+   ```
+
+4. **Verify frontend deployment:**
+   ```bash
+   curl -s 'https://[frontend-url]/index.html' | grep -i "[recent change identifier]"
+   ```
+
+5. **Don't blame cache until you verify:**
+   - Check with incognito mode
+   - Verify timestamp of deployed file
+   - Use `curl` to see what's actually deployed
+
+---
+
+### Commits from Part 9 Debugging Session
+
+1. `34578b1` - FIX: Add robust markdown parsing fallback for unstructured responses
+2. `5046fa6` - CRITICAL FIX: Add X-Request-ID to CORS allowed headers
+3. `3fb0768` - FIX: Initialize timingBreakdowns array in Analytics loadData
+4. `a31ae2b` - Simplify analytics: Remove timing breakdown tracking
+
+**Total:** 4 commits, 2 critical bugs fixed, 1 feature removed for simplification
+
+---
+
+## ⚠️ CRITICAL LEARNING: MESSAGE FORMATTING ISSUES
+
+**USER FREQUENTLY HITS ISSUES WITH MESSAGE BUBBLE FORMATTING**
+
+This is a recurring problem - when Grok returns markdown, it often doesn't render properly in the chat UI.
+
+### Root Cause (Discovered 2025-11-03)
+
+The `formatLLMResponse()` function in index.html has **two branches**:
+
+1. **Structured responses** (with `### 💰 Price`, `### 🎯 Opportunities` sections)
+   - Custom HTML parsing
+   - Works correctly
+   - Used for price queries
+
+2. **Unstructured responses** (fabric searches, budget searches, general conversation)
+   - **BUG WAS HERE:** Used `escapeHtml()` which converts markdown to plain text
+   - This killed all formatting: `**bold**` → `**bold**` (not rendered)
+   - Links, italics, lists all broken
+
+### The Fix (index.html:2576-2590)
+
+**ALWAYS use marked.js** for unstructured content:
+
+```javascript
+// If no structured content, treat as helpful message
+if (!hasStructuredContent) {
+    // ✅ CORRECT: Use marked.js to parse markdown
+    if (typeof marked !== 'undefined') {
+        try {
+            html = '<div class="llm-suggestion-response">';
+            html += marked.parse(content);  // This renders markdown properly
+            html += '</div>';
+            return html;
+        } catch (e) {
+            console.error('[ERROR] Marked.js parsing failed:', e);
+        }
+    }
+
+    // ❌ WRONG: Don't use escapeHtml() - it destroys markdown
+    // html += `<p>${escapeHtml(para)}</p>`; // This breaks formatting!
+}
+```
+
+### When User Reports "Formatting Not Working"
+
+1. **Check if Grok is outputting markdown correctly** (backend)
+   - System prompt should specify formatting: `**bold**`, `_italic_`, `[link](url)`
+   - Tool should return proper markdown in responses
+
+2. **Check if formatLLMResponse handles it** (frontend)
+   - Does the response have structured sections? (### 💰, ### 🎯, etc.)
+   - If NO → Goes to unstructured branch → MUST use marked.js
+   - If YES → Goes to structured branch → Custom HTML parsing
+
+3. **Common mistakes to avoid:**
+   - Using `escapeHtml()` on markdown content
+   - Forgetting to call `marked.parse()`
+   - Not checking if `marked` library is loaded
+   - Assuming custom parsing handles all markdown syntax
+
+### Files to Check
+
+- **Backend:** `main.py` - System prompt formatting instructions
+- **Frontend:** `index.html` - `formatLLMResponse()` function (around line 2558)
+- **Library:** Marked.js loaded at line 30: `<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>`
+
+### Testing Checklist
+
+After any formatting changes:
+- [ ] Test structured response: "How much is Alwinton snuggler pacific?" (should show formatted price sections)
+- [ ] Test unstructured response: "Velvet options" (should show **bold**, _italics_, [links](url))
+- [ ] Test budget search: "Under £2000" (should render markdown properly)
+- [ ] Check browser console for errors
+- [ ] Hard refresh browser (Cmd+Shift+R) to bypass cache
+
+---
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
 > **v1 Stable:** See ~/Desktop/SS-1 (ss-price-tool-v1) - DO NOT MODIFY
