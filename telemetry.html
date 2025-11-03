@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unified Telemetry Dashboard - British Made AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>System Monitor - British Made AI</title>
     <style>
         * {
             margin: 0;
@@ -16,27 +15,80 @@
             font-family: system-ui, -apple-system, sans-serif;
             background: #f5f5f3;
             padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        .dashboard-header {
-            background: white;
-            border-radius: 12px;
+        /* CRITICAL ALERTS */
+        .critical-alert {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
             padding: 24px;
-            margin-bottom: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .critical-alert h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .critical-alert ul {
+            margin-top: 12px;
+            margin-left: 20px;
+        }
+
+        .critical-alert li {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+        }
+
+        .warning-alert {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .success-alert {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .dashboard-header h1 {
+        .header h1 {
             color: #1a1a1a;
             margin-bottom: 8px;
         }
 
-        .dashboard-header p {
+        .header .subtitle {
             color: #666;
+            margin-bottom: 12px;
         }
 
         .last-updated {
-            margin-top: 12px;
             padding: 8px 12px;
             background: #f0f9ff;
             border-left: 4px solid #0ea5e9;
@@ -45,141 +97,60 @@
             color: #0369a1;
         }
 
-        /* Navigation Tabs */
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            margin: 20px 0;
-            flex-wrap: wrap;
+        /* Section */
+        .section {
             background: white;
-            padding: 12px;
+            padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .nav-tab {
-            padding: 10px 20px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            font-weight: 500;
-            position: relative;
-        }
-
-        .nav-tab:hover {
-            background: #e0e0e0;
-        }
-
-        .nav-tab.active {
-            background: #C67E5F;
-            color: white;
-        }
-
-        .nav-tab .badge {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            background: #ef4444;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Info Cards */
-        .info-card {
-            background: #f0f9ff;
-            border: 2px solid #0ea5e9;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        .info-card h3 {
-            color: #0369a1;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-card p {
-            color: #0c4a6e;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        /* Health Status Section */
-        .health-section {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .health-grid {
+        .section h2 {
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            font-size: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 12px;
+        }
+
+        /* API Status Cards */
+        .api-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            gap: 16px;
             margin-top: 16px;
         }
 
-        .health-card {
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
+        .api-card {
             padding: 16px;
-            position: relative;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
         }
 
-        .health-card.healthy {
+        .api-card.online {
+            background: #f0fdf4;
             border-color: #22c55e;
-            background: #dcfce7;
         }
 
-        .health-card.unhealthy {
+        .api-card.offline {
+            background: #fef2f2;
             border-color: #ef4444;
-            background: #fee2e2;
         }
 
-        .health-card.warning {
-            border-color: #f59e0b;
-            background: #fef3c7;
-        }
-
-        .health-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .api-card h3 {
             margin-bottom: 12px;
-        }
-
-        .health-title {
-            font-weight: 600;
-            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 4px 12px;
+            border-radius: 12px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: bold;
+            margin-left: auto;
         }
 
         .status-badge.online {
@@ -192,1230 +163,854 @@
             color: white;
         }
 
-        .status-badge.degraded {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .health-details {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .health-detail {
+        .api-card .metric {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            padding: 4px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
         }
 
-        .health-detail:last-child {
+        .api-card .metric:last-child {
             border-bottom: none;
         }
 
-        .health-label {
+        .api-card .metric .label {
             color: #666;
+            font-size: 14px;
         }
 
-        .health-value {
+        .api-card .metric .value {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* Query History Table */
+        .query-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .query-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .query-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .query-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .query-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: 500;
         }
 
-        .timestamp {
-            font-size: 11px;
-            color: #999;
-            margin-top: 8px;
-            font-style: italic;
+        .query-type.typed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .query-type.suggestion {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .query-type.opportunity {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .response-preview {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #666;
+        }
+
+        .response-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .response-status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .response-status.error {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
         }
 
         .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #C67E5F;
         }
 
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #C67E5F, #8B9A7B);
-        }
-
-        .stat-card h3 {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-value {
+        .stat-card .value {
             font-size: 32px;
             font-weight: bold;
             color: #1a1a1a;
         }
 
-        .stat-label {
-            font-size: 12px;
-            color: #999;
+        .stat-card .label {
+            font-size: 14px;
+            color: #666;
             margin-top: 4px;
         }
 
-        .stat-trend {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 8px;
-            font-weight: 500;
+        /* Error List */
+        .error-list {
+            margin-top: 16px;
         }
 
-        .stat-trend.up {
-            background: #dcfce7;
-            color: #16a34a;
-        }
-
-        .stat-trend.down {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        /* Chart Container */
-        .chart-container {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .chart-container h3 {
-            margin-bottom: 16px;
-            color: #1a1a1a;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-        }
-
-        /* Data Tables */
-        .data-table {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .data-table h3 {
-            margin-bottom: 16px;
-            color: #1a1a1a;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #f5f5f3;
+        .error-item {
             padding: 12px;
-            text-align: left;
-            font-size: 14px;
-            color: #666;
-            font-weight: 500;
-            border-bottom: 2px solid #e5e7eb;
-        }
-
-        td {
-            padding: 12px;
-            font-size: 14px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        tr:hover {
-            background: #f9fafb;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 16px;
-            opacity: 0.3;
-        }
-
-        /* Loading Spinner */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #C67E5F;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Alert Banner */
-        .alert-banner {
             background: #fef2f2;
-            border: 2px solid #fca5a5;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .alert-banner.show {
-            display: block;
-        }
-
-        .alert-banner h4 {
-            color: #dc2626;
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
             margin-bottom: 8px;
         }
 
-        .alert-banner p {
-            color: #7f1d1d;
-            font-size: 14px;
+        .error-item .error-time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .health-grid {
-                grid-template-columns: 1fr;
-            }
+        .error-item .error-query {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
 
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+        .error-item .error-message {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .refresh-btn {
+            background: #C67E5F;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #a86a4f;
         }
     </style>
 </head>
 <body>
-    <div class="dashboard-header">
-        <h1>🎯 Unified Telemetry Dashboard</h1>
-        <p>Comprehensive analytics and monitoring for British Made AI pricing assistant</p>
-        <div class="last-updated">
-            Last refreshed: <span id="lastUpdated">Loading...</span>
-        </div>
+    <!-- Header -->
+    <div class="header">
+        <h1>🎯 System Monitor</h1>
+        <p class="subtitle">Real-time monitoring for British Made AI pricing assistant</p>
+        <div class="last-updated">Last refreshed: <span id="lastRefresh">Loading...</span></div>
+        <button class="refresh-btn" onclick="loadData()" style="margin-top: 12px;">🔄 Refresh Now</button>
     </div>
 
-    <!-- Navigation Tabs -->
-    <div class="nav-tabs">
-        <button class="nav-tab active" data-tab="health">
-            🏥 System Health
-            <span class="badge" id="healthBadge" style="display:none;">!</span>
-        </button>
-        <button class="nav-tab" data-tab="realtime">
-            📊 Real-Time Metrics
-        </button>
-        <button class="nav-tab" data-tab="conversion">
-            🎯 Conversion Funnel
-        </button>
-        <button class="nav-tab" data-tab="products">
-            📦 Product Analytics
-        </button>
-        <button class="nav-tab" data-tab="queries">
-            🔍 Query Patterns
-        </button>
-        <button class="nav-tab" data-tab="journeys">
-            🗺️ User Journeys
-        </button>
-        <button class="nav-tab" data-tab="feedback">
-            💬 User Feedback
-        </button>
-        <button class="nav-tab" data-tab="errors">
-            ⚠️ Errors & Issues
-        </button>
-    </div>
+    <!-- Critical Alerts (only shown when there are issues) -->
+    <div id="criticalAlerts"></div>
 
-    <!-- Tab: System Health -->
-    <div class="tab-content active" id="health">
-        <div class="info-card">
-            <h3>📖 What is System Health?</h3>
-            <p>
-                This section monitors the real-time operational status of your pricing assistant.
-                It tracks API availability, response times, and error rates to ensure the system is functioning properly.
-                <strong>Why it matters:</strong> Quick identification of issues means faster resolution and better user experience.
-            </p>
-        </div>
-
-        <div class="health-section">
-            <h2>API Health Status</h2>
-            <div class="health-grid">
-                <!-- Chat API Health -->
-                <div class="health-card" id="chatApiCard">
-                    <div class="health-header">
-                        <span class="health-title">💬 Chat API (Grok-4-fast)</span>
-                        <span class="status-badge" id="chatApiStatus">Checking...</span>
-                    </div>
-                    <div class="health-details">
-                        <div class="health-detail">
-                            <span class="health-label">Endpoint:</span>
-                            <span class="health-value">OpenRouter/Grok</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Avg Response Time:</span>
-                            <span class="health-value" id="chatResponseTime">--</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Success Rate (24h):</span>
-                            <span class="health-value" id="chatSuccessRate">--</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Total Requests:</span>
-                            <span class="health-value" id="chatTotalRequests">0</span>
-                        </div>
-                    </div>
-                    <div class="timestamp">Last successful: <span id="chatLastSuccess">Never</span></div>
+    <!-- API Health Status -->
+    <div class="section">
+        <h2>🏥 API Health Status</h2>
+        <div class="api-grid">
+            <div class="api-card" id="chatApiCard">
+                <h3>
+                    💬 Chat API (Grok-4-fast)
+                    <span class="status-badge" id="chatStatus">Checking...</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Endpoint:</span>
+                    <span class="value">OpenRouter/Grok</span>
                 </div>
-
-                <!-- Price API Health -->
-                <div class="health-card" id="priceApiCard">
-                    <div class="health-header">
-                        <span class="health-title">💷 Price API (Direct)</span>
-                        <span class="status-badge" id="priceApiStatus">Checking...</span>
-                    </div>
-                    <div class="health-details">
-                        <div class="health-detail">
-                            <span class="health-label">Endpoint:</span>
-                            <span class="health-value">GCF/getPrice</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Avg Response Time:</span>
-                            <span class="health-value" id="priceResponseTime">--</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Success Rate (24h):</span>
-                            <span class="health-value" id="priceSuccessRate">--</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Total Requests:</span>
-                            <span class="health-value" id="priceTotalRequests">0</span>
-                        </div>
-                    </div>
-                    <div class="timestamp">Last successful: <span id="priceLastSuccess">Never</span></div>
+                <div class="metric">
+                    <span class="label">Last Successful:</span>
+                    <span class="value" id="chatLastSuccess">Never</span>
                 </div>
+                <div class="metric">
+                    <span class="label">Total Requests (24h):</span>
+                    <span class="value" id="chatRequests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Success Rate:</span>
+                    <span class="value" id="chatSuccessRate">--</span>
+                </div>
+            </div>
 
-                <!-- Session Health -->
-                <div class="health-card" id="sessionHealthCard">
-                    <div class="health-header">
-                        <span class="health-title">🔄 Active Sessions</span>
-                        <span class="status-badge online" id="sessionStatus">Active</span>
-                    </div>
-                    <div class="health-details">
-                        <div class="health-detail">
-                            <span class="health-label">Current Sessions:</span>
-                            <span class="health-value" id="activeSessions">0</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Today's Sessions:</span>
-                            <span class="health-value" id="todaySessions">0</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Avg Duration:</span>
-                            <span class="health-value" id="avgDuration">--</span>
-                        </div>
-                        <div class="health-detail">
-                            <span class="health-label">Peak Hour:</span>
-                            <span class="health-value" id="peakHour">--</span>
-                        </div>
-                    </div>
-                    <div class="timestamp">Data as of: <span id="sessionLastUpdate">Now</span></div>
+            <div class="api-card" id="priceApiCard">
+                <h3>
+                    💰 Price API (Direct)
+                    <span class="status-badge" id="priceStatus">Checking...</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Endpoint:</span>
+                    <span class="value">GCF/getPrice</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Last Successful:</span>
+                    <span class="value" id="priceLastSuccess">Never</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Total Requests (24h):</span>
+                    <span class="value" id="priceRequests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Success Rate:</span>
+                    <span class="value" id="priceSuccessRate">--</span>
+                </div>
+            </div>
+
+            <div class="api-card online">
+                <h3>
+                    🌐 Active Sessions
+                    <span class="status-badge online">Active</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Current Sessions:</span>
+                    <span class="value" id="activeSessions">1</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Today's Sessions:</span>
+                    <span class="value" id="todaySessions">1</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Peak Hour:</span>
+                    <span class="value" id="peakHour">--</span>
                 </div>
             </div>
         </div>
-
-        <!-- Alert Banner -->
-        <div class="alert-banner" id="alertBanner">
-            <h4>⚠️ System Alert</h4>
-            <p id="alertMessage"></p>
-        </div>
     </div>
 
-    <!-- Tab: Real-Time Metrics -->
-    <div class="tab-content" id="realtime">
-        <div class="info-card">
-            <h3>📊 What are Real-Time Metrics?</h3>
-            <p>
-                Live performance indicators showing current system usage and behavior patterns.
-                <strong>Why it matters:</strong> Helps identify traffic spikes, performance bottlenecks,
-                and usage trends to optimize resource allocation and user experience.
-            </p>
-        </div>
-
+    <!-- Quick Stats -->
+    <div class="section">
+        <h2>📊 Quick Stats (24h)</h2>
         <div class="stats-grid">
             <div class="stat-card">
-                <h3>Total Queries Today</h3>
-                <div class="stat-value" id="todayQueries">0</div>
-                <div class="stat-label">Since midnight</div>
+                <div class="value" id="totalQueries">0</div>
+                <div class="label">Total Queries</div>
             </div>
             <div class="stat-card">
-                <h3>Active Users</h3>
-                <div class="stat-value" id="activeUsers">0</div>
-                <div class="stat-label">Last 30 minutes</div>
+                <div class="value" id="successfulQueries">0</div>
+                <div class="label">Successful Responses</div>
             </div>
             <div class="stat-card">
-                <h3>Avg Response Time</h3>
-                <div class="stat-value" id="avgResponseTime">0<span style="font-size:16px;">s</span></div>
-                <div class="stat-label">Last hour</div>
+                <div class="value" id="failedQueries">0</div>
+                <div class="label">Failed Queries</div>
             </div>
             <div class="stat-card">
-                <h3>Success Rate</h3>
-                <div class="stat-value" id="successRate">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Last 24 hours</div>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <h3>📈 Query Volume (Last 7 Days)</h3>
-            <div class="chart-wrapper">
-                <canvas id="volumeChart"></canvas>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <h3>⏱️ Response Time Distribution</h3>
-            <div class="chart-wrapper">
-                <canvas id="responseChart"></canvas>
+                <div class="value" id="avgResponseTime">--</div>
+                <div class="label">Avg Response Time</div>
             </div>
         </div>
     </div>
 
-    <!-- Tab: Conversion Funnel -->
-    <div class="tab-content" id="conversion">
-        <div class="info-card">
-            <h3>🎯 What is a Conversion Funnel?</h3>
-            <p>
-                Tracks user progression from initial query to completed configuration.
-                Stages: Query Started → Price Shown → Opportunity Clicked → Configuration Complete.
-                <strong>Why it matters:</strong> Identifies where users drop off, helping improve the journey
-                and increase successful configurations.
-            </p>
-        </div>
-
-        <div class="chart-container">
-            <h3>Conversion Funnel Analysis</h3>
-            <div class="chart-wrapper">
-                <canvas id="funnelChart"></canvas>
-            </div>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Started</h3>
-                <div class="stat-value" id="funnelStarted">0</div>
-                <div class="stat-label">Initial queries</div>
-            </div>
-            <div class="stat-card">
-                <h3>Price Shown</h3>
-                <div class="stat-value" id="funnelPriceShown">0</div>
-                <div class="stat-label" id="funnelPriceRate">0% conversion</div>
-            </div>
-            <div class="stat-card">
-                <h3>Engaged</h3>
-                <div class="stat-value" id="funnelEngaged">0</div>
-                <div class="stat-label" id="funnelEngageRate">0% clicked opportunities</div>
-            </div>
-            <div class="stat-card">
-                <h3>Completed</h3>
-                <div class="stat-value" id="funnelCompleted">0</div>
-                <div class="stat-label" id="funnelCompleteRate">0% full configuration</div>
-            </div>
-        </div>
+    <!-- Query History -->
+    <div class="section">
+        <h2>🔍 Query History (Last 100)</h2>
+        <div id="queryHistoryContainer"></div>
     </div>
 
-    <!-- Tab: Product Analytics -->
-    <div class="tab-content" id="products">
-        <div class="info-card">
-            <h3>📦 What is Product Analytics?</h3>
-            <p>
-                Tracks which products and fabrics are most frequently searched and configured.
-                <strong>Why it matters:</strong> Helps identify popular items for inventory planning,
-                highlights trending products, and reveals customer preferences for better merchandising.
-            </p>
-        </div>
-
-        <div class="chart-container">
-            <h3>Top 10 Products Searched</h3>
-            <div class="chart-wrapper">
-                <canvas id="productsChart"></canvas>
-            </div>
-        </div>
-
-        <div class="data-table">
-            <h3>Product Popularity Details</h3>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Product</th>
-                            <th>Searches</th>
-                            <th>Configurations</th>
-                            <th>Conversion Rate</th>
-                            <th>Avg Price</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productTableBody">
-                        <tr><td colspan="5" class="empty-state">No product data yet</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <h3>Popular Fabric Colors</h3>
-            <div class="chart-wrapper">
-                <canvas id="fabricsChart"></canvas>
-            </div>
-        </div>
+    <!-- Recent Errors -->
+    <div class="section">
+        <h2>⚠️ Recent Errors (Last 24h)</h2>
+        <div id="errorContainer"></div>
     </div>
 
-    <!-- Tab: Query Patterns -->
-    <div class="tab-content" id="queries">
-        <div class="info-card">
-            <h3>🔍 What are Query Patterns?</h3>
-            <p>
-                Analyzes how users search, including reformulations, dead-ends, and price sensitivity.
-                <strong>Why it matters:</strong> Understanding search behavior helps improve NLU accuracy,
-                identify missing products, and optimize pricing strategies based on budget queries.
-            </p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Reformulations</h3>
-                <div class="stat-value" id="queryReformulations">0</div>
-                <div class="stat-label">Users refining searches</div>
-            </div>
-            <div class="stat-card">
-                <h3>Dead Ends</h3>
-                <div class="stat-value" id="queryDeadEnds">0</div>
-                <div class="stat-label">No results found</div>
-            </div>
-            <div class="stat-card">
-                <h3>Budget Queries</h3>
-                <div class="stat-value" id="budgetQueries">0</div>
-                <div class="stat-label">"Under £X" searches</div>
-            </div>
-            <div class="stat-card">
-                <h3>NLU Confidence</h3>
-                <div class="stat-value" id="nluConfidence">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Understanding accuracy</div>
-            </div>
-        </div>
-
-        <div class="data-table">
-            <h3>Price Sensitivity Analysis</h3>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Price Range</th>
-                            <th>Queries</th>
-                            <th>Percentage</th>
-                            <th>Common Products</th>
-                        </tr>
-                    </thead>
-                    <tbody id="priceRangeTableBody">
-                        <tr><td colspan="4" class="empty-state">No price data yet</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- Top Queries -->
+    <div class="section">
+        <h2>🔥 Most Popular Queries (Last 100)</h2>
+        <div id="topQueriesContainer"></div>
     </div>
 
-    <!-- Tab: User Journeys -->
-    <div class="tab-content" id="journeys">
-        <div class="info-card">
-            <h3>🗺️ What are User Journeys?</h3>
-            <p>
-                Maps the complete path users take from first query to final action.
-                <strong>Why it matters:</strong> Reveals common patterns, identifies friction points,
-                and shows opportunities to streamline the experience and reduce time-to-success.
-            </p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Avg Journey Length</h3>
-                <div class="stat-value" id="avgJourneyLength">0</div>
-                <div class="stat-label">Steps to complete</div>
-            </div>
-            <div class="stat-card">
-                <h3>Time to Success</h3>
-                <div class="stat-value" id="timeToSuccess">0<span style="font-size:16px;">m</span></div>
-                <div class="stat-label">Average duration</div>
-            </div>
-            <div class="stat-card">
-                <h3>Abandonments</h3>
-                <div class="stat-value" id="abandonmentRate">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Drop-off rate</div>
-            </div>
-            <div class="stat-card">
-                <h3>Cross-sell Rate</h3>
-                <div class="stat-value" id="crossSellRate">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Added extras</div>
-            </div>
-        </div>
-
-        <div class="chart-container">
-            <h3>Peak Usage Times</h3>
-            <div class="chart-wrapper">
-                <canvas id="peakUsageChart"></canvas>
-            </div>
-        </div>
-
-        <div class="data-table">
-            <h3>Common Journey Paths</h3>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Journey Type</th>
-                            <th>Frequency</th>
-                            <th>Avg Steps</th>
-                            <th>Success Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody id="journeyTableBody">
-                        <tr><td colspan="4" class="empty-state">No journey data yet</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <!-- User Satisfaction -->
+    <div class="section">
+        <h2>😊 User Satisfaction</h2>
+        <div id="satisfactionContainer"></div>
     </div>
 
-    <!-- Tab: User Feedback -->
-    <div class="tab-content" id="feedback">
-        <div class="info-card">
-            <h3>💬 What is User Feedback?</h3>
-            <p>
-                Direct user ratings and sentiment about responses.
-                <strong>Why it matters:</strong> Provides qualitative insights into user satisfaction,
-                helps identify areas for improvement, and validates that the system is meeting user needs.
-            </p>
-        </div>
+    <!-- Performance Insights -->
+    <div class="section">
+        <h2>⚡ Performance & Cost Insights (24h)</h2>
+        <div id="performanceContainer"></div>
+    </div>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Positive Feedback</h3>
-                <div class="stat-value" id="positiveFeedback">0</div>
-                <div class="stat-label">👍 Upvotes</div>
-            </div>
-            <div class="stat-card">
-                <h3>Negative Feedback</h3>
-                <div class="stat-value" id="negativeFeedback">0</div>
-                <div class="stat-label">👎 Downvotes</div>
-            </div>
-            <div class="stat-card">
-                <h3>Satisfaction Rate</h3>
-                <div class="stat-value" id="satisfactionRate">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Overall rating</div>
-            </div>
-            <div class="stat-card">
-                <h3>Total Feedback</h3>
-                <div class="stat-value" id="totalFeedback">0</div>
-                <div class="stat-label">Responses rated</div>
-            </div>
-        </div>
+    <script>
+        function loadData() {
+            const now = new Date();
+            document.getElementById('lastRefresh').textContent = now.toLocaleString();
 
-        <div class="data-table">
-            <h3>Recent Feedback</h3>
-            <div class="table-wrapper">
-                <table>
+            // Get analytics data from localStorage
+            const eventsData = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const comprehensiveData = JSON.parse(localStorage.getItem('analyticsComprehensive') || '{}');
+            const p1Errors = comprehensiveData.p1Errors || { noPriceErrors: [], totalCount: 0 };
+
+            // Calculate 24h cutoff
+            const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+
+            // Filter events to last 24h
+            const recent24h = eventsData.filter(e => e.timestamp > cutoff24h);
+
+            // Check API Health
+            checkAPIHealth(recent24h, p1Errors);
+
+            // Calculate stats
+            calculateStats(recent24h);
+
+            // Show query history
+            showQueryHistory(eventsData.slice().reverse().slice(0, 100));
+
+            // Show recent errors
+            showRecentErrors(p1Errors);
+
+            // Show top queries
+            showTopQueries(eventsData);
+
+            // Show user satisfaction
+            showUserSatisfaction(eventsData);
+
+            // Show performance insights
+            showPerformanceInsights(events24h);
+        }
+
+        function checkAPIHealth(events24h, p1Errors) {
+            // Check Chat API
+            const chatEvents = events24h.filter(e => e.name === 'llm_response' || e.name === 'llm_no_price');
+            const chatSuccesses = chatEvents.filter(e => e.name === 'llm_response').length;
+            const chatTotal = chatEvents.length;
+
+            if (chatTotal > 0) {
+                const lastSuccess = chatEvents.filter(e => e.name === 'llm_response')[0];
+                document.getElementById('chatLastSuccess').textContent = lastSuccess ?
+                    new Date(lastSuccess.timestamp).toLocaleString() : 'Never';
+                document.getElementById('chatRequests').textContent = chatTotal;
+                document.getElementById('chatSuccessRate').textContent =
+                    Math.round((chatSuccesses / chatTotal) * 100) + '%';
+
+                document.getElementById('chatApiCard').className = 'api-card online';
+                document.getElementById('chatStatus').className = 'status-badge online';
+                document.getElementById('chatStatus').textContent = 'Online';
+            } else {
+                document.getElementById('chatApiCard').className = 'api-card offline';
+                document.getElementById('chatStatus').className = 'status-badge offline';
+                document.getElementById('chatStatus').textContent = 'No Data';
+            }
+
+            // Check Price API (direct)
+            const priceEvents = events24h.filter(e => e.name === 'price_response' || e.name === 'direct_price_error');
+            const priceSuccesses = priceEvents.filter(e => e.name === 'price_response').length;
+            const priceTotal = priceEvents.length;
+
+            if (priceTotal > 0) {
+                const lastSuccess = priceEvents.filter(e => e.name === 'price_response')[0];
+                document.getElementById('priceLastSuccess').textContent = lastSuccess ?
+                    new Date(lastSuccess.timestamp).toLocaleString() : 'Never';
+                document.getElementById('priceRequests').textContent = priceTotal;
+                document.getElementById('priceSuccessRate').textContent =
+                    Math.round((priceSuccesses / priceTotal) * 100) + '%';
+
+                if (priceSuccesses > 0) {
+                    document.getElementById('priceApiCard').className = 'api-card online';
+                    document.getElementById('priceStatus').className = 'status-badge online';
+                    document.getElementById('priceStatus').textContent = 'Online';
+                } else {
+                    document.getElementById('priceApiCard').className = 'api-card offline';
+                    document.getElementById('priceStatus').className = 'status-badge offline';
+                    document.getElementById('priceStatus').textContent = 'Offline';
+                }
+            } else {
+                document.getElementById('priceApiCard').className = 'api-card offline';
+                document.getElementById('priceStatus').className = 'status-badge offline';
+                document.getElementById('priceStatus').textContent = 'No Data';
+            }
+
+            // Show critical alerts
+            showCriticalAlerts(chatTotal, chatSuccesses, priceTotal, priceSuccesses, p1Errors);
+        }
+
+        function showCriticalAlerts(chatTotal, chatSuccesses, priceTotal, priceSuccesses, p1Errors) {
+            const container = document.getElementById('criticalAlerts');
+            const alerts = [];
+            const eventsData = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+            const recent24h = eventsData.filter(e => e.timestamp > cutoff24h);
+
+            // ====== CRITICAL ALERTS (RED) ======
+
+            // 1. Price API completely down
+            if (priceTotal > 0 && priceSuccesses === 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: Price API is DOWN',
+                    messages: [
+                        `ALL ${priceTotal} price requests in last 24h FAILED`,
+                        'Users cannot get real-time pricing',
+                        'Likely cause: Sofas & Stuff API is down or blocking requests',
+                        'Action: Check https://sofasandstuff.com/ - if down, wait for recovery',
+                        'Our system is hallucination-proof - showing "unavailable" correctly ✅'
+                    ]
+                });
+            }
+
+            // 2. NO user activity (system might be down)
+            if (chatTotal === 0 && priceTotal === 0 && recent24h.length === 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: NO USER ACTIVITY DETECTED',
+                    messages: [
+                        'Zero queries in last 24 hours',
+                        'Frontend may be offline or inaccessible',
+                        'Action: Check https://britishmade.ai/ is loading',
+                        'Action: Check GitHub Pages deployment status'
+                    ]
+                });
+            }
+
+            // 3. High P1 error rate (queries returning no price)
+            if (p1Errors.totalCount > 5) {
+                const recentP1 = p1Errors.noPriceErrors.filter(e => e.timestamp > cutoff24h);
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 HIGH ERROR RATE: Queries Failing to Return Prices',
+                    messages: [
+                        `${p1Errors.totalCount} queries returned "system unavailable"`,
+                        `${recentP1.length} in last 24h`,
+                        'Last occurred: ' + (p1Errors.lastOccurred ? new Date(p1Errors.lastOccurred).toLocaleString() : 'Unknown'),
+                        'System correctly preventing hallucination ✅',
+                        'Check "Recent Errors" section below for query patterns'
+                    ]
+                });
+            }
+
+            // 4. OpenRouter API key issues (401 errors)
+            const authErrors = recent24h.filter(e =>
+                e.name === 'api_error' &&
+                e.data && (e.data.error || '').includes('401')
+            );
+            if (authErrors.length > 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: OpenRouter API Authentication Failed',
+                    messages: [
+                        `${authErrors.length} authentication failures detected`,
+                        'OpenRouter API key may be invalid or expired',
+                        'Action: Generate new key at https://openrouter.ai/settings/keys',
+                        'Action: Deploy with: gcloud functions deploy --set-env-vars OPENROUTER_API_KEY=NEW_KEY'
+                    ]
+                });
+            }
+
+            // 5. Extremely slow response times (>15 seconds)
+            const responses = recent24h.filter(e => e.data && e.data.responseTime);
+            const slowResponses = responses.filter(e => e.data.responseTime > 15000);
+            if (responses.length > 0 && slowResponses.length / responses.length > 0.3) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: System Extremely Slow',
+                    messages: [
+                        `${Math.round((slowResponses.length / responses.length) * 100)}% of responses took >15 seconds`,
+                        'Users experiencing severe delays',
+                        'Possible causes: Grok API throttling, cold starts, network issues',
+                        'Action: Check GCF logs for timeouts'
+                    ]
+                });
+            }
+
+            // ====== WARNING ALERTS (ORANGE) ======
+
+            // 6. Moderate chat API failures
+            if (chatTotal > 0 && chatSuccesses < chatTotal) {
+                const failRate = Math.round(((chatTotal - chatSuccesses) / chatTotal) * 100);
+                if (failRate > 20) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: Chat API Partial Failures',
+                        messages: [
+                            `${failRate}% of chat requests failed (${chatTotal - chatSuccesses}/${chatTotal})`,
+                            'Some users experiencing issues',
+                            'Possible causes: OpenRouter rate limits, Grok availability',
+                            'Action: Monitor for pattern - if persistent, check API status'
+                        ]
+                    });
+                }
+            }
+
+            // 7. Slow response times (>8 seconds but <15)
+            if (responses.length > 0) {
+                const avgTime = responses.reduce((sum, e) => sum + e.data.responseTime, 0) / responses.length;
+                if (avgTime > 8000 && avgTime <= 15000) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: Slower Than Normal Response Times',
+                        messages: [
+                            `Average response time: ${(avgTime / 1000).toFixed(1)}s (normal: 5-7s)`,
+                            'Performance degraded but functional',
+                            'Possible causes: Increased load, Grok API slower than usual',
+                            'Consider: Switching to faster model if persistent'
+                        ]
+                    });
+                }
+            }
+
+            // 8. High token usage (costly queries)
+            const tokenUsage = recent24h.filter(e => e.data && e.data.tokens);
+            if (tokenUsage.length > 0) {
+                const totalTokens = tokenUsage.reduce((sum, e) => sum + e.data.tokens, 0);
+                const avgTokens = totalTokens / tokenUsage.length;
+                const estimatedCost = (totalTokens / 1000000) * 4.00; // Rough estimate for Grok-4-fast
+
+                if (avgTokens > 10000 || estimatedCost > 5) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: High Token Usage / Costs',
+                        messages: [
+                            `Total tokens (24h): ${totalTokens.toLocaleString()}`,
+                            `Average per query: ${Math.round(avgTokens).toLocaleString()} tokens`,
+                            `Estimated cost (24h): $${estimatedCost.toFixed(2)}`,
+                            'Consider: Optimizing system prompt or using cheaper model for simple queries'
+                        ]
+                    });
+                }
+            }
+
+            // 9. No data yet (not critical, just informational)
+            if (alerts.length === 0 && recent24h.length === 0) {
+                alerts.push({
+                    level: 'warning',
+                    title: '📊 No Data Yet',
+                    messages: [
+                        'No analytics data collected yet',
+                        'Dashboard will populate as users interact with the system',
+                        'Try making a test query at https://britishmade.ai/'
+                    ]
+                });
+            }
+
+            // ====== SUCCESS (GREEN) ======
+
+            // 10. Everything working normally
+            if (alerts.length === 0 && (chatTotal > 0 || priceTotal > 0)) {
+                const successRate = Math.round(((chatSuccesses + priceSuccesses) / (chatTotal + priceTotal)) * 100);
+                alerts.push({
+                    level: 'success',
+                    title: '✅ All Systems Operational',
+                    messages: [
+                        `Success rate: ${successRate}%`,
+                        'No critical issues detected',
+                        'APIs responding normally',
+                        'Hallucination prevention active ✅'
+                    ]
+                });
+            }
+
+            // Render alerts
+            container.innerHTML = alerts.map(alert => `
+                <div class="${alert.level}-alert">
+                    <h2>${alert.title}</h2>
+                    <ul>
+                        ${alert.messages.map(msg => `<li>${msg}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        function calculateStats(events24h) {
+            const queries = events24h.filter(e => e.name === 'query');
+            const responses = events24h.filter(e => e.name === 'llm_response' || e.name === 'price_response');
+            const errors = events24h.filter(e => e.name === 'p1_error' || e.name === 'api_error');
+
+            document.getElementById('totalQueries').textContent = queries.length;
+            document.getElementById('successfulQueries').textContent = responses.length;
+            document.getElementById('failedQueries').textContent = errors.length;
+
+            // Avg response time
+            const responseTimes = events24h
+                .filter(e => e.data && e.data.responseTime)
+                .map(e => e.data.responseTime);
+            if (responseTimes.length > 0) {
+                const avg = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+                document.getElementById('avgResponseTime').textContent = (avg / 1000).toFixed(2) + 's';
+            }
+        }
+
+        function showQueryHistory(recentEvents) {
+            const queries = recentEvents.filter(e => e.name === 'query');
+            const container = document.getElementById('queryHistoryContainer');
+
+            if (queries.length === 0) {
+                container.innerHTML = '<div class="no-data">No queries yet</div>';
+                return;
+            }
+
+            const html = `
+                <table class="query-table">
                     <thead>
                         <tr>
                             <th>Time</th>
                             <th>Query</th>
-                            <th>Rating</th>
+                            <th>Type</th>
                             <th>Session</th>
                         </tr>
                     </thead>
-                    <tbody id="feedbackTableBody">
-                        <tr><td colspan="4" class="empty-state">No feedback yet</td></tr>
+                    <tbody>
+                        ${queries.map(q => `
+                            <tr>
+                                <td>${new Date(q.timestamp).toLocaleString()}</td>
+                                <td><strong>${q.data.query || 'N/A'}</strong></td>
+                                <td><span class="query-type ${q.data.source || 'typed'}">${q.data.source || 'typed'}</span></td>
+                                <td style="font-family: monospace; font-size: 12px;">${q.data.sessionId ? q.data.sessionId.substring(0, 8) : 'N/A'}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
+            `;
+            container.innerHTML = html;
+        }
 
-    <!-- Tab: Errors & Issues -->
-    <div class="tab-content" id="errors">
-        <div class="info-card">
-            <h3>⚠️ What are Errors & Issues?</h3>
-            <p>
-                Tracks system errors, failed queries, and technical issues.
-                <strong>Why it matters:</strong> Early detection of problems prevents user frustration,
-                helps maintain system reliability, and provides insights for system improvements.
-            </p>
-        </div>
+        function showRecentErrors(p1Errors) {
+            const container = document.getElementById('errorContainer');
+            const errors = p1Errors.noPriceErrors || [];
 
-        <!-- P1 Error Alert -->
-        <div class="alert-banner" id="p1AlertBanner" style="background: #fee2e2; border-color: #ef4444; display: none;">
-            <h4>🚨 P1 CRITICAL: No Price Errors Detected</h4>
-            <p id="p1AlertMessage" style="margin-bottom: 10px;"></p>
-            <div id="p1ErrorDetails" style="font-size: 12px; background: white; padding: 10px; border-radius: 6px; margin-top: 10px;"></div>
-        </div>
+            if (errors.length === 0) {
+                container.innerHTML = '<div class="no-data">No errors in last 24h 🎉</div>';
+                return;
+            }
 
-        <div class="stats-grid">
-            <div class="stat-card" style="border-top: 4px solid #ef4444;">
-                <h3 style="color: #dc2626;">P1 ERRORS</h3>
-                <div class="stat-value" id="p1ErrorCount" style="color: #dc2626;">0</div>
-                <div class="stat-label">No price returned</div>
-            </div>
-            <div class="stat-card">
-                <h3>Errors Today</h3>
-                <div class="stat-value" id="errorsToday">0</div>
-                <div class="stat-label">Since midnight</div>
-            </div>
-            <div class="stat-card">
-                <h3>Error Rate</h3>
-                <div class="stat-value" id="errorRate">0<span style="font-size:16px;">%</span></div>
-                <div class="stat-label">Last 24 hours</div>
-            </div>
-            <div class="stat-card">
-                <h3>Failed Queries</h3>
-                <div class="stat-value" id="failedQueries">0</div>
-                <div class="stat-label">No results found</div>
-            </div>
-        </div>
+            const html = `
+                <div class="error-list">
+                    ${errors.slice(0, 20).map(err => `
+                        <div class="error-item">
+                            <div class="error-time">${new Date(err.timestamp).toLocaleString()}</div>
+                            <div class="error-query">"${err.query}"</div>
+                            <div class="error-message">${err.error || 'No price returned'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
 
-        <div class="data-table">
-            <h3>Recent Errors</h3>
-            <div class="table-wrapper">
-                <table>
+        function showTopQueries(eventsData) {
+            const container = document.getElementById('topQueriesContainer');
+            const queries = eventsData.filter(e => e.name === 'query' && e.data && e.data.query);
+
+            if (queries.length === 0) {
+                container.innerHTML = '<div class="no-data">No queries yet</div>';
+                return;
+            }
+
+            // Count query frequency
+            const queryCounts = {};
+            queries.forEach(q => {
+                const query = q.data.query.toLowerCase().trim();
+                queryCounts[query] = (queryCounts[query] || 0) + 1;
+            });
+
+            // Sort by frequency
+            const sorted = Object.entries(queryCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20);
+
+            const html = `
+                <table class="query-table">
                     <thead>
                         <tr>
-                            <th>Time</th>
-                            <th>Type</th>
-                            <th>Error Message</th>
-                            <th>Session</th>
+                            <th>#</th>
+                            <th>Query</th>
+                            <th>Count</th>
+                            <th>% of Total</th>
                         </tr>
                     </thead>
-                    <tbody id="errorTableBody">
-                        <tr><td colspan="4" class="empty-state">No errors recorded</td></tr>
+                    <tbody>
+                        ${sorted.map(([query, count], idx) => `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td><strong>${query}</strong></td>
+                                <td>${count}</td>
+                                <td>${Math.round((count / queries.length) * 100)}%</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Initialize dashboard
-        const ACCESS_CODE = 'SOFAS25';
-
-        // Check authentication
-        function checkAuth() {
-            const isAuthenticated = sessionStorage.getItem('britishmade_authenticated');
-            if (isAuthenticated !== 'true') {
-                window.location.href = '/';
-            }
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Insight:</strong> Top queries show what users want most.
+                    If a query appears frequently with errors, prioritize fixing it!
+                </p>
+            `;
+            container.innerHTML = html;
         }
 
-        // Format timestamp
-        function formatTimestamp(timestamp) {
-            if (!timestamp) return 'Never';
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
+        function showUserSatisfaction(eventsData) {
+            const container = document.getElementById('satisfactionContainer');
+            const feedback = eventsData.filter(e => e.name === 'feedback');
 
-            if (diff < 60000) return 'Just now';
-            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+            if (feedback.length === 0) {
+                container.innerHTML = '<div class="no-data">No user feedback yet (thumbs up/down buttons)</div>';
+                return;
+            }
 
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            const positive = feedback.filter(f => f.data && f.data.feedback === 'positive').length;
+            const negative = feedback.filter(f => f.data && f.data.feedback === 'negative').length;
+            const total = positive + negative;
+            const satisfaction = total > 0 ? Math.round((positive / total) * 100) : 0;
+
+            let satisfactionColor = '#22c55e';
+            let satisfactionLabel = 'Excellent';
+            if (satisfaction < 70) {
+                satisfactionColor = '#f59e0b';
+                satisfactionLabel = 'Needs Improvement';
+            }
+            if (satisfaction < 50) {
+                satisfactionColor = '#ef4444';
+                satisfactionLabel = 'Poor';
+            }
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-left-color: ${satisfactionColor};">
+                        <div class="value" style="color: ${satisfactionColor};">${satisfaction}%</div>
+                        <div class="label">${satisfactionLabel}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: #22c55e;">👍 ${positive}</div>
+                        <div class="label">Positive Feedback</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: #ef4444;">👎 ${negative}</div>
+                        <div class="label">Negative Feedback</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${total}</div>
+                        <div class="label">Total Feedback</div>
+                    </div>
+                </div>
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Insight:</strong>
+                    ${satisfaction >= 80 ? 'Users are very satisfied! Keep up the good work.' : ''}
+                    ${satisfaction >= 60 && satisfaction < 80 ? 'Satisfaction is good but could be better. Check negative feedback patterns.' : ''}
+                    ${satisfaction < 60 ? '⚠️ Low satisfaction - investigate negative feedback and recent errors immediately!' : ''}
+                </p>
+            `;
+            container.innerHTML = html;
         }
 
-        // Load analytics data
-        function loadAnalytics() {
-            const data = localStorage.getItem('analyticsComprehensive');
-            const events = localStorage.getItem('analyticsEvents');
+        function showPerformanceInsights(events24h) {
+            const container = document.getElementById('performanceContainer');
 
-            let analytics = {};
-            let eventList = [];
+            // Calculate metrics
+            const responses = events24h.filter(e => e.data && e.data.responseTime);
+            const tokenEvents = events24h.filter(e => e.data && e.data.tokens);
 
-            try {
-                if (data) {
-                    analytics = JSON.parse(data);
-                    console.log('Loaded comprehensive analytics:', analytics);
-                }
-                if (events) {
-                    eventList = JSON.parse(events);
-                    console.log('Loaded events:', eventList.length, 'events');
-                }
-            } catch (e) {
-                console.error('Error loading analytics:', e);
+            if (responses.length === 0 && tokenEvents.length === 0) {
+                container.innerHTML = '<div class="no-data">No performance data yet</div>';
+                return;
             }
 
-            return { analytics, events: eventList };
+            // Response time stats
+            const responseTimes = responses.map(e => e.data.responseTime);
+            const avgTime = responseTimes.length > 0 ?
+                responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0;
+            const minTime = responseTimes.length > 0 ? Math.min(...responseTimes) : 0;
+            const maxTime = responseTimes.length > 0 ? Math.max(...responseTimes) : 0;
+
+            // Token stats
+            const totalTokens = tokenEvents.reduce((sum, e) => sum + e.data.tokens, 0);
+            const avgTokens = tokenEvents.length > 0 ? totalTokens / tokenEvents.length : 0;
+
+            // Cost estimation (Grok-4-fast: ~$0.10 per 1M input tokens, ~$0.40 per 1M output)
+            // Rough estimate: average $4 per 1M tokens
+            const estimatedCost = (totalTokens / 1000000) * 4.00;
+            const costPerQuery = tokenEvents.length > 0 ? estimatedCost / tokenEvents.length : 0;
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value">${(avgTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Avg Response Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${(minTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Fastest Response</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${(maxTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Slowest Response</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${Math.round(avgTokens).toLocaleString()}</div>
+                        <div class="label">Avg Tokens/Query</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${totalTokens.toLocaleString()}</div>
+                        <div class="label">Total Tokens (24h)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: ${estimatedCost > 5 ? '#ef4444' : '#22c55e'};">$${estimatedCost.toFixed(2)}</div>
+                        <div class="label">Estimated Cost (24h)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">$${costPerQuery.toFixed(4)}</div>
+                        <div class="label">Cost per Query</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${responses.length}</div>
+                        <div class="label">Total Responses</div>
+                    </div>
+                </div>
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Performance Insights:</strong><br>
+                    • Target response time: 5-7 seconds (${avgTime / 1000 < 8 ? '✅ Good' : '⚠️ Slow'})<br>
+                    • Token efficiency: ${avgTokens < 5000 ? '✅ Efficient' : avgTokens < 10000 ? '⚠️ Moderate' : '🚨 High usage'}<br>
+                    • Daily cost: ${estimatedCost < 2 ? '✅ Low' : estimatedCost < 5 ? '⚠️ Moderate' : '🚨 High - consider optimization'}<br>
+                    • At current rate, monthly cost: ~$${(estimatedCost * 30).toFixed(2)}
+                </p>
+            `;
+            container.innerHTML = html;
         }
 
-        // Update health status
-        function updateHealthStatus(analytics, events) {
-            const now = Date.now();
-
-            // Chat API Health
-            const chatApiCard = document.getElementById('chatApiCard');
-            const chatApiStatus = document.getElementById('chatApiStatus');
-            const chatEvents = events.filter(e => e.eventName === 'llm_query' || e.eventName === 'chat_response');
-            const recentChatEvents = chatEvents.filter(e => now - e.timestamp < 86400000);
-            const chatErrors = events.filter(e => e.eventName === 'error' && e.data.type === 'chat');
-
-            const chatSuccessRate = recentChatEvents.length > 0
-                ? Math.round(((recentChatEvents.length - chatErrors.length) / recentChatEvents.length) * 100)
-                : 100;
-
-            document.getElementById('chatTotalRequests').textContent = chatEvents.length;
-            document.getElementById('chatSuccessRate').textContent = chatSuccessRate + '%';
-
-            // Calculate average response time
-            if (analytics.performanceMetrics && analytics.performanceMetrics.responseTimes.length > 0) {
-                const avgTime = analytics.performanceMetrics.responseTimes.reduce((a, b) => a + b, 0) / analytics.performanceMetrics.responseTimes.length;
-                document.getElementById('chatResponseTime').textContent = (avgTime / 1000).toFixed(1) + 's';
-            }
-
-            // Last successful request
-            if (chatEvents.length > 0) {
-                const lastChat = chatEvents[chatEvents.length - 1];
-                document.getElementById('chatLastSuccess').textContent = formatTimestamp(lastChat.timestamp);
-            }
-
-            // Update status badge
-            if (chatSuccessRate >= 95) {
-                chatApiCard.className = 'health-card healthy';
-                chatApiStatus.className = 'status-badge online';
-                chatApiStatus.textContent = 'Online';
-            } else if (chatSuccessRate >= 80) {
-                chatApiCard.className = 'health-card warning';
-                chatApiStatus.className = 'status-badge degraded';
-                chatApiStatus.textContent = 'Degraded';
-            } else {
-                chatApiCard.className = 'health-card unhealthy';
-                chatApiStatus.className = 'status-badge offline';
-                chatApiStatus.textContent = 'Issues';
-            }
-
-            // Price API Health (similar logic)
-            const priceApiCard = document.getElementById('priceApiCard');
-            const priceApiStatus = document.getElementById('priceApiStatus');
-            const priceEvents = events.filter(e => e.eventName === 'price_query' || e.eventName === 'price_shown');
-            const recentPriceEvents = priceEvents.filter(e => now - e.timestamp < 86400000);
-
-            document.getElementById('priceTotalRequests').textContent = priceEvents.length;
-
-            if (priceEvents.length > 0) {
-                const lastPrice = priceEvents[priceEvents.length - 1];
-                document.getElementById('priceLastSuccess').textContent = formatTimestamp(lastPrice.timestamp);
-                priceApiCard.className = 'health-card healthy';
-                priceApiStatus.className = 'status-badge online';
-                priceApiStatus.textContent = 'Online';
-            } else {
-                priceApiCard.className = 'health-card';
-                priceApiStatus.className = 'status-badge';
-                priceApiStatus.textContent = 'No data';
-            }
-
-            // Session Health
-            const sessions = analytics.conversionFunnel?.sessions || new Map();
-            const todayStart = new Date().setHours(0, 0, 0, 0);
-            const todayEvents = events.filter(e => e.timestamp > todayStart);
-            const uniqueSessions = new Set(todayEvents.map(e => e.sessionId));
-
-            document.getElementById('activeSessions').textContent = uniqueSessions.size;
-            document.getElementById('todaySessions').textContent = uniqueSessions.size;
-
-            // Peak usage hour
-            if (analytics.peakUsage && analytics.peakUsage.hourly) {
-                const maxHour = analytics.peakUsage.hourly.indexOf(Math.max(...analytics.peakUsage.hourly));
-                document.getElementById('peakHour').textContent = maxHour >= 0 ? `${maxHour}:00 - ${maxHour + 1}:00` : '--';
-            }
-        }
-
-        // Update real-time metrics
-        function updateRealTimeMetrics(analytics, events) {
-            const now = Date.now();
-            const todayStart = new Date().setHours(0, 0, 0, 0);
-            const last30Min = now - 1800000;
-            const last24Hours = now - 86400000;
-
-            // Today's queries
-            const todayQueries = events.filter(e => e.timestamp > todayStart && e.eventName === 'user_query');
-            document.getElementById('todayQueries').textContent = todayQueries.length;
-
-            // Active users (last 30 min)
-            const recentEvents = events.filter(e => e.timestamp > last30Min);
-            const activeUsers = new Set(recentEvents.map(e => e.sessionId));
-            document.getElementById('activeUsers').textContent = activeUsers.size;
-
-            // Average response time
-            if (analytics.performanceMetrics && analytics.performanceMetrics.responseTimes.length > 0) {
-                const recentTimes = analytics.performanceMetrics.responseTimes.slice(-10);
-                const avgTime = recentTimes.reduce((a, b) => a + b, 0) / recentTimes.length;
-                document.getElementById('avgResponseTime').innerHTML = (avgTime / 1000).toFixed(1) + '<span style="font-size:16px;">s</span>';
-            }
-
-            // Success rate
-            const recentQueries = events.filter(e => e.timestamp > last24Hours && e.eventName === 'user_query');
-            const recentSuccesses = events.filter(e => e.timestamp > last24Hours && (e.eventName === 'price_shown' || e.eventName === 'opportunity_clicked'));
-            const successRate = recentQueries.length > 0
-                ? Math.round((recentSuccesses.length / recentQueries.length) * 100)
-                : 0;
-            document.getElementById('successRate').innerHTML = successRate + '<span style="font-size:16px;">%</span>';
-        }
-
-        // Update conversion funnel
-        function updateConversionFunnel(analytics) {
-            if (!analytics.conversionFunnel) return;
-
-            const sessions = Array.from(analytics.conversionFunnel.sessions || []);
-            const stages = analytics.conversionFunnel.stages || [];
-
-            let started = sessions.length;
-            let priceShown = 0;
-            let engaged = 0;
-            let completed = 0;
-
-            sessions.forEach(([sessionId, data]) => {
-                if (data.stages && data.stages.includes('price_shown')) priceShown++;
-                if (data.stages && data.stages.includes('opportunity_clicked')) engaged++;
-                if (data.stages && data.stages.includes('configuration_complete')) completed++;
-            });
-
-            document.getElementById('funnelStarted').textContent = started;
-            document.getElementById('funnelPriceShown').textContent = priceShown;
-            document.getElementById('funnelPriceRate').textContent = started > 0
-                ? `${Math.round((priceShown / started) * 100)}% conversion`
-                : '0% conversion';
-
-            document.getElementById('funnelEngaged').textContent = engaged;
-            document.getElementById('funnelEngageRate').textContent = priceShown > 0
-                ? `${Math.round((engaged / priceShown) * 100)}% clicked opportunities`
-                : '0% clicked opportunities';
-
-            document.getElementById('funnelCompleted').textContent = completed;
-            document.getElementById('funnelCompleteRate').textContent = started > 0
-                ? `${Math.round((completed / started) * 100)}% full configuration`
-                : '0% full configuration';
-        }
-
-        // Update product analytics
-        function updateProductAnalytics(analytics) {
-            if (!analytics.productPopularity) return;
-
-            const products = Array.from(analytics.productPopularity || []);
-            const fabrics = Array.from(analytics.fabricPopularity || []);
-
-            // Update product table
-            const tbody = document.getElementById('productTableBody');
-            if (products.length > 0) {
-                tbody.innerHTML = products
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 10)
-                    .map(([product, count]) => `
-                        <tr>
-                            <td>${product}</td>
-                            <td>${count}</td>
-                            <td>--</td>
-                            <td>--</td>
-                            <td>--</td>
-                        </tr>
-                    `).join('');
-            }
-        }
-
-        // Update query patterns
-        function updateQueryPatterns(analytics) {
-            if (!analytics.queryPatterns) return;
-
-            const reformulations = Array.from(analytics.queryPatterns.reformulations || []);
-            const deadEnds = analytics.queryPatterns.deadEnds || [];
-            const budgetQueries = analytics.priceSensitivity?.budgetQueries || [];
-
-            document.getElementById('queryReformulations').textContent = reformulations.length;
-            document.getElementById('queryDeadEnds').textContent = deadEnds.length;
-            document.getElementById('budgetQueries').textContent = budgetQueries.length;
-
-            // NLU Confidence
-            if (analytics.nluScoring && analytics.nluScoring.confidenceScores.length > 0) {
-                const avgConfidence = analytics.nluScoring.confidenceScores.reduce((a, b) => a + b, 0) / analytics.nluScoring.confidenceScores.length;
-                document.getElementById('nluConfidence').innerHTML = Math.round(avgConfidence * 100) + '<span style="font-size:16px;">%</span>';
-            }
-        }
-
-        // Update user journeys
-        function updateUserJourneys(analytics) {
-            if (!analytics.userJourneys) return;
-
-            const paths = Array.from(analytics.userJourneys.paths || []);
-            const abandonments = analytics.userJourneys.abandonments || [];
-            const completions = analytics.userJourneys.completions || [];
-            const timeToSuccess = analytics.userJourneys.timeToSuccess || [];
-
-            // Average journey length
-            if (paths.length > 0) {
-                const avgLength = paths.reduce((sum, [, path]) => sum + path.length, 0) / paths.length;
-                document.getElementById('avgJourneyLength').textContent = Math.round(avgLength);
-            }
-
-            // Time to success
-            if (timeToSuccess.length > 0) {
-                const avgTime = timeToSuccess.reduce((a, b) => a + b, 0) / timeToSuccess.length;
-                document.getElementById('timeToSuccess').innerHTML = Math.round(avgTime / 60000) + '<span style="font-size:16px;">m</span>';
-            }
-
-            // Abandonment rate
-            const totalJourneys = abandonments.length + completions.length;
-            if (totalJourneys > 0) {
-                const rate = Math.round((abandonments.length / totalJourneys) * 100);
-                document.getElementById('abandonmentRate').innerHTML = rate + '<span style="font-size:16px;">%</span>';
-            }
-
-            // Cross-sell rate
-            if (analytics.crossSell) {
-                const attachRate = analytics.crossSell.attachmentRate || 0;
-                document.getElementById('crossSellRate').innerHTML = Math.round(attachRate * 100) + '<span style="font-size:16px;">%</span>';
-            }
-        }
-
-        // Update feedback
-        function updateFeedback(events) {
-            const upvotes = events.filter(e => e.eventName === 'feedback' && e.data.rating === 'positive');
-            const downvotes = events.filter(e => e.eventName === 'feedback' && e.data.rating === 'negative');
-
-            document.getElementById('positiveFeedback').textContent = upvotes.length;
-            document.getElementById('negativeFeedback').textContent = downvotes.length;
-            document.getElementById('totalFeedback').textContent = upvotes.length + downvotes.length;
-
-            const total = upvotes.length + downvotes.length;
-            if (total > 0) {
-                const satisfaction = Math.round((upvotes.length / total) * 100);
-                document.getElementById('satisfactionRate').innerHTML = satisfaction + '<span style="font-size:16px;">%</span>';
-            }
-
-            // Update feedback table
-            const recentFeedback = [...upvotes, ...downvotes]
-                .sort((a, b) => b.timestamp - a.timestamp)
-                .slice(0, 10);
-
-            const tbody = document.getElementById('feedbackTableBody');
-            if (recentFeedback.length > 0) {
-                tbody.innerHTML = recentFeedback.map(event => `
-                    <tr>
-                        <td>${formatTimestamp(event.timestamp)}</td>
-                        <td>${event.data.query || 'N/A'}</td>
-                        <td>${event.data.rating === 'positive' ? '👍' : '👎'}</td>
-                        <td>${event.sessionId.slice(0, 8)}...</td>
-                    </tr>
-                `).join('');
-            }
-        }
-
-        // Update errors
-        function updateErrors(events, analytics) {
-            const now = Date.now();
-            const todayStart = new Date().setHours(0, 0, 0, 0);
-            const last24Hours = now - 86400000;
-
-            const errors = events.filter(e => e.eventName === 'error');
-            const todayErrors = errors.filter(e => e.timestamp > todayStart);
-            const recentErrors = errors.filter(e => e.timestamp > last24Hours);
-            const timeouts = events.filter(e => e.data && e.data.responseTime > 10000);
-
-            // Check for P1 errors
-            const p1Errors = events.filter(e => e.eventName === 'p1_error');
-            const p1ErrorData = analytics.p1Errors || { noPriceErrors: [], totalCount: 0 };
-
-            // Update P1 error display
-            document.getElementById('p1ErrorCount').textContent = p1ErrorData.totalCount;
-            document.getElementById('p1ErrorCount').style.color = p1ErrorData.totalCount > 0 ? '#dc2626' : '#1a1a1a';
-
-            // Show P1 alert if there are recent P1 errors
-            if (p1ErrorData.noPriceErrors && p1ErrorData.noPriceErrors.length > 0) {
-                const recentP1 = p1ErrorData.noPriceErrors.filter(e => now - e.timestamp < 86400000);
-                if (recentP1.length > 0) {
-                    const p1Banner = document.getElementById('p1AlertBanner');
-                    const p1Message = document.getElementById('p1AlertMessage');
-                    const p1Details = document.getElementById('p1ErrorDetails');
-
-                    p1Banner.style.display = 'block';
-                    p1Message.textContent = `${recentP1.length} queries failed to return prices in the last 24 hours. This is a critical issue that needs immediate attention.`;
-
-                    // Show recent P1 error examples
-                    const examples = recentP1.slice(-3).map(e => `
-                        <div style="margin: 5px 0; padding: 5px; background: #fef2f2; border-left: 3px solid #ef4444;">
-                            <strong>Query:</strong> "${e.query}"<br>
-                            <strong>Time:</strong> ${formatTimestamp(e.timestamp)}<br>
-                            <strong>Session:</strong> ${e.sessionId.slice(0, 8)}...
-                        </div>
-                    `).join('');
-                    p1Details.innerHTML = '<strong>Recent Examples:</strong>' + examples;
-
-                    // Also add badge to errors tab
-                    const errorTab = document.querySelector('.nav-tab[data-tab="errors"]');
-                    const badge = errorTab.querySelector('.badge') || document.createElement('span');
-                    badge.className = 'badge';
-                    badge.textContent = recentP1.length;
-                    badge.style.display = 'inline-block';
-                    if (!errorTab.querySelector('.badge')) {
-                        errorTab.appendChild(badge);
-                    }
-                }
-            }
-
-            document.getElementById('errorsToday').textContent = todayErrors.length;
-            document.getElementById('failedQueries').textContent = p1ErrorData.totalCount;
-
-            // Error rate
-            const recentQueries = events.filter(e => e.timestamp > last24Hours && e.eventName === 'user_query');
-            if (recentQueries.length > 0) {
-                const errorRate = Math.round((recentErrors.length / recentQueries.length) * 100);
-                document.getElementById('errorRate').innerHTML = errorRate + '<span style="font-size:16px;">%</span>';
-            }
-
-            // Update error table
-            const tbody = document.getElementById('errorTableBody');
-            if (errors.length > 0) {
-                tbody.innerHTML = errors
-                    .sort((a, b) => b.timestamp - a.timestamp)
-                    .slice(0, 10)
-                    .map(error => `
-                        <tr>
-                            <td>${formatTimestamp(error.timestamp)}</td>
-                            <td>${error.data.type || 'Unknown'}</td>
-                            <td>${error.data.message || 'No message'}</td>
-                            <td>${error.sessionId.slice(0, 8)}...</td>
-                        </tr>
-                    `).join('');
-            }
-        }
-
-        // Initialize charts
-        function initCharts(analytics, events) {
-            // Volume Chart
-            const volumeCtx = document.getElementById('volumeChart');
-            if (volumeCtx) {
-                const last7Days = [];
-                const counts = [];
-
-                for (let i = 6; i >= 0; i--) {
-                    const date = new Date();
-                    date.setDate(date.getDate() - i);
-                    const dayStart = date.setHours(0, 0, 0, 0);
-                    const dayEnd = dayStart + 86400000;
-
-                    const dayEvents = events.filter(e =>
-                        e.timestamp >= dayStart &&
-                        e.timestamp < dayEnd &&
-                        e.eventName === 'user_query'
-                    );
-
-                    last7Days.push(date.toLocaleDateString('en', { weekday: 'short' }));
-                    counts.push(dayEvents.length);
-                }
-
-                new Chart(volumeCtx, {
-                    type: 'line',
-                    data: {
-                        labels: last7Days,
-                        datasets: [{
-                            label: 'Queries',
-                            data: counts,
-                            borderColor: '#C67E5F',
-                            backgroundColor: 'rgba(198, 126, 95, 0.1)',
-                            tension: 0.3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-        }
-
-        // Tab switching
-        document.querySelectorAll('.nav-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active from all tabs
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-                // Add active to clicked tab
-                tab.classList.add('active');
-                const tabId = tab.getAttribute('data-tab');
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-
-        // Initialize dashboard
-        function initDashboard() {
-            checkAuth();
-
-            // Update last refreshed
-            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
-
-            // Load and display analytics
-            const { analytics, events } = loadAnalytics();
-
-            updateHealthStatus(analytics, events);
-            updateRealTimeMetrics(analytics, events);
-            updateConversionFunnel(analytics);
-            updateProductAnalytics(analytics);
-            updateQueryPatterns(analytics);
-            updateUserJourneys(analytics);
-            updateFeedback(events);
-            updateErrors(events, analytics);
-
-            // Initialize charts
-            initCharts(analytics, events);
-        }
+        // Load data on page load
+        loadData();
 
         // Auto-refresh every 30 seconds
-        setInterval(initDashboard, 30000);
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', initDashboard);
+        setInterval(loadData, 30000);
     </script>
 </body>
 </html>
