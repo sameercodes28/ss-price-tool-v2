@@ -973,11 +973,111 @@
         }
 
         /* ============================================
-           MINIMAL LLM RESPONSE STYLING
+           CARD-BASED LLM RESPONSE STYLING
            ============================================ */
         .llm-response {
             font-size: 15px;
             line-height: 1.7;
+        }
+
+        /* Modern card-based pricing display */
+        .pricing-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .pricing-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .pricing-card-title-section {
+            flex: 1;
+        }
+
+        .pricing-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-card-price {
+            text-align: right;
+        }
+
+        .pricing-card-price-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-card-price-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--fabric-terracotta);
+        }
+
+        /* Price breakdown table */
+        .pricing-breakdown {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .pricing-breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .pricing-breakdown-row:not(:last-child) {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .pricing-breakdown-row.total {
+            font-weight: 600;
+            font-size: 15px;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .pricing-breakdown-label {
+            color: var(--text-secondary);
+        }
+
+        .pricing-breakdown-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .pricing-breakdown-value.highlight {
+            color: var(--fabric-terracotta);
+        }
+
+        /* Description text */
+        .pricing-card-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin: 16px 0;
         }
 
         .intro-text {
@@ -2588,7 +2688,14 @@
                 return html;
             }
 
-            // Process structured response as before
+            // Collect data for card-based design
+            let productName = '';
+            let fabricInfo = '';
+            let mainPrice = '';
+            let priceItems = [];
+            let description = '';
+
+            // Process structured response
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
@@ -2760,14 +2867,19 @@
          */
         function handleOpportunityClick(opportunityText) {
             console.log('[CLICK] Opportunity clicked:', opportunityText);
-            // Clean up the opportunity text and create a proper query
-            // Remove any "Add" prefix if it exists to avoid duplication
-            let cleanText = opportunityText.replace(/^Add\s+/i, '');
+
+            // Extract item name: "Add matching footstool - From £495" → "footstool"
+            let itemName = opportunityText.toLowerCase();
+            itemName = itemName.replace(/^add\s+(matching\s+)?/i, '');  // Remove "Add" / "Add matching"
+            itemName = itemName.replace(/\s*-.*$/,'');  // Remove " - From £495" suffix
+            itemName = itemName.trim();
 
             // Track the opportunity click
-            Analytics.track('opportunity_click', { opportunity: cleanText });
+            Analytics.track('opportunity_click', { opportunity: itemName });
 
-            let query = `Add ${cleanText} to my current selection`;
+            // Create query to get combined price: "with footstool"
+            // Backend will use conversation context to combine with current product
+            let query = `with ${itemName}`;
             Analytics.track('query', { query: query, source: 'opportunity' });
             document.getElementById('chatInput').value = query;
             sendChatMessage();
