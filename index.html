@@ -1941,8 +1941,42 @@
             },
             performanceMetrics: {
                 responseTimes: [],
-                typewriterSpeeds: [],
                 renderTimes: []
+            },
+            // New comprehensive tracking
+            conversionFunnel: {
+                sessions: new Map(), // Track each session's progress
+                stages: ['query_started', 'price_shown', 'opportunity_clicked', 'configuration_complete']
+            },
+            productPopularity: new Map(), // Product name -> count
+            fabricPopularity: new Map(), // Fabric name -> count
+            priceSensitivity: {
+                ranges: new Map(), // Price range -> count
+                budgetQueries: [], // "under £X" queries
+            },
+            queryPatterns: {
+                reformulations: new Map(), // Session -> reformulation count
+                sequences: [], // Query sequences
+                deadEnds: [], // Queries with no results
+            },
+            userJourneys: {
+                paths: new Map(), // Session -> path array
+                timeToSuccess: [],
+                abandonments: [],
+                completions: []
+            },
+            crossSell: {
+                opportunities: new Map(), // Opportunity type -> click count
+                attachmentRate: 0
+            },
+            peakUsage: {
+                hourly: new Array(24).fill(0),
+                daily: new Array(7).fill(0)
+            },
+            nluScoring: {
+                confidenceScores: [],
+                uncertainQueries: [],
+                fallbacks: []
             },
 
             init() {
@@ -1950,6 +1984,9 @@
                 this.sessionId = localStorage.getItem('sessionId') || this.generateSessionId();
                 localStorage.setItem('sessionId', this.sessionId);
                 this.sessionStart = Date.now();
+
+                // Load persisted analytics data FIRST
+                this.loadPersistedData();
 
                 // Track page load with performance metrics
                 this.track('page_load', {
@@ -1966,14 +2003,27 @@
 
                 // Track page unload
                 window.addEventListener('beforeunload', () => {
+                    // Check if session completed or abandoned
+                    const funnel = this.conversionFunnel.sessions.get(this.sessionId);
+                    const isComplete = funnel && funnel.stages.includes('configuration_complete');
+
+                    if (!isComplete && this.events.filter(e => e.eventName === 'user_query').length > 0) {
+                        this.trackAbandonment();
+                    }
+
                     this.track('session_end', {
                         duration: Date.now() - this.sessionStart,
                         eventCount: this.events.length,
                         avgResponseTime: this.calculateAvgResponseTime(),
-                        errorCount: this.healthChecks.errors.length
+                        errorCount: this.healthChecks.errors.length,
+                        completed: isComplete
                     });
                     this.flush();
+                    this.persistData(); // Save all data before page unload
                 });
+
+                // Auto-save every 30 seconds
+                setInterval(() => this.persistData(), 30000);
             },
 
             getPageLoadMetrics() {
@@ -2081,6 +2131,113 @@
                 return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             },
 
+            // Persist all comprehensive tracking data to localStorage
+            persistData() {
+                const dataToSave = {
+                    events: this.events,
+                    healthChecks: this.healthChecks,
+                    performanceMetrics: this.performanceMetrics,
+                    conversionFunnel: {
+                        sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                        stages: this.conversionFunnel.stages
+                    },
+                    productPopularity: Array.from(this.productPopularity.entries()),
+                    fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                    priceSensitivity: {
+                        ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                        budgetQueries: this.priceSensitivity.budgetQueries
+                    },
+                    queryPatterns: {
+                        reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                        sequences: this.queryPatterns.sequences,
+                        deadEnds: this.queryPatterns.deadEnds
+                    },
+                    userJourneys: {
+                        paths: Array.from(this.userJourneys.paths.entries()),
+                        timeToSuccess: this.userJourneys.timeToSuccess,
+                        abandonments: this.userJourneys.abandonments,
+                        completions: this.userJourneys.completions
+                    },
+                    crossSell: {
+                        opportunities: Array.from(this.crossSell.opportunities.entries()),
+                        attachmentRate: this.crossSell.attachmentRate
+                    },
+                    peakUsage: this.peakUsage,
+                    nluScoring: this.nluScoring,
+                    timestamp: Date.now()
+                };
+
+                try {
+                    localStorage.setItem('analyticsComprehensive', JSON.stringify(dataToSave));
+                    // Keep backward compatibility
+                    localStorage.setItem('analyticsEvents', JSON.stringify(this.events));
+                    console.log('[Analytics] Data persisted successfully');
+                } catch (e) {
+                    console.error('[Analytics] Failed to persist data:', e);
+                }
+            },
+
+            // Load persisted data on init
+            loadPersistedData() {
+                try {
+                    const saved = localStorage.getItem('analyticsComprehensive');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+
+                        // Restore events and simple arrays
+                        this.events = data.events || [];
+                        this.healthChecks = data.healthChecks || { lastCheck: null, apiStatus: {}, errors: [] };
+                        this.performanceMetrics = data.performanceMetrics || { responseTimes: [], renderTimes: [] };
+
+                        // Restore Maps
+                        if (data.conversionFunnel) {
+                            this.conversionFunnel.sessions = new Map(data.conversionFunnel.sessions || []);
+                            this.conversionFunnel.stages = data.conversionFunnel.stages || this.conversionFunnel.stages;
+                        }
+
+                        this.productPopularity = new Map(data.productPopularity || []);
+                        this.fabricPopularity = new Map(data.fabricPopularity || []);
+
+                        if (data.priceSensitivity) {
+                            this.priceSensitivity.ranges = new Map(data.priceSensitivity.ranges || []);
+                            this.priceSensitivity.budgetQueries = data.priceSensitivity.budgetQueries || [];
+                        }
+
+                        if (data.queryPatterns) {
+                            this.queryPatterns.reformulations = new Map(data.queryPatterns.reformulations || []);
+                            this.queryPatterns.sequences = data.queryPatterns.sequences || [];
+                            this.queryPatterns.deadEnds = data.queryPatterns.deadEnds || [];
+                        }
+
+                        if (data.userJourneys) {
+                            this.userJourneys.paths = new Map(data.userJourneys.paths || []);
+                            this.userJourneys.timeToSuccess = data.userJourneys.timeToSuccess || [];
+                            this.userJourneys.abandonments = data.userJourneys.abandonments || [];
+                            this.userJourneys.completions = data.userJourneys.completions || [];
+                        }
+
+                        if (data.crossSell) {
+                            this.crossSell.opportunities = new Map(data.crossSell.opportunities || []);
+                            this.crossSell.attachmentRate = data.crossSell.attachmentRate || 0;
+                        }
+
+                        this.peakUsage = data.peakUsage || { hourly: new Array(24).fill(0), daily: new Array(7).fill(0) };
+                        this.nluScoring = data.nluScoring || { confidenceScores: [], uncertainQueries: [], fallbacks: [] };
+
+                        console.log('[Analytics] Loaded persisted data from', new Date(data.timestamp || 0).toISOString());
+                    } else {
+                        // Check for legacy data
+                        const legacyEvents = localStorage.getItem('analyticsEvents');
+                        if (legacyEvents) {
+                            this.events = JSON.parse(legacyEvents);
+                            console.log('[Analytics] Loaded legacy events data');
+                        }
+                    }
+                } catch (e) {
+                    console.error('[Analytics] Failed to load persisted data:', e);
+                }
+            },
+
             track(eventName, data = {}) {
                 const event = {
                     sessionId: this.sessionId,
@@ -2106,6 +2263,11 @@
                 if (this.events.length >= 10) {
                     this.flush();
                 }
+
+                // Persist comprehensive data every 5 events to avoid data loss
+                if (this.events.length % 5 === 0) {
+                    this.persistData();
+                }
             },
 
             trackQuery(query, source) {
@@ -2120,7 +2282,26 @@
 
                 this.track('user_query', queryMetrics);
 
-                // Track query patterns
+                // Track conversion funnel
+                this.updateFunnelStage('query_started');
+
+                // Track product and fabric popularity
+                this.extractAndTrackProducts(query);
+                this.extractAndTrackFabrics(query);
+
+                // Track price sensitivity
+                this.trackPriceSensitivity(query);
+
+                // Track query reformulation
+                this.trackReformulation(query);
+
+                // Track user journey path
+                this.updateJourneyPath(query);
+
+                // Track peak usage
+                this.updatePeakUsage();
+
+                // Track query patterns and intent
                 if (query.toLowerCase().includes('price') || query.includes('£')) {
                     this.track('query_intent', { type: 'pricing', query });
                 } else if (query.toLowerCase().includes('fabric') || query.toLowerCase().includes('material')) {
@@ -2128,6 +2309,98 @@
                 } else if (query.toLowerCase().includes('size') || query.toLowerCase().includes('seater')) {
                     this.track('query_intent', { type: 'sizing', query });
                 }
+            },
+
+            updateFunnelStage(stage) {
+                if (!this.conversionFunnel.sessions.has(this.sessionId)) {
+                    this.conversionFunnel.sessions.set(this.sessionId, {
+                        stages: [],
+                        timestamp: Date.now()
+                    });
+                }
+                const session = this.conversionFunnel.sessions.get(this.sessionId);
+                if (!session.stages.includes(stage)) {
+                    session.stages.push(stage);
+                    this.track('funnel_stage', { stage, sessionId: this.sessionId });
+                }
+            },
+
+            extractAndTrackProducts(query) {
+                const products = ['Alwinton', 'Midhurst', 'Petworth', 'Aldingbourne', 'Chesterfield'];
+                const queryLower = query.toLowerCase();
+                products.forEach(product => {
+                    if (queryLower.includes(product.toLowerCase())) {
+                        const count = this.productPopularity.get(product) || 0;
+                        this.productPopularity.set(product, count + 1);
+                    }
+                });
+            },
+
+            extractAndTrackFabrics(query) {
+                const fabrics = ['Sussex Plain', 'House Wool', 'Velvet', 'Linen', 'Pacific', 'Sky', 'Terracotta'];
+                const queryLower = query.toLowerCase();
+                fabrics.forEach(fabric => {
+                    if (queryLower.includes(fabric.toLowerCase())) {
+                        const count = this.fabricPopularity.get(fabric) || 0;
+                        this.fabricPopularity.set(fabric, count + 1);
+                    }
+                });
+            },
+
+            trackPriceSensitivity(query) {
+                const priceMatch = query.match(/under\s*£?([\d,]+)|below\s*£?([\d,]+)|less\s+than\s*£?([\d,]+)/i);
+                if (priceMatch) {
+                    const budget = parseInt(priceMatch[1].replace(',', ''));
+                    this.priceSensitivity.budgetQueries.push({ query, budget, timestamp: Date.now() });
+
+                    // Track price ranges
+                    let range = '';
+                    if (budget < 1500) range = 'under-1500';
+                    else if (budget < 2000) range = '1500-2000';
+                    else if (budget < 2500) range = '2000-2500';
+                    else if (budget < 3000) range = '2500-3000';
+                    else range = 'over-3000';
+
+                    const count = this.priceSensitivity.ranges.get(range) || 0;
+                    this.priceSensitivity.ranges.set(range, count + 1);
+                }
+            },
+
+            trackReformulation(query) {
+                const recent = this.events.filter(e =>
+                    e.eventName === 'user_query' &&
+                    e.timestamp > Date.now() - 30000 // Last 30 seconds
+                );
+
+                if (recent.length > 0) {
+                    const lastQuery = recent[recent.length - 1].data.query;
+                    const similarity = this.calculateSimilarity(lastQuery, query);
+                    if (similarity > 0.5 && similarity < 0.9) { // Similar but not identical
+                        const count = this.queryPatterns.reformulations.get(this.sessionId) || 0;
+                        this.queryPatterns.reformulations.set(this.sessionId, count + 1);
+                    }
+                }
+            },
+
+            calculateSimilarity(str1, str2) {
+                const words1 = str1.toLowerCase().split(' ');
+                const words2 = str2.toLowerCase().split(' ');
+                const intersection = words1.filter(w => words2.includes(w));
+                return intersection.length / Math.max(words1.length, words2.length);
+            },
+
+            updateJourneyPath(query) {
+                if (!this.userJourneys.paths.has(this.sessionId)) {
+                    this.userJourneys.paths.set(this.sessionId, []);
+                }
+                const path = this.userJourneys.paths.get(this.sessionId);
+                path.push({ query, timestamp: Date.now() });
+            },
+
+            updatePeakUsage() {
+                const now = new Date();
+                this.peakUsage.hourly[now.getHours()]++;
+                this.peakUsage.daily[now.getDay()]++;
             },
 
             trackResponse(response, responseTime) {
@@ -2156,6 +2429,42 @@
                 // Track response time for performance metrics
                 this.performanceMetrics.responseTimes.push(responseTime);
 
+                // Update funnel if price shown
+                if (hasPrice) {
+                    this.updateFunnelStage('price_shown');
+
+                    // Check if this is a complete configuration
+                    if (hasPrice && hasFeatures) {
+                        const queries = this.userJourneys.paths.get(this.sessionId) || [];
+                        if (queries.length > 0) {
+                            const timeToSuccess = Date.now() - queries[0].timestamp;
+                            this.userJourneys.timeToSuccess.push({
+                                time: timeToSuccess,
+                                queryCount: queries.length,
+                                sessionId: this.sessionId
+                            });
+                        }
+                    }
+                }
+
+                // Check for dead ends (no price, no useful info)
+                if (!hasPrice && !hasFeatures && !hasOpportunities) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        this.queryPatterns.deadEnds.push({
+                            query: lastQuery,
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+
+                // Track NLU confidence (simplified - based on completeness)
+                this.nluScoring.confidenceScores.push(responseMetrics.responseCompleteness);
+                if (response.includes("I couldn't find") || response.includes("Could you try")) {
+                    this.nluScoring.fallbacks.push({ response, timestamp: Date.now() });
+                }
+
                 // Track response quality
                 if (responseMetrics.responseCompleteness >= 75) {
                     this.track('high_quality_response', responseMetrics);
@@ -2164,6 +2473,48 @@
                 }
 
                 this.track('agent_response', responseMetrics);
+            },
+
+            trackOpportunityClick(opportunity) {
+                // Update funnel
+                this.updateFunnelStage('opportunity_clicked');
+
+                // Track cross-sell
+                const count = this.crossSell.opportunities.get(opportunity) || 0;
+                this.crossSell.opportunities.set(opportunity, count + 1);
+
+                // Calculate attachment rate
+                const totalSessions = this.conversionFunnel.sessions.size;
+                const sessionsWithOpportunities = Array.from(this.conversionFunnel.sessions.values())
+                    .filter(s => s.stages.includes('opportunity_clicked')).length;
+                this.crossSell.attachmentRate = totalSessions > 0
+                    ? (sessionsWithOpportunities / totalSessions) * 100
+                    : 0;
+
+                this.track('cross_sell_clicked', { opportunity, timestamp: Date.now() });
+            },
+
+            trackConfigurationComplete() {
+                this.updateFunnelStage('configuration_complete');
+                this.userJourneys.completions.push({
+                    sessionId: this.sessionId,
+                    timestamp: Date.now(),
+                    queryCount: this.events.filter(e => e.eventName === 'user_query').length
+                });
+                this.track('configuration_complete', { sessionId: this.sessionId });
+            },
+
+            trackAbandonment() {
+                const path = this.userJourneys.paths.get(this.sessionId);
+                if (path && path.length > 0) {
+                    const lastQuery = path[path.length - 1];
+                    this.userJourneys.abandonments.push({
+                        lastQuery: lastQuery.query,
+                        queryCount: path.length,
+                        sessionDuration: Date.now() - path[0].timestamp,
+                        timestamp: Date.now()
+                    });
+                }
             },
 
             trackError(errorType, errorDetails) {
@@ -2230,7 +2581,49 @@
 
             getAnalytics() {
                 // Retrieve stored analytics for viewing
-                return JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+
+                // Include aggregated metrics for dashboard
+                const aggregated = {
+                    events,
+                    metrics: {
+                        productPopularity: Array.from(this.productPopularity.entries()),
+                        fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                        priceSensitivity: {
+                            ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                            budgetQueries: this.priceSensitivity.budgetQueries
+                        },
+                        conversionFunnel: {
+                            sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                            stages: this.conversionFunnel.stages
+                        },
+                        crossSell: {
+                            opportunities: Array.from(this.crossSell.opportunities.entries()),
+                            attachmentRate: this.crossSell.attachmentRate
+                        },
+                        userJourneys: {
+                            timeToSuccess: this.userJourneys.timeToSuccess,
+                            abandonments: this.userJourneys.abandonments,
+                            completions: this.userJourneys.completions
+                        },
+                        queryPatterns: {
+                            reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                            deadEnds: this.queryPatterns.deadEnds
+                        },
+                        peakUsage: this.peakUsage,
+                        nluScoring: {
+                            avgConfidence: this.nluScoring.confidenceScores.length > 0
+                                ? this.nluScoring.confidenceScores.reduce((a, b) => a + b, 0) / this.nluScoring.confidenceScores.length
+                                : 0,
+                            fallbackCount: this.nluScoring.fallbacks.length
+                        }
+                    }
+                };
+
+                // Store aggregated data separately for dashboard
+                localStorage.setItem('analyticsAggregated', JSON.stringify(aggregated.metrics));
+
+                return aggregated;
             }
         };
 
@@ -2572,6 +2965,10 @@
             // Clean up the opportunity text and create a proper query
             // Remove any "Add" prefix if it exists to avoid duplication
             let cleanText = opportunityText.replace(/^Add\s+/i, '');
+
+            // Track the opportunity click
+            Analytics.trackOpportunityClick(cleanText);
+
             let query = `Add ${cleanText} to my current selection`;
             Analytics.trackQuery(query, 'opportunity');
             document.getElementById('chatInput').value = query;
