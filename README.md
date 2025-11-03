@@ -1,6 +1,6 @@
 # Sofas & Stuff Voice Price Check Tool - v2
 
-**Version:** 2.4.0 (Lean & Debug-Ready)
+**Version:** 2.5.0 (Production Hardened)
 **Status:** 🚀 **PRODUCTION** - Intelligent LLM-Powered Assistant (Hallucination-Safe)
 **Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
 **Last Updated:** November 3, 2025
@@ -24,6 +24,16 @@ An AI-powered conversational assistant for Sofas & Stuff salespeople. This v2 ve
 - [x] Multi-turn conversation context (maintains conversation history)
 - [x] OpenRouter API integration for Grok-4 access
 - [x] Feature flag architecture (can toggle LLM on/off)
+
+### ✅ v2.5.0 Complete - Production Hardening (Phase 3 & 4)
+- [x] **Auto-retry with exponential backoff** - Handles transient failures automatically
+- [x] **Request ID tracing** - Frontend ↔ backend correlation for debugging
+- [x] **Comprehensive docstrings** - Google-style docs for 21+ functions
+- [x] **Enhanced error messages** - Actionable guidance with concrete examples
+- [x] **Dual-layer rate limiting** - Frontend (20/min) + Backend (30/min per session, 200/min global)
+- [x] **Health check endpoint** - `/health` returns comprehensive status
+- [x] **Performance timing** - Network/Parse/Render breakdown tracking
+- [x] **Error context capture** - 20+ data points for debugging
 
 ### ✅ v2.4.0 Complete - Telemetry Cleanup & Debug Enhancement
 - [x] **Removed 488 lines of bloat** (66% reduction in Analytics code)

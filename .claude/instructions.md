@@ -24,8 +24,8 @@ This ensures perfect continuity between sessions and prevents hallucinations.
 
 ## Quick Project Reference
 
-**Project:** Sofas & Stuff Voice Price Tool v2.4.0
-**Status:** 🚀 Production - Superior Grok UX
+**Project:** Sofas & Stuff Voice Price Tool v2.5.0
+**Status:** 🚀 Production - Production Hardened
 **Architecture:** Frontend (GitHub Pages) → Backend (GCF v2) → S&S APIs
 **Parent:** v1.0.0 (stable) at ~/Desktop/SS-1
 

@@ -1,30 +1,41 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 7: Phase 3 Enhanced Debuggability)
-**Current Version:** v2.4.0 (Phase 3 enhancements added, ready for v2.5.0 release)
-**Project Status:** 🚀 Production - Enhanced Debugging & Monitoring
+**Last Updated:** 2025-11-03 (Part 8: v2.5.0 Production Deployment)
+**Current Version:** v2.5.0 (Production Hardened)
+**Project Status:** 🚀 Production - Deployed with Rate Limiting & Health Monitoring
 
 ## 📋 Next Session Priority
 
-**🟡 WAITING: Sofas & Stuff API Recovery**
+**✅ v2.5.0 DEPLOYED TO PRODUCTION**
 
-External dependency issue - S&S API returning HTTP 400 errors.
-- Their website may be experiencing downtime
-- Our system now handles this gracefully (no hallucinations)
-- /chat works for budget searches and fabric searches
-- Real-time pricing will resume when S&S API recovers
+Deployment successful: revision 00019-nin
+- Auto-retry with exponential backoff
+- Dual-layer rate limiting (client + server)
+- Comprehensive health check endpoint
+- Enhanced error messages with examples
+- Request ID tracing for debugging
 
-**✅ COMPLETED THIS SESSION:**
-1. ✅ Fixed OpenRouter API key (deployed new key)
-2. ✅ CRITICAL: Prevented price hallucination with 3-layer protection
-3. ✅ Validated all endpoints and error handling
-4. ✅ Created developer debug dashboard (debug.html)
-5. ✅ Created comprehensive issue list (ISSUES_TO_FIX.md)
-6. ✅ Identified telemetry bloat (~500 lines to remove)
-7. ✅ Documented learnings (see Session Part 5 below)
+**🟡 KNOWN ISSUE: Sofas & Stuff Website Down**
 
-**⏳ PENDING USER APPROVAL:**
-- Telemetry code cleanup (see TELEMETRY_CLEANUP_PLAN.md)
+External dependency - S&S website showing contact page only.
+- Their API returns 400 errors
+- Our system handles this gracefully (returns fallback message)
+- Will auto-resume when S&S website recovers
+- **This is not our bug** - external service downtime
+
+**✅ COMPLETED THIS SESSION (Part 8):**
+1. ✅ **SECURITY:** Removed phone number from error messages
+2. ✅ **Phase 3 Task 7:** Improved error messages (7 codes enhanced)
+3. ✅ **Phase 4:** Comprehensive rate limiting (frontend + backend)
+4. ✅ **Phase 4:** Health check endpoint with full metrics
+5. ✅ **DEPLOYED:** v2.5.0 to production (8 commits)
+6. ✅ **DOCS:** Updated CHANGELOG, README, context.md
+
+**⏭️ FUTURE CONSIDERATIONS (DEFERRED):**
+- Structured JSON logging (not critical)
+- localStorage quota detection UI (not critical)
+- Request/response size limits (not critical)
+- Complex function refactoring (not critical)
 
 **🤝 DEBUGGING WORKFLOW (IMPORTANT):**
 
@@ -2157,6 +2168,115 @@ When showing a product price, include a clickable link:
 **Total Estimated Time:** 1-1.5 hours
 
 **Status:** Ready to implement. All planning and validation complete.
+
+---
+
+## Session Part 8: v2.5.0 Production Deployment (2025-11-03)
+
+### 🎯 Objective
+Complete Phase 3 Task 7 + critical Phase 4 features (rate limiting, health check), then deploy v2.5.0 to production.
+
+### ✅ Accomplishments
+
+**1. Security Fix**
+- Removed phone number (01798 343844) from error messages in main.py
+- No longer exposing contact info to users in LLM responses
+- Commit: 6963c3a
+
+**2. Phase 3 Task 7: Enhanced Error Messages**
+- Improved 7 error codes (E2001, E2003, E2004, E4001-E4004)
+- Changed tone from technical to conversational
+- Added concrete examples instead of vague suggestions
+- Before: "Product not found. Try searching for: 'Alwinton'..."
+- After: "I couldn't find that product. Common products include Alwinton, Midhurst, Petworth, and Rye. Try: 'How much is Alwinton snuggler?'"
+- Commit: 1e518ff
+
+**3. Phase 4: Comprehensive Rate Limiting**
+- Backend: `RateLimiter` class with sliding window algorithm
+  - Per-session: 30 requests/minute
+  - Global: 200 requests/minute
+  - Returns 429 with E1007 error code
+  - Includes Retry-After header
+- Frontend: Client-side throttle (20 requests/minute)
+  - Pre-flight check prevents most accidental spam
+  - Graceful 429 handling with countdown display
+- Added E1007 error code
+- **Impact:** Protects against cost overruns from bugs/abuse
+- Commit: c25e2b0
+
+**4. Phase 4: Health Check Endpoint**
+- Enhanced GET / and /health endpoints
+- Returns comprehensive status:
+  - Version (v2.5.0)
+  - Cache metrics (entries, usage %)
+  - Rate limiter stats (active sessions, requests in window)
+  - Service availability (OpenRouter LLM, Price API)
+  - Endpoint list
+- **Impact:** Enables monitoring and proactive issue detection
+- Commit: b78aeea
+
+**5. Production Deployment**
+- Deployed all 8 commits to Google Cloud Functions
+- Revision: sofa-price-calculator-v2-00019-nin
+- Deployment timestamp: 2025-11-03 04:18 UTC
+- Health check verified: ✅ Returns v2.5.0
+
+**6. Documentation Updates**
+- Updated CHANGELOG.md with v2.5.0 entry
+- Updated README.md version and features
+- Updated context.md with session summary
+
+### 📊 Session Statistics
+
+- **Duration:** ~2 hours
+- **Commits:** 8 production-ready commits
+- **Files modified:** 3 (main.py, error_codes.py, index.html)
+- **Lines added:** ~350 lines
+- **Features shipped:** 4 major features
+- **Version bump:** v2.4.0 → v2.5.0
+
+### 🧪 Testing Results
+
+✅ **Deployment:** Successful (revision 00019-nin)
+✅ **Health Check:** Returns v2.5.0 with full metrics
+✅ **Rate Limiting:** Active and tracking sessions
+✅ **Error Handling:** Gracefully handling S&S API downtime
+⏸️ **Pricing Queries:** Waiting for S&S website recovery (external issue)
+
+### 🚨 Known Issue (External)
+
+**Sofas & Stuff Website Down:**
+- Their website shows contact page only
+- API returns 400 errors
+- Our system correctly handles this with fallback message
+- Will auto-resume when they're back online
+- **This is not our bug** - external service downtime
+
+### 📝 Key Learnings
+
+1. **Rate limiting is essential** - Protects against accidental infinite loops and cost overruns
+2. **Health endpoints are valuable** - Enables monitoring before issues become critical
+3. **Better error messages improve UX** - Concrete examples guide users to success
+4. **Request ID tracing saves time** - Can correlate frontend logs with backend logs
+
+### ⏭️ Future Work (Deferred)
+
+The following Phase 4 items were considered but deemed non-critical:
+- Structured JSON logging
+- localStorage quota detection UI
+- Request/response size limits
+- Complex function refactoring
+
+### 🎓 Commits Summary
+
+1. `cb8bbef` - Phase 3: Auto-retry and request ID tracing (from previous session)
+2. `40e644f` - Phase 3: Comprehensive docstrings to main.py (from previous session)
+3. `7aa2feb` - Phase 3: Comprehensive JSDoc to index.html (from previous session)
+4. `2b4218d` - Phase 3: Error context capture & timing breakdown (from previous session)
+5. `6963c3a` - SECURITY: Remove phone number from error messages
+6. `1e518ff` - Phase 3 Task 7: Improve error messages with actionable guidance
+7. `c25e2b0` - Phase 4: Add comprehensive rate limiting (backend + frontend)
+8. `b78aeea` - Phase 4: Add comprehensive health check endpoint
 
 ---
 
