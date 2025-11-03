@@ -1,7 +1,7 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (UI transformation, telemetry & data persistence)
-**Current Version:** v2.2.0
+**Last Updated:** 2025-11-03 (Dashboard consolidation, P1 error tracking, root cause analysis)
+**Current Version:** v2.2.1
 **Project Status:** 🚀 Production Development (incremental approach)
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
@@ -96,6 +96,89 @@ All infrastructure is deployed and operational!
 ---
 
 ## 🔧 Recent Changes
+
+### Session: 2025-11-03 Part 2 (Dashboard Consolidation, P1 Error Tracking & Root Cause Analysis)
+
+**Objective:** Consolidate dashboards, investigate no-price query failures, implement P1 error tracking
+
+**Changes Made:**
+
+1. ✅ **Unified Telemetry Dashboard**
+   - Consolidated telemetry.html and telemetry-comprehensive.html into single page
+   - Added 8 organized tabs: Health, Real-Time, Conversion, Products, Queries, Journeys, Feedback, Errors
+   - Added explanatory info cards for each section explaining what metrics mean and why they matter
+   - Enhanced health monitoring with detailed API status, timestamps, and success rates
+   - Shows "Last successful" timestamps for both Chat API (Grok) and Price API
+   - Auto-refresh every 30 seconds
+   - Deleted redundant telemetry-comprehensive.html file
+
+2. ✅ **P1 Error Tracking System**
+   - Added dedicated P1 error tracking for queries that return no price
+   - Tracks as critical severity with immediate visibility
+   - Red P1 ERRORS card prominently displayed in errors tab
+   - Alert banner shows when P1 errors detected with recent examples
+   - Badge notification on Errors tab when issues present
+   - Console logging with [P1 ERROR], [LLM Chat Error], [Direct Price Error] prefixes
+
+3. ✅ **Root Cause Analysis of No-Price Errors**
+   - **Identified 5 main failure points:**
+     - Product not found: Misspelled or invalid product names
+     - Fabric not found: Invalid fabric/color combinations for product
+     - Ambiguous matches: Multiple similar products/fabrics match query
+     - LLM tool calling failures: Grok not calling get_price tool correctly
+     - Backend API errors: Direct price lookup failures
+   - **Enhanced error messages with specific guidance:**
+     - Product errors show available products list
+     - Fabric errors show common fabric/color combinations
+     - Ambiguous errors show the specific matches
+
+4. ✅ **Enhanced Error Handling**
+   - Both LLM chat and direct price endpoints now track P1 errors
+   - Immediate storage of error details for dashboard visibility
+   - Categorized errors by type (LLM_CHAT_ERROR vs DIRECT_PRICE_ERROR)
+   - Better user feedback with actionable error messages
+
+**Files Modified:**
+- Modified: `telemetry.html` (1420 lines - unified dashboard with P1 error tracking)
+- Deleted: `telemetry-comprehensive.html` (consolidated into telemetry.html)
+- Modified: `index.html` (enhanced error tracking)
+  - Lines 1962-1966: Added p1Errors object to Analytics
+  - Lines 2455-2484: P1 error detection in agent responses
+  - Lines 3059-3091: LLM chat error tracking
+  - Lines 3128-3175: Direct price error tracking with specific guidance
+
+**Decisions Made:**
+- Single consolidated dashboard reduces confusion and maintenance
+- P1 errors (no price returned) are critical and need immediate visibility
+- Every metric needs explanatory text for business users to understand
+- Error messages should be actionable with specific guidance
+- Different error types need different handling and user feedback
+
+**Discovered Issues:**
+- User showed screenshot of query returning no price
+- These failures weren't being properly tracked or categorized
+- Backend returns specific error messages that weren't being utilized
+- LLM sometimes fails to call tools or interpret errors correctly
+
+**User Feedback:**
+- Requested single dashboard instead of two separate ones
+- Wanted explanatory notes for each metric's importance
+- Needed detailed API health with timestamps
+- Asked why queries fail to return prices (root cause analysis)
+- Approaching Opus token limit, needs comprehensive documentation
+
+**Testing:**
+- P1 error tracking verified working
+- Error messages provide specific, actionable guidance
+- Dashboard shows P1 errors with alert banner
+- All error types properly categorized and logged
+
+**Commits:**
+- 912163d: Consolidate telemetry dashboards into single unified dashboard
+- 3e2d518: Add P1 error tracking for no-price queries
+- ffe928e: Enhanced P1 error tracking with root cause analysis
+
+---
 
 ### Session: 2025-11-03 (UI Transformation, Telemetry & Data Persistence Fix)
 
