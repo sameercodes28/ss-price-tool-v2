@@ -1,0 +1,11 @@
+# Backend Requirements for Google Cloud Functions
+# Last Updated: 2025-11-02 (Phase 1C: Added OpenAI for Grok integration)
+
+Flask>=2.0
+functions-framework>=3.0
+requests>=2.31.0
+urllib3>=1.26.0
+fuzzywuzzy>=0.18.0
+python-Levenshtein>=0.20.0
+openai>=1.12.0
+python-dotenv>=1.0.0

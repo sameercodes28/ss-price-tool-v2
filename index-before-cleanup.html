@@ -1,0 +1,3428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--
+    ================================================================
+    SOFAS & STUFF INTELLIGENT PRICING PLATFORM V5
+    ================================================================
+
+    VERSION 5 - ULTRA FABRIC ORB EDITION
+    - Enhanced multi-dimensional fabric orb
+    - Complex weaving patterns with depth
+    - Particle fiber effects
+    - Premium textile animations
+    - Holographic quality shifts
+    - Full LLM integration with Grok API
+    - Session management and conversation history
+
+    ================================================================
+    -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sofas & Stuff Pricing Assistant - Showroom Tool">
+    <meta name="author" content="Sofas & Stuff">
+    <meta name="theme-color" content="#C67E5F">
+
+    <title>Sofas & Stuff | Pricing Assistant</title>
+
+    <!-- Marked.js for markdown rendering (Phase 1C - Demo Polish) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ============================================
+           CSS VARIABLES - FABRIC INSPIRED PALETTE
+           ============================================ */
+        :root {
+            /* Core colors */
+            --bg-primary: #FAFAF8;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F5F3EE;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B6B6B;
+            --text-tertiary: #9B9B9B;
+
+            /* Fabric-inspired colors */
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-linen: #E8DFD3;
+            --fabric-wool: #D4C5B9;
+            --fabric-silk: #F5EEE6;
+            --fabric-gold: #D4A574;
+
+            /* UI colors */
+            --border-light: #E8E8E4;
+            --border-medium: #D4D4D0;
+            --hover-bg: #F0EDE6;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+            --shadow-fabric: 0 4px 20px rgba(198, 126, 95, 0.15);
+        }
+
+        /* ============================================
+           ACCESS CODE OVERLAY
+           ============================================ */
+        .access-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .access-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .access-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .access-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+        }
+
+        .access-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .access-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .access-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .access-input:focus {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 4px rgba(198, 126, 95, 0.1);
+        }
+
+        .access-input.error {
+            border-color: #ef4444;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .access-button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .access-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(198, 126, 95, 0.3);
+        }
+
+        .access-button:active {
+            transform: translateY(0);
+        }
+
+        .access-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .access-error.show {
+            opacity: 1;
+        }
+
+        .access-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           ULTRA FABRIC ORB DESIGN SYSTEM
+
+           Multi-layered textile visualization with:
+           - Complex weaving patterns
+           - Individual fiber strands
+           - Depth and dimension
+           - Holographic shimmer
+           - Living textile feel
+           ============================================ */
+
+        /* Complex weaving animation */
+        @keyframes ultraWeave {
+            0% {
+                transform: rotate(0deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            25% {
+                transform: rotate(90deg) scale(1.02);
+                filter: hue-rotate(10deg);
+            }
+            50% {
+                transform: rotate(180deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            75% {
+                transform: rotate(270deg) scale(1.02);
+                filter: hue-rotate(-10deg);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        /* Fiber movement animation */
+        @keyframes fiberFlow {
+            0%, 100% {
+                transform: translateX(0) translateY(0);
+                opacity: 0.6;
+            }
+            33% {
+                transform: translateX(2px) translateY(-1px);
+                opacity: 0.8;
+            }
+            66% {
+                transform: translateX(-1px) translateY(2px);
+                opacity: 0.7;
+            }
+        }
+
+        /* Holographic shimmer */
+        @keyframes holographicShift {
+            0% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 50% 50%;
+                filter: brightness(1.1);
+            }
+            100% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+        }
+
+        /* Depth pulse */
+        @keyframes depthPulse {
+            0%, 100% {
+                box-shadow:
+                    inset 0 0 10px rgba(198, 126, 95, 0.3),
+                    inset 0 0 20px rgba(139, 154, 123, 0.2),
+                    0 5px 20px rgba(122, 107, 93, 0.25);
+            }
+            50% {
+                box-shadow:
+                    inset 0 0 15px rgba(198, 126, 95, 0.4),
+                    inset 0 0 30px rgba(139, 154, 123, 0.3),
+                    0 8px 30px rgba(122, 107, 93, 0.35);
+            }
+        }
+
+        /* Ultra fabric orb container */
+        .ultra-fabric-orb {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Main orb with enhanced texture */
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation:
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background:
+                /* Holographic layer */
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                /* Depth gradient */
+                radial-gradient(
+                    circle at 30% 30%,
+                    rgba(245, 238, 230, 0.8),
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 70% 70%,
+                    rgba(122, 107, 93, 0.4),
+                    transparent 50%
+                ),
+                /* Base texture */
+                linear-gradient(135deg,
+                    var(--fabric-silk) 0%,
+                    var(--fabric-linen) 50%,
+                    var(--fabric-wool) 100%
+                );
+            background-size: 200% 200%, 100% 100%, 100% 100%, 100% 100%;
+            background-blend-mode: multiply, overlay, normal, normal;
+        }
+
+        /* Complex weaving pattern - Layer 1 */
+        .ultra-fabric-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                /* Vertical threads */
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(198, 126, 95, 0.2) 3px,
+                    rgba(198, 126, 95, 0.2) 4px
+                ),
+                /* Horizontal threads */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(139, 154, 123, 0.2) 3px,
+                    rgba(139, 154, 123, 0.2) 4px
+                ),
+                /* Diagonal weave 1 */
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(212, 165, 116, 0.15) 5px,
+                    rgba(212, 165, 116, 0.15) 6px
+                ),
+                /* Diagonal weave 2 */
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(122, 107, 93, 0.15) 5px,
+                    rgba(122, 107, 93, 0.15) 6px
+                );
+            animation: ultraWeave 30s linear infinite;
+            mix-blend-mode: multiply;
+        }
+
+        /* Individual fiber strands - Layer 2 */
+        .ultra-fabric-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background:
+                /* Fine fibers */
+                repeating-conic-gradient(
+                    from 0deg at 50% 50%,
+                    transparent 0deg,
+                    rgba(255, 255, 255, 0.1) 1deg,
+                    transparent 2deg,
+                    transparent 10deg
+                ),
+                /* Shimmer highlight */
+                radial-gradient(
+                    ellipse at 35% 35%,
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.4) 30%,
+                    transparent 60%
+                );
+            animation: fiberFlow 5s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* Extra depth layer */
+        .fabric-depth-layer {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background:
+                conic-gradient(
+                    from 180deg at 50% 50%,
+                    transparent,
+                    rgba(198, 126, 95, 0.1),
+                    transparent,
+                    rgba(139, 154, 123, 0.1),
+                    transparent
+                );
+            animation: ultraWeave 20s linear infinite reverse;
+            pointer-events: none;
+        }
+
+        /* Particle fibers floating */
+        .fabric-particles {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fabric-particle {
+            position: absolute;
+            width: 1px;
+            height: 8px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(212, 165, 116, 0.6),
+                transparent
+            );
+            animation: particleFloat 10s infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.3;
+            }
+            80% {
+                opacity: 0.6;
+            }
+        }
+
+        .fabric-particle:nth-child(1) {
+            left: 20%;
+            top: 50%;
+            animation-delay: 0s;
+        }
+
+        .fabric-particle:nth-child(2) {
+            left: 50%;
+            top: 20%;
+            animation-delay: 2s;
+        }
+
+        .fabric-particle:nth-child(3) {
+            left: 80%;
+            top: 50%;
+            animation-delay: 4s;
+        }
+
+        .fabric-particle:nth-child(4) {
+            left: 50%;
+            top: 80%;
+            animation-delay: 6s;
+        }
+
+        .fabric-particle:nth-child(5) {
+            left: 35%;
+            top: 35%;
+            animation-delay: 8s;
+        }
+
+        /* Hover state - intensified */
+        .ultra-fabric-orb:hover .ultra-fabric-sphere {
+            transform: scale(1.1) rotateX(10deg) rotateY(-10deg);
+            box-shadow:
+                inset 0 0 20px rgba(198, 126, 95, 0.5),
+                inset 0 0 40px rgba(139, 154, 123, 0.4),
+                0 10px 40px rgba(122, 107, 93, 0.4),
+                0 0 60px rgba(212, 165, 116, 0.2);
+        }
+
+        .ultra-fabric-orb:hover .fabric-particle {
+            animation-duration: 5s;
+        }
+
+        /* Small version for chat */
+        .ultra-fabric-orb-small {
+            width: 36px;
+            height: 36px;
+        }
+
+        .ultra-fabric-orb-small .ultra-fabric-sphere {
+            animation-duration: 6s, 10s;
+        }
+
+        /* When used as message avatar */
+        .message-avatar.ultra-fabric-orb-small {
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           HEADER - MINIMAL WITH ULTRA FABRIC ORB
+           ============================================ */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .brand-tagline {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .new-conversation-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .new-conversation-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .new-conversation-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ============================================
+           LANDING PAGE - CENTERED LAYOUT
+           ============================================ */
+        .landing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .landing-container.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .welcome-section {
+            text-align: center;
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .welcome-heading {
+            font-family: 'Newsreader', serif;
+            font-size: 48px;
+            font-weight: 500;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-subheading {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.1s forwards;
+        }
+
+        /* ============================================
+           SEARCH WITH CLEAN PLACEHOLDER ANIMATION
+           ============================================ */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 640px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.2s forwards;
+            position: relative;
+        }
+
+        .search-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 4px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 3px rgba(198, 126, 95, 0.1), var(--shadow-md);
+        }
+
+        .search-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            position: relative;
+        }
+
+        .search-icon {
+            color: var(--text-tertiary);
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: transparent;
+            padding: 12px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .search-input::-webkit-input-placeholder { color: transparent; }
+        .search-input::-moz-placeholder { color: transparent; }
+        .search-input:-ms-input-placeholder { color: transparent; }
+        .search-input::placeholder { color: transparent; }
+
+        .animated-placeholder {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #B8B8B8; /* Lighter gray for ghost text */
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .search-input:focus ~ .animated-placeholder,
+        .search-input:not(:placeholder-shown) ~ .animated-placeholder {
+            display: none;
+        }
+
+        .placeholder-text {
+            display: inline-block;
+            margin-right: 2px;
+            color: #B8B8B8; /* Lighter gray for better ghost text effect */
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .placeholder-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background: #B8B8B8; /* Match cursor color with text */
+            animation: blink 1s infinite;
+            opacity: 0.8;
+        }
+
+        .search-submit {
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .search-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .search-submit:active {
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           SUGGESTION CHIPS
+           ============================================ */
+        .suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+        }
+
+        .suggestion-chip {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INTERFACE
+           ============================================ */
+        .chat-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 73px);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        .messages-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            animation: messageSlideIn 0.3s ease;
+            display: flex;
+            gap: 12px;
+            padding: 8px 16px;
+        }
+
+        /* User messages - aligned RIGHT */
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        /* Assistant messages - aligned LEFT */
+        .message.assistant {
+            flex-direction: row;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 0 4px;
+        }
+
+        .message.user .message-header {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .message-author {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .message-time {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        .message-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .message.user .message-content {
+            background: #DCF8C6; /* WhatsApp-style green */
+            color: var(--text-primary);
+            border: none;
+            border-radius: 18px 18px 4px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message.assistant .message-content {
+            border-radius: 4px 18px 18px 18px;
+        }
+
+        /* Remove avatar for user messages */
+        .message.user .message-avatar {
+            display: none;
+        }
+
+        /* ============================================
+           MINIMAL LLM RESPONSE STYLING
+           ============================================ */
+        .llm-response {
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .intro-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .product-info {
+            margin: 20px 0;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .product-specs {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .main-price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .price-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: 500;
+            color: var(--fabric-terracotta);
+        }
+
+        .price-breakdown-table {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-row.price-total {
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 2px solid var(--border-medium);
+            font-weight: 600;
+        }
+
+        .price-item {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .price-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .price-value.total {
+            color: var(--fabric-terracotta);
+            font-size: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 20px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .features-section {
+            margin: 20px 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--text-primary);
+        }
+
+        .opportunities-section {
+            margin: 20px 0;
+        }
+
+        /* Opportunity buttons - same style as suggestion chips */
+        .opportunity-button {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            text-align: left;
+        }
+
+        .opportunity-button:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        .opportunity-button strong {
+            color: var(--fabric-terracotta);
+        }
+
+        .savings-text {
+            color: #16a34a;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        .price-breakdown-item {
+            padding: 4px 0 4px 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Feedback buttons */
+        .message-feedback {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message-wrapper:hover .message-feedback {
+            opacity: 1;
+        }
+
+        .feedback-btn {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .feedback-btn:hover {
+            background: white;
+            border-color: var(--border-medium);
+        }
+
+        .feedback-btn.active-positive {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+
+        .feedback-btn.active-negative {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .feedback-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .follow-up-text {
+            color: var(--text-secondary);
+            margin: 24px 0 20px;
+            font-size: 15px;
+        }
+
+        .suggestion-chips-container {
+            margin-top: 20px;
+        }
+
+        .chips-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion-chip-minimal {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+        }
+
+        .suggestion-chip-minimal:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        /* Old Section Headers - Hidden */
+        .section-header {
+            font-weight: 600;
+            font-size: 0.8125rem;
+            padding: 0.5rem 0.75rem;
+            margin: 0 -1rem 0.75rem -1rem;
+            border-radius: 0.375rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .price-header {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .features-header {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .opportunities-header {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            color: #6b21a8;
+            border-left: 4px solid #a855f7;
+        }
+
+        /* Product Name */
+        .product-name {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .product-name .fabric-detail {
+            font-style: italic;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        /* Price Display - PROMINENT */
+        .price-display {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 0.875rem 0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .old-price {
+            font-size: 0.9375rem;
+            color: #78716c;
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            font-weight: 500;
+        }
+
+        .new-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #059669;
+            line-height: 1;
+            letter-spacing: -0.025em;
+        }
+
+        /* Total Price (for multiple items) */
+        .total-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #047857;
+            line-height: 1;
+            letter-spacing: -0.025em;
+            margin: 1rem 0 0.5rem 0;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        /* Price Breakdown List */
+        .price-breakdown {
+            background: white;
+            border-left: 4px solid #10b981;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .price-breakdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .price-breakdown li {
+            padding: 0.375rem 0;
+            color: #374151;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .price-breakdown li strong {
+            color: #047857;
+            font-weight: 600;
+        }
+
+        .savings-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Features Section */
+        .features-section {
+            margin: 1rem 0;
+        }
+
+        /* Removed duplicate feature-list styles - using the ones above */
+
+        /* Removed duplicate opportunities-section - using the one above */
+
+        /* Suggestions Section */
+        .suggestions-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+        }
+
+        .suggestions-header {
+            color: #0369a1;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .suggestions-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.625rem;
+        }
+
+        .suggestion-chip-llm {
+            background: white;
+            border: 2px solid #38bdf8;
+            border-radius: 9999px;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0369a1;
+            cursor: pointer;
+            min-height: 44px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .suggestion-chip-llm:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+        }
+
+        .suggestion-chip-llm:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Price Section */
+        .price-section {
+            margin: 1rem 0;
+        }
+
+        /* Response Text */
+        .response-text {
+            color: #4b5563;
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           FOLLOW-UP QUESTIONS
+           ============================================ */
+        .follow-up-questions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .follow-up-btn {
+            padding: 9px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .follow-up-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INPUT
+           ============================================ */
+        .chat-input-container {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-light);
+            padding: 20px 24px;
+        }
+
+        .chat-input-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .chat-input-field:focus {
+            border-color: var(--fabric-terracotta);
+            background: var(--bg-secondary);
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           TYPING INDICATOR
+           ============================================ */
+        .typing-indicator {
+            /* Inherits message styling when using message class */
+        }
+
+        .typing-indicator.active {
+            /* Active state handled by message class */
+        }
+
+        .typing-animation {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .header-orb-logo {
+            width: 54px;
+            height: 54px;
+            flex-shrink: 0;
+        }
+
+        .typing-text {
+            color: var(--text-tertiary);
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            .welcome-heading {
+                font-size: 36px;
+            }
+
+            .follow-up-questions {
+                gap: 6px;
+            }
+
+            .follow-up-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .chat-messages {
+                padding: 20px 16px;
+            }
+
+            .landing-container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-heading {
+                font-size: 28px;
+            }
+
+            .welcome-subheading {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Access Code Overlay -->
+    <div class="access-overlay" id="accessOverlay">
+        <div class="access-card">
+            <img src="orbgif.gif" alt="British Made AI" class="access-logo">
+            <h1 class="access-title">Welcome to British Made AI</h1>
+            <p class="access-subtitle">Please enter your access code to continue</p>
+            <input
+                type="text"
+                class="access-input"
+                id="accessInput"
+                placeholder="ENTER CODE"
+                maxlength="10"
+                autocomplete="off"
+                spellcheck="false"
+            >
+            <button class="access-button" onclick="checkAccessCode()">
+                Access Pricing Assistant
+            </button>
+            <div class="access-error" id="accessError">
+                Incorrect access code. Please try again.
+            </div>
+            <div class="access-hint">
+                For pricing tool access, please contact Swap
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ================================================================
+    HEADER WITH ULTRA FABRIC ORB
+    ================================================================
+    -->
+    <header class="header">
+        <a href="https://britishmade.ai" class="header-left" title="Go to main site">
+            <!-- Animated orb GIF logo -->
+            <div class="header-orb-logo">
+                <img src="orbgif.gif" alt="Logo" style="width: 54px; height: 54px; border-radius: 50%;">
+            </div>
+            <div class="brand-info">
+                <div class="brand-name">Sofas & Stuff</div>
+                <div class="brand-tagline">Pricing Assistant</div>
+            </div>
+        </a>
+        <button class="new-conversation-btn" onclick="resetToLanding()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Conversation
+        </button>
+    </header>
+
+    <!--
+    ================================================================
+    LANDING PAGE
+    ================================================================
+    -->
+    <div class="landing-container" id="landingContainer">
+        <div class="welcome-section">
+            <h1 class="welcome-heading" id="welcomeHeading">How can I help with pricing today?</h1>
+            <p class="welcome-subheading">Your personal assistant for British handmade furniture</p>
+
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <div class="search-inner">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            class="search-input"
+                            id="landingSearchInput"
+                            placeholder=" "
+                            autocomplete="off">
+                        <div class="animated-placeholder" id="animatedPlaceholder">
+                            <span class="placeholder-text" id="placeholderText"></span>
+                            <span class="placeholder-cursor"></span>
+                        </div>
+                        <button class="search-submit" onclick="startConversation()">Ask</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <button class="suggestion-chip" onclick="quickSearch('Alwinton pricing')">
+                    Alwinton pricing
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Velvet options')">
+                    Velvet options
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Under £2000')">
+                    Under £2000
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Chesterfield')">
+                    Chesterfield
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Pet-friendly')">
+                    Pet-friendly
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ================================================================
+    CHAT INTERFACE
+    ================================================================
+    -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-messages" id="chatMessages">
+            <div class="messages-wrapper" id="messagesWrapper"></div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea
+                    class="chat-input-field"
+                    id="chatInput"
+                    placeholder="Ask about models, fabrics, or pricing..."
+                    rows="1"></textarea>
+                <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+
+        // Feature flag: Use LLM (/chat) vs Direct matching (/getPrice)
+        const USE_LLM = true;
+
+        // Backend API URL
+        const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        // Configure marked.js for GFM
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                headerIds: false,
+                mangle: false
+            });
+        }
+
+        // Session Management
+        let sessionId = null;
+        let conversationHistory = [];
+
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+        }
+
+        function resetConversation() {
+            conversationHistory = [];
+            sessionId = generateSessionId();
+            console.log('[Frontend] Conversation reset. New session:', sessionId);
+        }
+
+        // Initialize session
+        sessionId = generateSessionId();
+        console.log('[Frontend] Session initialized:', sessionId);
+
+        // ========================================
+        // LANDING PAGE LOGIC
+        // ========================================
+
+        const welcomeMessages = [
+            "How can I help with pricing today?",
+            "Ready to check a price for your client?",
+            "What pricing information do you need?",
+            "Let's find that price quickly",
+            "Which model shall we price up?",
+            "Need a quick price check?",
+            "Looking up pricing for a client?",
+            "What configuration are we pricing?",
+            "Ready to assist with pricing",
+            "Which sofa pricing do you need?"
+        ];
+
+        const timeBasedGreetings = {
+            morning: [
+                "Good morning! What pricing do you need?",
+                "Morning! Ready for today's consultations?",
+                "Starting the day - what can I price?"
+            ],
+            afternoon: [
+                "Good afternoon! Need a price check?",
+                "Afternoon! What are we pricing?",
+                "Busy afternoon? Let me help with pricing"
+            ],
+            evening: [
+                "Good evening! Still helping clients?",
+                "Evening consultation? I'll find that price",
+                "Late showing? Let's get that pricing"
+            ]
+        };
+
+        const placeholderExamples = [
+            "Alwinton 3 seater in Sussex Plain Pacific",
+            "Midhurst snuggler in House Wool Sky",
+            "Show all velvet fabric options under £2500",
+            "Petworth 2 seater in pet-friendly fabric",
+            "Chesterfield corner sofa configurations",
+            "Aldingbourne bed in neutral linen blend"
+        ];
+
+        let currentPlaceholderIndex = 0;
+        let placeholderInterval;
+        let typingTimeout;
+        let isTyping = false;
+
+        function typewriterEffect() {
+            const placeholderText = document.getElementById('placeholderText');
+            const placeholderCursor = document.querySelector('.placeholder-cursor');
+            const currentText = placeholderExamples[currentPlaceholderIndex];
+
+            if (isTyping) return;
+            isTyping = true;
+
+            // Clear existing text with backspace effect
+            let existingText = placeholderText.textContent;
+
+            // Delete text word by word
+            function deleteText() {
+                if (existingText.length > 0) {
+                    // Find the last space to delete word by word
+                    let lastSpaceIndex = existingText.lastIndexOf(' ');
+                    if (lastSpaceIndex === -1) {
+                        // No more spaces, clear everything
+                        placeholderText.textContent = '';
+                    } else {
+                        // Delete to the last space
+                        placeholderText.textContent = existingText.substring(0, lastSpaceIndex);
+                    }
+                    existingText = placeholderText.textContent;
+
+                    if (existingText.length > 0) {
+                        typingTimeout = setTimeout(deleteText, 100); // 100ms between word deletions
+                    } else {
+                        // Start typing new text
+                        typeNewText();
+                    }
+                } else {
+                    typeNewText();
+                }
+            }
+
+            // Type new text letter by letter
+            let newCharIndex = 0;
+            function typeNewText() {
+                if (newCharIndex < currentText.length) {
+                    placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
+                    newCharIndex++;
+                    typingTimeout = setTimeout(typeNewText, 30 + Math.random() * 20); // Keep letter-by-letter typing
+                } else {
+                    // Pause before next example
+                    isTyping = false;
+                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
+                    typingTimeout = setTimeout(typewriterEffect, 1000); // 1 second pause as requested
+                }
+            }
+
+            // Start the animation
+            if (existingText.length > 0) {
+                deleteText();
+            } else {
+                typeNewText();
+            }
+        }
+
+        function getTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'morning';
+            if (hour < 18) return 'afternoon';
+            return 'evening';
+        }
+
+        function setRandomWelcomeMessage() {
+            const heading = document.getElementById('welcomeHeading');
+            const timeOfDay = getTimeOfDay();
+            const useTimeGreeting = Math.random() > 0.6;
+
+            let message;
+            if (useTimeGreeting && timeBasedGreetings[timeOfDay]) {
+                const greetings = timeBasedGreetings[timeOfDay];
+                message = greetings[Math.floor(Math.random() * greetings.length)];
+            } else {
+                message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+            }
+
+            heading.textContent = message;
+        }
+
+        function saveSearch(query) {
+            const recent = JSON.parse(localStorage.getItem('ssPricingSearches') || '[]');
+            recent.unshift(query);
+            const unique = [...new Set(recent)].slice(0, 10);
+            localStorage.setItem('ssPricingSearches', JSON.stringify(unique));
+        }
+
+        function resetToLanding() {
+            document.getElementById('landingContainer').classList.remove('hidden');
+            document.getElementById('chatContainer').classList.remove('active');
+            document.getElementById('landingSearchInput').value = '';
+            document.getElementById('landingSearchInput').focus();
+            setRandomWelcomeMessage();
+
+            // Reset conversation
+            resetConversation();
+            document.getElementById('messagesWrapper').innerHTML = '';
+        }
+
+        function startConversation() {
+            const input = document.getElementById('landingSearchInput');
+            const query = input.value.trim();
+
+            if (!query) {
+                input.focus();
+                return;
+            }
+
+            saveSearch(query);
+
+            document.getElementById('landingContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.add('active');
+
+            document.getElementById('messagesWrapper').innerHTML = '';
+
+            addMessage('user', query);
+            showTypingIndicator();
+
+            // Send to backend
+            processMessage(query);
+        }
+
+        function quickSearch(query) {
+            document.getElementById('landingSearchInput').value = query;
+            startConversation();
+        }
+
+        // ========================================
+        // ANALYTICS AND TELEMETRY SYSTEM
+        // ========================================
+
+        const Analytics = {
+            sessionId: null,
+            sessionStart: null,
+            events: [],
+            healthChecks: {
+                lastCheck: null,
+                apiStatus: {},
+                errors: []
+            },
+            performanceMetrics: {
+                responseTimes: [],
+                renderTimes: []
+            },
+            // New comprehensive tracking
+            conversionFunnel: {
+                sessions: new Map(), // Track each session's progress
+                stages: ['query_started', 'price_shown', 'opportunity_clicked', 'configuration_complete']
+            },
+            productPopularity: new Map(), // Product name -> count
+            fabricPopularity: new Map(), // Fabric name -> count
+            priceSensitivity: {
+                ranges: new Map(), // Price range -> count
+                budgetQueries: [], // "under £X" queries
+            },
+            queryPatterns: {
+                reformulations: new Map(), // Session -> reformulation count
+                sequences: [], // Query sequences
+                deadEnds: [], // Queries with no results
+            },
+            p1Errors: {
+                noPriceErrors: [], // Critical: queries that returned no price
+                totalCount: 0,
+                lastOccurred: null
+            },
+            userJourneys: {
+                paths: new Map(), // Session -> path array
+                timeToSuccess: [],
+                abandonments: [],
+                completions: []
+            },
+            crossSell: {
+                opportunities: new Map(), // Opportunity type -> click count
+                attachmentRate: 0
+            },
+            peakUsage: {
+                hourly: new Array(24).fill(0),
+                daily: new Array(7).fill(0)
+            },
+            nluScoring: {
+                confidenceScores: [],
+                uncertainQueries: [],
+                fallbacks: []
+            },
+
+            init() {
+                // Generate or retrieve session ID
+                this.sessionId = localStorage.getItem('sessionId') || this.generateSessionId();
+                localStorage.setItem('sessionId', this.sessionId);
+                this.sessionStart = Date.now();
+
+                // Load persisted analytics data FIRST
+                this.loadPersistedData();
+
+                // Track page load with performance metrics
+                this.track('page_load', {
+                    url: window.location.href,
+                    timestamp: new Date().toISOString(),
+                    performance: this.getPageLoadMetrics()
+                });
+
+                // Start health monitoring
+                this.startHealthMonitoring();
+
+                // Monitor performance
+                this.monitorPerformance();
+
+                // Track page unload
+                window.addEventListener('beforeunload', () => {
+                    // Check if session completed or abandoned
+                    const funnel = this.conversionFunnel.sessions.get(this.sessionId);
+                    const isComplete = funnel && funnel.stages.includes('configuration_complete');
+
+                    if (!isComplete && this.events.filter(e => e.eventName === 'user_query').length > 0) {
+                        this.trackAbandonment();
+                    }
+
+                    this.track('session_end', {
+                        duration: Date.now() - this.sessionStart,
+                        eventCount: this.events.length,
+                        avgResponseTime: this.calculateAvgResponseTime(),
+                        errorCount: this.healthChecks.errors.length,
+                        completed: isComplete
+                    });
+                    this.flush();
+                    this.persistData(); // Save all data before page unload
+                });
+
+                // Auto-save every 30 seconds
+                setInterval(() => this.persistData(), 30000);
+            },
+
+            getPageLoadMetrics() {
+                if (window.performance && window.performance.timing) {
+                    const timing = window.performance.timing;
+                    return {
+                        domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
+                        fullyLoaded: timing.loadEventEnd - timing.navigationStart,
+                        firstPaint: timing.responseEnd - timing.navigationStart,
+                        domInteractive: timing.domInteractive - timing.navigationStart
+                    };
+                }
+                return null;
+            },
+
+            startHealthMonitoring() {
+                // Check backend health every 30 seconds
+                setInterval(() => this.checkBackendHealth(), 30000);
+                // Initial check
+                this.checkBackendHealth();
+            },
+
+            async checkBackendHealth() {
+                const healthData = {
+                    timestamp: Date.now(),
+                    checks: {}
+                };
+
+                // Check price endpoint
+                try {
+                    const priceStart = Date.now();
+                    const priceResponse = await fetch('/api/getPrice', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: 'health check' })
+                    });
+                    healthData.checks.priceEndpoint = {
+                        status: priceResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - priceStart,
+                        statusCode: priceResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.priceEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                // Check chat endpoint
+                try {
+                    const chatStart = Date.now();
+                    const chatResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: 'health check' }],
+                            sessionId: 'health-check'
+                        })
+                    });
+                    healthData.checks.chatEndpoint = {
+                        status: chatResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - chatStart,
+                        statusCode: chatResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.chatEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                this.healthChecks.lastCheck = healthData;
+                this.track('health_check', healthData);
+            },
+
+            monitorPerformance() {
+                // Monitor long tasks
+                if ('PerformanceObserver' in window) {
+                    try {
+                        const observer = new PerformanceObserver((list) => {
+                            for (const entry of list.getEntries()) {
+                                if (entry.duration > 50) {  // Tasks longer than 50ms
+                                    this.track('long_task', {
+                                        duration: entry.duration,
+                                        startTime: entry.startTime,
+                                        name: entry.name
+                                    });
+                                }
+                            }
+                        });
+                        observer.observe({ entryTypes: ['longtask'] });
+                    } catch (e) {
+                        console.log('Long task monitoring not supported');
+                    }
+                }
+            },
+
+            calculateAvgResponseTime() {
+                if (this.performanceMetrics.responseTimes.length === 0) return 0;
+                const sum = this.performanceMetrics.responseTimes.reduce((a, b) => a + b, 0);
+                return Math.round(sum / this.performanceMetrics.responseTimes.length);
+            },
+
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            },
+
+            // Persist all comprehensive tracking data to localStorage
+            persistData() {
+                const dataToSave = {
+                    events: this.events,
+                    healthChecks: this.healthChecks,
+                    performanceMetrics: this.performanceMetrics,
+                    conversionFunnel: {
+                        sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                        stages: this.conversionFunnel.stages
+                    },
+                    productPopularity: Array.from(this.productPopularity.entries()),
+                    fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                    priceSensitivity: {
+                        ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                        budgetQueries: this.priceSensitivity.budgetQueries
+                    },
+                    queryPatterns: {
+                        reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                        sequences: this.queryPatterns.sequences,
+                        deadEnds: this.queryPatterns.deadEnds
+                    },
+                    userJourneys: {
+                        paths: Array.from(this.userJourneys.paths.entries()),
+                        timeToSuccess: this.userJourneys.timeToSuccess,
+                        abandonments: this.userJourneys.abandonments,
+                        completions: this.userJourneys.completions
+                    },
+                    crossSell: {
+                        opportunities: Array.from(this.crossSell.opportunities.entries()),
+                        attachmentRate: this.crossSell.attachmentRate
+                    },
+                    peakUsage: this.peakUsage,
+                    nluScoring: this.nluScoring,
+                    p1Errors: this.p1Errors,
+                    timestamp: Date.now()
+                };
+
+                try {
+                    localStorage.setItem('analyticsComprehensive', JSON.stringify(dataToSave));
+                    // Keep backward compatibility
+                    localStorage.setItem('analyticsEvents', JSON.stringify(this.events));
+                    console.log('[Analytics] Data persisted successfully');
+                } catch (e) {
+                    console.error('[Analytics] Failed to persist data:', e);
+                }
+            },
+
+            // Load persisted data on init
+            loadPersistedData() {
+                try {
+                    const saved = localStorage.getItem('analyticsComprehensive');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+
+                        // Restore events and simple arrays
+                        this.events = data.events || [];
+                        this.healthChecks = data.healthChecks || { lastCheck: null, apiStatus: {}, errors: [] };
+                        this.performanceMetrics = data.performanceMetrics || { responseTimes: [], renderTimes: [] };
+
+                        // Restore Maps
+                        if (data.conversionFunnel) {
+                            this.conversionFunnel.sessions = new Map(data.conversionFunnel.sessions || []);
+                            this.conversionFunnel.stages = data.conversionFunnel.stages || this.conversionFunnel.stages;
+                        }
+
+                        this.productPopularity = new Map(data.productPopularity || []);
+                        this.fabricPopularity = new Map(data.fabricPopularity || []);
+
+                        if (data.priceSensitivity) {
+                            this.priceSensitivity.ranges = new Map(data.priceSensitivity.ranges || []);
+                            this.priceSensitivity.budgetQueries = data.priceSensitivity.budgetQueries || [];
+                        }
+
+                        if (data.queryPatterns) {
+                            this.queryPatterns.reformulations = new Map(data.queryPatterns.reformulations || []);
+                            this.queryPatterns.sequences = data.queryPatterns.sequences || [];
+                            this.queryPatterns.deadEnds = data.queryPatterns.deadEnds || [];
+                        }
+
+                        if (data.userJourneys) {
+                            this.userJourneys.paths = new Map(data.userJourneys.paths || []);
+                            this.userJourneys.timeToSuccess = data.userJourneys.timeToSuccess || [];
+                            this.userJourneys.abandonments = data.userJourneys.abandonments || [];
+                            this.userJourneys.completions = data.userJourneys.completions || [];
+                        }
+
+                        if (data.crossSell) {
+                            this.crossSell.opportunities = new Map(data.crossSell.opportunities || []);
+                            this.crossSell.attachmentRate = data.crossSell.attachmentRate || 0;
+                        }
+
+                        this.peakUsage = data.peakUsage || { hourly: new Array(24).fill(0), daily: new Array(7).fill(0) };
+                        this.nluScoring = data.nluScoring || { confidenceScores: [], uncertainQueries: [], fallbacks: [] };
+
+                        // Load P1 errors
+                        this.p1Errors = data.p1Errors || { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+
+                        console.log('[Analytics] Loaded persisted data from', new Date(data.timestamp || 0).toISOString());
+                    } else {
+                        // Check for legacy data
+                        const legacyEvents = localStorage.getItem('analyticsEvents');
+                        if (legacyEvents) {
+                            this.events = JSON.parse(legacyEvents);
+                            console.log('[Analytics] Loaded legacy events data');
+                        }
+                    }
+                } catch (e) {
+                    console.error('[Analytics] Failed to load persisted data:', e);
+                }
+            },
+
+            track(eventName, data = {}) {
+                const event = {
+                    sessionId: this.sessionId,
+                    eventName,
+                    timestamp: Date.now(),
+                    data: {
+                        ...data,
+                        userAgent: navigator.userAgent,
+                        screenResolution: `${window.screen.width}x${window.screen.height}`,
+                        viewport: `${window.innerWidth}x${window.innerHeight}`
+                    }
+                };
+
+                this.events.push(event);
+                console.log('[Analytics]', eventName, data);
+
+                // Store locally for now
+                const storedEvents = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                storedEvents.push(event);
+                localStorage.setItem('analyticsEvents', JSON.stringify(storedEvents));
+
+                // Auto-flush every 10 events
+                if (this.events.length >= 10) {
+                    this.flush();
+                }
+
+                // Persist comprehensive data every 5 events to avoid data loss
+                if (this.events.length % 5 === 0) {
+                    this.persistData();
+                }
+            },
+
+            trackQuery(query, source) {
+                const queryMetrics = {
+                    query,
+                    source, // 'typed', 'suggestion', 'opportunity'
+                    queryLength: query.length,
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.filter(e => e.eventName === 'user_query').length + 1,
+                    timeSinceLastQuery: this.getTimeSinceLastQuery()
+                };
+
+                this.track('user_query', queryMetrics);
+
+                // Track conversion funnel
+                this.updateFunnelStage('query_started');
+
+                // Track product and fabric popularity
+                this.extractAndTrackProducts(query);
+                this.extractAndTrackFabrics(query);
+
+                // Track price sensitivity
+                this.trackPriceSensitivity(query);
+
+                // Track query reformulation
+                this.trackReformulation(query);
+
+                // Track user journey path
+                this.updateJourneyPath(query);
+
+                // Track peak usage
+                this.updatePeakUsage();
+
+                // Track query patterns and intent
+                if (query.toLowerCase().includes('price') || query.includes('£')) {
+                    this.track('query_intent', { type: 'pricing', query });
+                } else if (query.toLowerCase().includes('fabric') || query.toLowerCase().includes('material')) {
+                    this.track('query_intent', { type: 'fabric', query });
+                } else if (query.toLowerCase().includes('size') || query.toLowerCase().includes('seater')) {
+                    this.track('query_intent', { type: 'sizing', query });
+                }
+            },
+
+            updateFunnelStage(stage) {
+                if (!this.conversionFunnel.sessions.has(this.sessionId)) {
+                    this.conversionFunnel.sessions.set(this.sessionId, {
+                        stages: [],
+                        timestamp: Date.now()
+                    });
+                }
+                const session = this.conversionFunnel.sessions.get(this.sessionId);
+                if (!session.stages.includes(stage)) {
+                    session.stages.push(stage);
+                    this.track('funnel_stage', { stage, sessionId: this.sessionId });
+                }
+            },
+
+            extractAndTrackProducts(query) {
+                const products = ['Alwinton', 'Midhurst', 'Petworth', 'Aldingbourne', 'Chesterfield'];
+                const queryLower = query.toLowerCase();
+                products.forEach(product => {
+                    if (queryLower.includes(product.toLowerCase())) {
+                        const count = this.productPopularity.get(product) || 0;
+                        this.productPopularity.set(product, count + 1);
+                    }
+                });
+            },
+
+            extractAndTrackFabrics(query) {
+                const fabrics = ['Sussex Plain', 'House Wool', 'Velvet', 'Linen', 'Pacific', 'Sky', 'Terracotta'];
+                const queryLower = query.toLowerCase();
+                fabrics.forEach(fabric => {
+                    if (queryLower.includes(fabric.toLowerCase())) {
+                        const count = this.fabricPopularity.get(fabric) || 0;
+                        this.fabricPopularity.set(fabric, count + 1);
+                    }
+                });
+            },
+
+            trackPriceSensitivity(query) {
+                const priceMatch = query.match(/under\s*£?([\d,]+)|below\s*£?([\d,]+)|less\s+than\s*£?([\d,]+)/i);
+                if (priceMatch) {
+                    const budget = parseInt(priceMatch[1].replace(',', ''));
+                    this.priceSensitivity.budgetQueries.push({ query, budget, timestamp: Date.now() });
+
+                    // Track price ranges
+                    let range = '';
+                    if (budget < 1500) range = 'under-1500';
+                    else if (budget < 2000) range = '1500-2000';
+                    else if (budget < 2500) range = '2000-2500';
+                    else if (budget < 3000) range = '2500-3000';
+                    else range = 'over-3000';
+
+                    const count = this.priceSensitivity.ranges.get(range) || 0;
+                    this.priceSensitivity.ranges.set(range, count + 1);
+                }
+            },
+
+            trackReformulation(query) {
+                const recent = this.events.filter(e =>
+                    e.eventName === 'user_query' &&
+                    e.timestamp > Date.now() - 30000 // Last 30 seconds
+                );
+
+                if (recent.length > 0) {
+                    const lastQuery = recent[recent.length - 1].data.query;
+                    const similarity = this.calculateSimilarity(lastQuery, query);
+                    if (similarity > 0.5 && similarity < 0.9) { // Similar but not identical
+                        const count = this.queryPatterns.reformulations.get(this.sessionId) || 0;
+                        this.queryPatterns.reformulations.set(this.sessionId, count + 1);
+                    }
+                }
+            },
+
+            calculateSimilarity(str1, str2) {
+                const words1 = str1.toLowerCase().split(' ');
+                const words2 = str2.toLowerCase().split(' ');
+                const intersection = words1.filter(w => words2.includes(w));
+                return intersection.length / Math.max(words1.length, words2.length);
+            },
+
+            updateJourneyPath(query) {
+                if (!this.userJourneys.paths.has(this.sessionId)) {
+                    this.userJourneys.paths.set(this.sessionId, []);
+                }
+                const path = this.userJourneys.paths.get(this.sessionId);
+                path.push({ query, timestamp: Date.now() });
+            },
+
+            updatePeakUsage() {
+                const now = new Date();
+                this.peakUsage.hourly[now.getHours()]++;
+                this.peakUsage.daily[now.getDay()]++;
+            },
+
+            trackResponse(response, responseTime) {
+                // Calculate quality metrics
+                const hasPrice = response.includes('£');
+                const priceCount = (response.match(/£[\d,]+/g) || []).length;
+                const hasFeatures = response.includes('Key Features');
+                const hasOpportunities = response.includes('Opportunities');
+                const hasSuggestions = response.includes('What next');
+
+                const responseMetrics = {
+                    responseLength: response.length,
+                    responseTime,
+                    hasPrice,
+                    priceCount,
+                    hasFeatures,
+                    hasOpportunities,
+                    hasSuggestions,
+                    responseCompleteness: (hasPrice ? 25 : 0) + (hasFeatures ? 25 : 0) +
+                                        (hasOpportunities ? 25 : 0) + (hasSuggestions ? 25 : 0),
+                    timestamp: new Date().toISOString(),
+                    timeToFirstByte: window.firstByteTime ? window.firstByteTime - window.lastQueryTime : null,
+                    charactersPerSecond: response.length / (responseTime / 1000)
+                };
+
+                // Track response time for performance metrics
+                this.performanceMetrics.responseTimes.push(responseTime);
+
+                // Update funnel if price shown
+                if (hasPrice) {
+                    this.updateFunnelStage('price_shown');
+
+                    // Check if this is a complete configuration
+                    if (hasPrice && hasFeatures) {
+                        const queries = this.userJourneys.paths.get(this.sessionId) || [];
+                        if (queries.length > 0) {
+                            const timeToSuccess = Date.now() - queries[0].timestamp;
+                            this.userJourneys.timeToSuccess.push({
+                                time: timeToSuccess,
+                                queryCount: queries.length,
+                                sessionId: this.sessionId
+                            });
+                        }
+                    }
+                }
+
+                // Check for P1 errors - NO PRICE is critical
+                if (!hasPrice) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        const errorEvent = {
+                            query: lastQuery,
+                            response: response.substring(0, 200), // First 200 chars
+                            timestamp: Date.now(),
+                            sessionId: this.sessionId,
+                            severity: 'P1',
+                            type: 'NO_PRICE_RETURNED'
+                        };
+
+                        // Track as P1 error
+                        this.p1Errors.noPriceErrors.push(errorEvent);
+                        this.p1Errors.totalCount++;
+                        this.p1Errors.lastOccurred = Date.now();
+
+                        // Also track as critical error event
+                        this.track('p1_error', {
+                            type: 'no_price',
+                            query: lastQuery,
+                            severity: 'P1',
+                            message: 'Query returned no price information'
+                        });
+
+                        console.error('[P1 ERROR] No price returned for query:', lastQuery);
+                    }
+                }
+
+                // Check for other dead ends (no useful info at all)
+                if (!hasPrice && !hasFeatures && !hasOpportunities) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        this.queryPatterns.deadEnds.push({
+                            query: lastQuery,
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+
+                // Track NLU confidence (simplified - based on completeness)
+                this.nluScoring.confidenceScores.push(responseMetrics.responseCompleteness);
+                if (response.includes("I couldn't find") || response.includes("Could you try")) {
+                    this.nluScoring.fallbacks.push({ response, timestamp: Date.now() });
+                }
+
+                // Track response quality
+                if (responseMetrics.responseCompleteness >= 75) {
+                    this.track('high_quality_response', responseMetrics);
+                } else if (responseMetrics.responseCompleteness <= 25) {
+                    this.track('low_quality_response', responseMetrics);
+                }
+
+                this.track('agent_response', responseMetrics);
+            },
+
+            trackOpportunityClick(opportunity) {
+                // Update funnel
+                this.updateFunnelStage('opportunity_clicked');
+
+                // Track cross-sell
+                const count = this.crossSell.opportunities.get(opportunity) || 0;
+                this.crossSell.opportunities.set(opportunity, count + 1);
+
+                // Calculate attachment rate
+                const totalSessions = this.conversionFunnel.sessions.size;
+                const sessionsWithOpportunities = Array.from(this.conversionFunnel.sessions.values())
+                    .filter(s => s.stages.includes('opportunity_clicked')).length;
+                this.crossSell.attachmentRate = totalSessions > 0
+                    ? (sessionsWithOpportunities / totalSessions) * 100
+                    : 0;
+
+                this.track('cross_sell_clicked', { opportunity, timestamp: Date.now() });
+            },
+
+            trackConfigurationComplete() {
+                this.updateFunnelStage('configuration_complete');
+                this.userJourneys.completions.push({
+                    sessionId: this.sessionId,
+                    timestamp: Date.now(),
+                    queryCount: this.events.filter(e => e.eventName === 'user_query').length
+                });
+                this.track('configuration_complete', { sessionId: this.sessionId });
+            },
+
+            trackAbandonment() {
+                const path = this.userJourneys.paths.get(this.sessionId);
+                if (path && path.length > 0) {
+                    const lastQuery = path[path.length - 1];
+                    this.userJourneys.abandonments.push({
+                        lastQuery: lastQuery.query,
+                        queryCount: path.length,
+                        sessionDuration: Date.now() - path[0].timestamp,
+                        timestamp: Date.now()
+                    });
+                }
+            },
+
+            trackError(errorType, errorDetails) {
+                this.healthChecks.errors.push({
+                    type: errorType,
+                    details: errorDetails,
+                    timestamp: Date.now()
+                });
+
+                this.track('error_occurred', {
+                    errorType,
+                    errorDetails,
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.length,
+                    recoveryAttempted: false
+                });
+            },
+
+            trackUserJourney(milestone) {
+                this.track('journey_milestone', {
+                    milestone,
+                    timestamp: new Date().toISOString(),
+                    timeFromStart: Date.now() - this.sessionStart,
+                    queriesBeforeMilestone: this.events.filter(e => e.eventName === 'user_query').length
+                });
+            },
+
+            getTimeSinceLastQuery() {
+                const queries = this.events.filter(e => e.eventName === 'user_query');
+                if (queries.length === 0) return 0;
+                return Date.now() - queries[queries.length - 1].timestamp;
+            },
+
+            trackFeedback(messageId, feedback, responseContent) {
+                this.track('response_feedback', {
+                    messageId,
+                    feedback, // 'positive' or 'negative'
+                    responseContent,
+                    responseHtml: responseContent.substring(0, 500), // First 500 chars
+                    timestamp: new Date().toISOString(),
+                    screenshot: this.captureResponseScreenshot(messageId)
+                });
+            },
+
+            captureResponseScreenshot(messageId) {
+                // Capture the response HTML for later review
+                const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (messageElement) {
+                    return {
+                        html: messageElement.innerHTML,
+                        text: messageElement.innerText,
+                        prices: Array.from(messageElement.querySelectorAll('.price-amount')).map(el => el.innerText)
+                    };
+                }
+                return null;
+            },
+
+            flush() {
+                // In future, send to backend
+                // For now, just ensure it's saved to localStorage
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                console.log('[Analytics] Flushing', events.length, 'events');
+            },
+
+            getAnalytics() {
+                // Retrieve stored analytics for viewing
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+
+                // Include aggregated metrics for dashboard
+                const aggregated = {
+                    events,
+                    metrics: {
+                        productPopularity: Array.from(this.productPopularity.entries()),
+                        fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                        priceSensitivity: {
+                            ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                            budgetQueries: this.priceSensitivity.budgetQueries
+                        },
+                        conversionFunnel: {
+                            sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                            stages: this.conversionFunnel.stages
+                        },
+                        crossSell: {
+                            opportunities: Array.from(this.crossSell.opportunities.entries()),
+                            attachmentRate: this.crossSell.attachmentRate
+                        },
+                        userJourneys: {
+                            timeToSuccess: this.userJourneys.timeToSuccess,
+                            abandonments: this.userJourneys.abandonments,
+                            completions: this.userJourneys.completions
+                        },
+                        queryPatterns: {
+                            reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                            deadEnds: this.queryPatterns.deadEnds
+                        },
+                        peakUsage: this.peakUsage,
+                        nluScoring: {
+                            avgConfidence: this.nluScoring.confidenceScores.length > 0
+                                ? this.nluScoring.confidenceScores.reduce((a, b) => a + b, 0) / this.nluScoring.confidenceScores.length
+                                : 0,
+                            fallbackCount: this.nluScoring.fallbacks.length
+                        }
+                    }
+                };
+
+                // Store aggregated data separately for dashboard
+                localStorage.setItem('analyticsAggregated', JSON.stringify(aggregated.metrics));
+
+                return aggregated;
+            }
+        };
+
+        // Initialize analytics on page load
+        window.addEventListener('load', () => Analytics.init());
+
+        // ========================================
+        // ACCESS CONTROL
+        // ========================================
+
+        const ACCESS_CODE = 'SOFAS25';
+        const AUTH_KEY = 'britishmade_authenticated';
+
+        function checkAuthentication() {
+            // Check if user is authenticated in session
+            const isAuthenticated = sessionStorage.getItem(AUTH_KEY);
+            const accessOverlay = document.getElementById('accessOverlay');
+
+            if (isAuthenticated === 'true') {
+                // User is authenticated, hide overlay
+                accessOverlay.classList.add('hidden');
+            } else {
+                // User needs to authenticate
+                accessOverlay.classList.remove('hidden');
+                document.getElementById('accessInput').focus();
+            }
+        }
+
+        function checkAccessCode() {
+            const input = document.getElementById('accessInput');
+            const errorMsg = document.getElementById('accessError');
+            const overlay = document.getElementById('accessOverlay');
+
+            const enteredCode = input.value.toUpperCase().trim();
+
+            if (enteredCode === ACCESS_CODE) {
+                // Correct code
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                overlay.classList.add('hidden');
+                errorMsg.classList.remove('show');
+                input.classList.remove('error');
+                input.value = '';
+
+                // Track successful login
+                Analytics.track('access_granted', { timestamp: new Date().toISOString() });
+            } else {
+                // Incorrect code
+                input.classList.add('error');
+                errorMsg.classList.add('show');
+
+                // Track failed attempt
+                Analytics.track('access_denied', {
+                    attemptedCode: enteredCode,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Clear after animation
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    input.value = '';
+                    input.focus();
+                }, 500);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('DOMContentLoaded', () => {
+            const accessInput = document.getElementById('accessInput');
+            if (accessInput) {
+                accessInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAccessCode();
+                    }
+                });
+            }
+
+            // Check authentication on page load
+            checkAuthentication();
+        });
+
+        // ========================================
+        // CHAT INTERFACE LOGIC
+        // ========================================
+
+        let messageIdCounter = 0;
+
+        function addMessage(type, content) {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const message = document.createElement('div');
+            const messageId = `msg-${++messageIdCounter}`;
+            message.className = `message ${type}`;
+            message.setAttribute('data-message-id', messageId);
+
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+
+            if (type === 'user') {
+                message.innerHTML = `
+                    <div class="message-wrapper">
+                        <div class="message-header">
+                            <span class="message-author">You</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${escapeHtml(content)}</div>
+                    </div>
+                `;
+            } else {
+                // Assistant message with ultra fabric orb and feedback buttons
+                const formattedContent = USE_LLM
+                    ? formatLLMResponse(content)
+                    : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;
+
+                message.innerHTML = `
+                    <div class="message-avatar">
+                        <img src="orbgif.gif" alt="Assistant" style="width: 100%; height: 100%; border-radius: 50%;">
+                    </div>
+                    <div class="message-wrapper" style="position: relative;">
+                        <div class="message-header">
+                            <span class="message-author">Assistant</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content llm-response">
+                            ${formattedContent}
+                        </div>
+                        <div class="message-feedback">
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'positive')" title="Good response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                            </button>
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'negative')" title="Poor response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Track the response
+                Analytics.trackResponse(content, Date.now() - window.lastQueryTime || 0);
+            }
+
+            messagesWrapper.appendChild(message);
+            scrollToBottom();
+        }
+
+        function provideFeedback(messageId, feedback) {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            const feedbackBtns = messageElement.querySelectorAll('.feedback-btn');
+
+            // Remove all active classes
+            feedbackBtns.forEach(btn => {
+                btn.classList.remove('active-positive', 'active-negative');
+            });
+
+            // Add active class to clicked button
+            if (feedback === 'positive') {
+                feedbackBtns[0].classList.add('active-positive');
+            } else {
+                feedbackBtns[1].classList.add('active-negative');
+            }
+
+            // Track the feedback
+            const responseContent = messageElement.querySelector('.message-content').innerText;
+            Analytics.trackFeedback(messageId, feedback, responseContent);
+
+            // Show confirmation
+            console.log(`[Feedback] ${feedback} for message ${messageId}`);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Format LLM response into clean, minimal HTML
+         * VERSION: COMPREHENSIVE PARSER WITH CLICKABLE OPPORTUNITIES
+         */
+        function formatLLMResponse(content) {
+            let html = '';
+            const lines = content.split('\n');
+            let currentSection = '';
+            let suggestions = [];
+            let features = [];
+            let opportunities = [];
+            let priceShown = false;  // Track if we've already shown a price
+            let hasStructuredContent = false; // Track if response has our expected format
+
+            // Check if content has our expected format
+            hasStructuredContent = content.includes('### 💰') ||
+                                  content.includes('### ✨') ||
+                                  content.includes('### 🎯') ||
+                                  content.includes('### 💬');
+
+            // If no structured content, treat as helpful error/suggestion message
+            if (!hasStructuredContent) {
+                console.log('[LLM Response] No structured format detected, displaying as helpful message');
+
+                // Format the response nicely but don't treat as error
+                html = '<div class="llm-suggestion-response">';
+
+                // Split into paragraphs and format
+                const paragraphs = content.split('\n\n');
+                for (let para of paragraphs) {
+                    para = para.trim();
+                    if (!para) continue;
+
+                    // Check for lists
+                    if (para.includes('•') || para.includes('-')) {
+                        html += '<ul style="margin: 10px 0;">';
+                        const items = para.split('\n');
+                        for (let item of items) {
+                            item = item.replace(/^[•\-]\s*/, '').trim();
+                            if (item) {
+                                html += `<li>${escapeHtml(item)}</li>`;
+                            }
+                        }
+                        html += '</ul>';
+                    } else {
+                        // Regular paragraph
+                        html += `<p style="margin: 10px 0;">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`;
+                    }
+                }
+
+                html += '</div>';
+                return html;
+            }
+
+            // Process structured response as before
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Section headers
+                if (line.startsWith('### 💰')) {
+                    currentSection = 'price';
+                    continue;
+                } else if (line.startsWith('### 🎯')) {
+                    currentSection = 'opportunities';
+                    continue;
+                } else if (line.startsWith('### 💬')) {
+                    currentSection = 'suggestions';
+                    continue;
+                }
+
+                // Handle different sections
+                if (currentSection === 'price') {
+                    // Product name (bold text) - could be "Product Name in Fabric Name"
+                    if (line.startsWith('**') && line.endsWith('**') && !line.includes('£')) {
+                        const productName = line.replace(/\*\*/g, '');
+                        if (productName.includes(' in ')) {
+                            const parts = productName.split(' in ');
+                            html += `<h3 class="product-title">${escapeHtml(parts[0])}</h3>`;
+                            html += `<p class="product-specs">in ${escapeHtml(parts[1])}</p>`;
+                        } else {
+                            html += `<h3 class="product-title">${escapeHtml(productName)}</h3>`;
+                        }
+                        continue;
+                    }
+
+                    // Main price display - **£PRICE**
+                    if (line.startsWith('**£') && line.endsWith('**')) {
+                        const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                        if (priceMatch && !priceShown) {
+                            html += '<div class="main-price-display">';
+                            html += `<span class="price-amount">£${priceMatch[1]}</span>`;
+                            html += '</div>';
+                            priceShown = true;
+                        }
+                        continue;
+                    }
+
+                    // Handle price breakdown for added items
+                    if (line.includes('Total:') && line.includes('£')) {
+                        const totalMatch = line.match(/Total:.*£([\d,]+)/);
+                        if (totalMatch) {
+                            html += '<div class="main-price-display">';
+                            html += '<span class="price-label" style="display: block;">TOTAL</span>';
+                            html += `<span class="price-amount">£${totalMatch[1]}</span>`;
+                            html += '</div>';
+                            priceShown = true;
+                        }
+                        continue;
+                    }
+
+                    // Handle breakdown items
+                    if (currentSection === 'price' && line.includes('•') && line.includes('£')) {
+                        const itemMatch = line.match(/•\s*(.+?):\s*£([\d,]+)/);
+                        if (itemMatch) {
+                            html += `<div class="price-breakdown-item">• ${escapeHtml(itemMatch[1])}: £${itemMatch[2]}</div>`;
+                        }
+                        continue;
+                    }
+                }
+                else if (currentSection === 'opportunities') {
+                    if (line.startsWith('>')) {
+                        const text = line.substring(1).trim();
+                        opportunities.push(text);
+                    }
+                }
+                else if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
+                    suggestions.push(line.substring(1).trim());
+                }
+                else if (!currentSection && !line.startsWith('#')) {
+                    // Regular paragraph text
+                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
+                }
+            }
+
+
+            // Add opportunities section as clickable buttons
+            if (opportunities.length > 0) {
+                html += '<div class="opportunities-section">';
+                html += '<h4 class="section-title">🎯 Opportunities to Enhance</h4>';
+                html += '<div class="chips-wrapper">';
+                opportunities.forEach(opp => {
+                    // Parse the opportunity text and make it clickable
+                    const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
+                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')">${opp.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</button>`;
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // Add suggestion chips
+            if (suggestions.length > 0) {
+                html += '<div class="suggestion-chips-container">';
+                html += '<h4 class="section-title">💬 What next?</h4>';
+                html += '<div class="chips-wrapper">';
+                suggestions.forEach(suggestion => {
+                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+            return html || `<p class="response-text">${escapeHtml(content)}</p>`;
+        }
+
+        function handleSuggestionClick(suggestionText) {
+            console.log('[CLICK] Suggestion clicked:', suggestionText);
+            Analytics.trackQuery(suggestionText, 'suggestion');
+            document.getElementById('chatInput').value = suggestionText;
+            sendChatMessage();
+        }
+
+        function handleOpportunityClick(opportunityText) {
+            console.log('[CLICK] Opportunity clicked:', opportunityText);
+            // Clean up the opportunity text and create a proper query
+            // Remove any "Add" prefix if it exists to avoid duplication
+            let cleanText = opportunityText.replace(/^Add\s+/i, '');
+
+            // Track the opportunity click
+            Analytics.trackOpportunityClick(cleanText);
+
+            let query = `Add ${cleanText} to my current selection`;
+            Analytics.trackQuery(query, 'opportunity');
+            document.getElementById('chatInput').value = query;
+            sendChatMessage();
+        }
+
+        async function processMessage(message) {
+            try {
+                if (USE_LLM) {
+                    // LLM PATH
+                    conversationHistory.push({
+                        role: 'user',
+                        content: message
+                    });
+
+                    console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
+
+                    const response = await fetch(`${BACKEND_API_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messages: conversationHistory,
+                            session_id: sessionId
+                        })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    if (response.ok && data.response) {
+                        // Log the raw response for debugging
+                        console.log('[LLM Response]:', data.response.substring(0, 200) + '...');
+
+                        addMessage('assistant', data.response);
+
+                        conversationHistory.push({
+                            role: 'assistant',
+                            content: data.response
+                        });
+
+                        // Only track as P1 error if response doesn't contain a price AND doesn't contain helpful guidance
+                        const hasPrice = data.response.includes('£') && data.response.includes('### 💰');
+                        const hasHelpfulContent = data.response.includes('Did you mean') ||
+                                                 data.response.includes('Let me') ||
+                                                 data.response.includes('I found') ||
+                                                 data.response.includes('Here are') ||
+                                                 data.response.includes('available');
+
+                        if (!hasPrice && !hasHelpfulContent && message.toLowerCase().includes('price')) {
+                            console.warn('[LLM Response] No price or helpful content for price query');
+                            Analytics.track('llm_no_price', {
+                                query: message,
+                                response: data.response.substring(0, 200)
+                            });
+                        }
+
+                        if (data.metadata) {
+                            console.log('[Frontend] LLM Response metadata:', {
+                                tokens: data.metadata.tokens,
+                                iterations: data.metadata.iterations,
+                                model: data.metadata.model
+                            });
+                        }
+
+                    } else if (data.error) {
+                        // Log and track LLM chat errors
+                        console.error('[LLM Chat Error]:', data.error);
+
+                        // Track as P1 error - LLM failed to return price
+                        Analytics.track('p1_error', {
+                            type: 'llm_chat_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'LLM chat failed to return price'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'LLM_CHAT_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
+                        addMessage('assistant',
+                            "Sorry, I encountered an issue processing your request.\n\n" +
+                            (data.details ? `Details: ${data.details}` : "Please try again or rephrase your question.")
+                        );
+                        conversationHistory.pop();
+                    } else {
+                        addMessage('assistant', "Hmm, something unexpected happened. Please try again.");
+                        conversationHistory.pop();
+                    }
+
+                } else {
+                    // NON-LLM PATH
+                    const lowerMessage = message.toLowerCase().trim();
+                    const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
+                    if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                        hideTypingIndicator();
+                        addMessage('assistant',
+                            "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
+                            "Try asking me something like:\n" +
+                            "• \"alwinton snuggler pacific\"\n" +
+                            "• \"aldingbourne snuggler waves\"\n" +
+                            "• \"rye snuggler pacific\"\n\n" +
+                            "Format: product name + size + color"
+                        );
+                        return;
+                    }
+
+                    const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ query: message })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    if (response.ok && data.price) {
+                        const responseText = formatPriceResponse(data);
+                        addMessage('assistant', responseText);
+                    } else if (data.error) {
+                        // Log backend error
+                        console.error('[Direct Price Error]:', data.error);
+
+                        // Track as P1 error
+                        Analytics.track('p1_error', {
+                            type: 'direct_price_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'Direct price query failed'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'DIRECT_PRICE_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
+                        let helpfulError = "I couldn't find that exact product.\n\n";
+
+                        // Provide specific guidance based on error type
+                        if (data.error.includes('Product not found')) {
+                            helpfulError = "❌ **Product not recognized**\n\n";
+                            helpfulError += "Available products: Alwinton, Midhurst, Petworth, Chesterfield, Aldingbourne\n\n";
+                            helpfulError += "Check spelling carefully!";
+                        } else if (data.error.includes('Fabric not found')) {
+                            helpfulError = "❌ **Fabric/color not found**\n\n";
+                            helpfulError += "Common fabrics: Sussex (Plain/Weave), House (Plain/Wool/Weave)\n";
+                            helpfulError += "Common colors: Pacific, Sky, Waves, Mink, Stone, Duck Egg";
+                        } else if (data.error.includes('Ambiguous')) {
+                            helpfulError = "❓ **Multiple matches found**\n\n" + data.error;
+                        } else if (lowerMessage.length > 3) {
+                            helpfulError += "💡 Try:\n" +
+                                "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
+                                "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
+                                "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
+                        }
+
+                        helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
+
+                        addMessage('assistant', helpfulError);
+                    } else {
+                        addMessage('assistant',
+                            "Hmm, I'm not sure about that.\n\n" +
+                            "I work best when you give me:\n" +
+                            "• Product name (e.g., Alwinton)\n" +
+                            "• Size (e.g., 3 seater, snuggler)\n" +
+                            "• Fabric (e.g., Sussex Plain, Velvet)"
+                        );
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+
+                // Track as P1 error
+                Analytics.track('p1_error', {
+                    type: 'api_failure',
+                    query: message,
+                    error: error.message,
+                    severity: 'P1',
+                    message: 'API call failed completely'
+                });
+
+                addMessage('assistant', 'Sorry, I encountered a connection error. Please try again.');
+
+                // Track the error
+                Analytics.trackError('api_error', {
+                    endpoint: USE_LLM ? '/chat' : '/getPrice',
+                    error: error.message,
+                    query: message
+                });
+
+                if (USE_LLM && conversationHistory.length > 0 &&
+                    conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
+            }
+        }
+
+        function formatPriceResponse(data) {
+            if (!data.price) {
+                return "I couldn't find pricing for that. Could you try specifying the product, size, and fabric?";
+            }
+
+            let response = '';
+
+            if (data.productName && data.price) {
+                response = `${data.productName}\n`;
+                response += `💷 Price: ${data.price}`;
+            }
+
+            if (data.oldPrice) {
+                response += ` (was ${data.oldPrice})`;
+            }
+
+            if (data.fabricName) {
+                response += `\n\n🎨 Fabric: ${data.fabricName}`;
+            }
+
+            if (data.fabricDetails && data.fabricDetails.tier) {
+                response += ` (${data.fabricDetails.tier})`;
+            }
+
+            return response;
+        }
+
+        function sendChatMessage(text) {
+            const chatInput = document.getElementById('chatInput');
+            const message = text || chatInput.value.trim();
+
+            if (!message) return;
+
+            // Track query if typed by user
+            if (!text) {
+                Analytics.trackQuery(message, 'typed');
+            }
+
+            window.lastQueryTime = Date.now();
+            addMessage('user', message);
+
+            if (!text) {
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+
+            showTypingIndicator();
+            processMessage(message);
+        }
+
+        // British thinking messages
+        const thinkingMessages = [
+            "Putting the kettle on...",
+            "Having a think over tea...",
+            "Just a tick...",
+            "Having a proper look...",
+            "Popping to the warehouse...",
+            "Checking fabric swatches...",
+            "Measuring the dimensions...",
+            "Consulting the workshop...",
+            "Fluffing the cushions...",
+            "Right, let me check...",
+            "Reviewing the catalogue...",
+            "Doing the maths...",
+            "Working it out properly...",
+            "Testing the springs...",
+            "Asking the upholsterers..."
+        ];
+
+        function showTypingIndicator() {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const indicator = document.createElement('div');
+            indicator.className = 'message assistant typing-indicator active';
+            indicator.id = 'typingIndicator';
+
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+
+            // Pick a random thinking message
+            const randomMessage = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
+
+            indicator.innerHTML = `
+                <div class="message-avatar">
+                    <img src="orbgif.gif" alt="Assistant" style="width: 100%; height: 100%; border-radius: 50%;">
+                </div>
+                <div class="message-wrapper">
+                    <div class="message-header">
+                        <span class="message-author">Assistant</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="typing-text">
+                        <em>${randomMessage}</em>
+                    </div>
+                </div>
+            `;
+            messagesWrapper.appendChild(indicator);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+
+        const chatInput = document.getElementById('chatInput');
+        const landingInput = document.getElementById('landingSearchInput');
+        const placeholderText = document.getElementById('placeholderText');
+
+        placeholderText.style.transition = 'opacity 0.3s ease';
+
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+
+        landingInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startConversation();
+            }
+        });
+
+        landingInput.addEventListener('focus', () => {
+            clearTimeout(typingTimeout);
+            isTyping = false;
+            placeholderText.style.opacity = '0';
+        });
+
+        landingInput.addEventListener('blur', () => {
+            if (!landingInput.value) {
+                placeholderText.style.opacity = '1';
+                placeholderText.textContent = ''; // Start fresh
+                typewriterEffect(); // Start typewriter effect
+            }
+        });
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setRandomWelcomeMessage();
+            const placeholderText = document.getElementById('placeholderText');
+            if (placeholderText) {
+                placeholderText.textContent = ''; // Start with empty
+                // Start typewriter effect immediately when DOM is ready
+                typewriterEffect();
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(typingTimeout);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+<head><script>
+        // ========================================
+        // CHAT UI JAVASCRIPT
+        // ========================================
+
+        // DOM Elements
+        const messagesContainer = document.getElementById('messages-container');
+        const messagesList = document.getElementById('messages-list');
+        const welcomeMessage = document.getElementById('welcome-message');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const newConversationBtn = document.getElementById('new-conversation-btn');
+
+        // ========================================
+        // LLM CONFIGURATION (Phase 1C)
+        // ========================================
+
+        // Feature flag: Use LLM (/chat) vs Direct matching (/getPrice)
+        const USE_LLM = true; // LLM features enabled (Phase 1C)
+
+        // Configure marked.js for GFM (GitHub Flavored Markdown) with strikethrough support
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                gfm: true,  // Enable GitHub Flavored Markdown
+                breaks: true,  // Convert \n to <br>
+                headerIds: false,  // Don't add IDs to headers
+                mangle: false  // Don't escape autolinked email addresses
+            });
+        }
+
+        // Backend API URL (v2)
+        const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        // Session Management
+        let sessionId = null;
+        let messageCount = 0;
+        let conversationHistory = []; // Tracks full conversation for LLM
+
+        /**
+         * Generate unique session ID
+         * Why: Allows backend to track conversations (Phase 1B will use this for memory)
+         */
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+        }
+
+        /**
+         * Reset conversation (new session)
+         * Why: Lets user start fresh without page refresh
+         */
+        function resetConversation() {
+            conversationHistory = [];
+            sessionId = generateSessionId();
+            console.log('[Frontend] Conversation reset. New session:', sessionId);
+        }
+
+        // Initialize session on load
+        sessionId = generateSessionId();
+        console.log('[Frontend] Session initialized:', sessionId);
+
+        // ========================================
+        // RANDOM THEME SELECTION
+        // ========================================
+
+        const themes = {
+            warmSunset: {
+                name: 'Warm Sunset',
+                bgGradient: 'linear-gradient(135deg, #FFF5EB 0%, #FFE4CC 50%, #FFD4A8 100%)',
+                buttonGradient: 'linear-gradient(135deg, #fb923c, #f97316)',
+                logoGradient: 'linear-gradient(135deg, #fb923c, #ea580c)',
+                accentColor: '#fb923c',
+                logoFaceColor: '#fb923c',
+                inputBorderColor: '#fb923c',
+                inputFocusShadow: 'rgba(251, 146, 60, 0.15)',
+                userBubbleGradient: 'linear-gradient(135deg, #fb923c, #f97316)',
+                agentAvatarGradient: 'linear-gradient(135deg, #fb923c, #ea580c)'
+            },
+            softLavender: {
+                name: 'Soft Lavender',
+                bgGradient: 'linear-gradient(135deg, #F8F7FF 0%, #F0EBFF 50%, #E8E0FF 100%)',
+                buttonGradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
+                logoGradient: 'linear-gradient(135deg, #a855f7, #c026d3)',
+                accentColor: '#a855f7',
+                logoFaceColor: '#a855f7',
+                inputBorderColor: '#a855f7',
+                inputFocusShadow: 'rgba(168, 85, 247, 0.15)',
+                userBubbleGradient: 'linear-gradient(135deg, #a855f7, #9333ea)',
+                agentAvatarGradient: 'linear-gradient(135deg, #a855f7, #c026d3)'
+            }
+        };
+
+        /**
+         * Apply theme colors to all elements
+         * Why: Ensures consistent theming across logo, button, and accents
+         */
+        function applyTheme(theme) {
+            // Update background
+            document.body.style.background = theme.bgGradient;
+
+            // Update submit button
+            const sendButton = document.getElementById('send-button');
+            if (sendButton) {
+                sendButton.style.background = theme.buttonGradient;
+            }
+
+            // Update logo container
+            const logoContainer = document.getElementById('logo-container');
+            if (logoContainer) {
+                logoContainer.style.background = theme.logoGradient;
+            }
+
+            // Update logo face elements (eyes and smile)
+            const eyeLeft = document.getElementById('logo-eye-left');
+            const eyeRight = document.getElementById('logo-eye-right');
+            const smile = document.getElementById('logo-smile');
+
+            if (eyeLeft) eyeLeft.setAttribute('fill', theme.logoFaceColor);
+            if (eyeRight) eyeRight.setAttribute('fill', theme.logoFaceColor);
+            if (smile) smile.setAttribute('stroke', theme.logoFaceColor);
+
+            // Update message input border
+            const messageInput = document.getElementById('message-input');
+            if (messageInput) {
+                messageInput.style.borderColor = theme.inputBorderColor;
+            }
+
+            // Update all agent avatars (messages and typing indicator)
+            const agentAvatars = document.querySelectorAll('.agent-avatar');
+            agentAvatars.forEach(avatar => {
+                avatar.style.background = theme.agentAvatarGradient;
+            });
+
+            // Update typing indicator dots and input focus state
+            const style = document.createElement('style');
+            style.textContent = `
+                .typing-dot { background: ${theme.accentColor} !important; }
+                #message-input:focus {
+                    border-color: ${theme.inputBorderColor} !important;
+                    box-shadow: 0 0 0 3px ${theme.inputFocusShadow} !important;
+                }
+                .agent-avatar { background: ${theme.agentAvatarGradient} !important; }
+            `;
+            document.head.appendChild(style);
+
+            console.log(`Theme applied: ${theme.name}`);
+        }
+
+        /**
+         * Randomly select and apply theme on page load
+         * Why: Provides variety while keeping just two beautiful options
+         */
+        function initializeRandomTheme() {
+            const themeKeys = Object.keys(themes);
+            const randomTheme = themes[themeKeys[Math.floor(Math.random() * themeKeys.length)]];
+            applyTheme(randomTheme);
+        }
+
+        // Apply random theme on load
+        initializeRandomTheme();
+
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
+
+        /**
+         * Auto-resize textarea as user types
+         * Why: Better UX for multi-line messages without manual resizing
+         */
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        /**
+         * Scroll to bottom of messages
+         * Why: Always show latest message (like WhatsApp/ChatGPT)
+         */
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        /**
+         * Show typing indicator
+         * Why: Let user know agent is "thinking" (better perceived performance)
+         */
+        function showTypingIndicator() {
+            typingIndicator.classList.remove('hidden');
+            scrollToBottom();
+        }
+
+        /**
+         * Hide typing indicator
+         */
+        function hideTypingIndicator() {
+            typingIndicator.classList.add('hidden');
+        }
+
+        /**
+         * Add message to chat UI
+         * @param {string} content - Message text
+         * @param {boolean} isUser - True if user message, false if agent
+         * @param {object} data - Optional structured data (for product cards, etc.)
+         */
+        function addMessage(content, isUser, data = null) {
+            // Hide welcome message on first message
+            if (messageCount === 0) {
+                welcomeMessage.classList.add('hidden');
+            }
+            messageCount++;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', 'items-start', 'gap-3', 'message-fade-in', 'mb-8');
+
+            if (isUser) {
+                // User message (right side, dark slate gray)
+                messageDiv.classList.add('flex-row-reverse');
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <div class="bg-gradient-to-br from-slate-600 to-slate-700 text-white rounded-2xl rounded-tr-sm px-5 py-3 max-w-[85%] shadow-md">
+                        <p class="text-sm leading-relaxed">${escapeHtml(content)}</p>
+                    </div>
+                `;
+            } else {
+                // Agent message (left side, white with couch avatar)
+                // Use custom HTML formatter for LLM responses, plain text for non-LLM
+                const formattedContent = USE_LLM
+                    ? formatLLMResponse(content)  // Custom professional formatting
+                    : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;  // Plain text fallback
+
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-gradient-to-br rounded-full flex items-center justify-center flex-shrink-0 shadow-sm agent-avatar">
+                        <svg class="w-5 h-5 text-white" viewBox="0 0 48 48" fill="none">
+                            <path d="M8 22C8 20 9 18 11 18H13V14C13 12 14 10 16 10H32C34 10 35 12 35 14V18H37C39 18 40 20 40 22V30C40 32 39 34 37 34H35V36H33V34H15V36H13V34H11C9 34 8 32 8 30V22Z" fill="white" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <rect x="8" y="22" width="5" height="8" rx="2" fill="white"/>
+                            <rect x="35" y="22" width="5" height="8" rx="2" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-4 max-w-[90%] shadow-lg llm-response">
+                        ${formattedContent}
+                    </div>
+                `;
+            }
+
+            messagesList.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        /**
+         * Escape HTML to prevent XSS
+         * Why: Security - never trust user input
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Format LLM response into beautiful, professional HTML
+         * Parses response and creates structured, visual sections
+         * VERSION: 2025-11-02-v5 (Follow-up suggestions with debug logging)
+         */
+        function formatLLMResponse(content) {
+            let html = '';
+
+            // Parse response into sections
+            const lines = content.split('\n');
+            let currentSection = '';
+            let inOpportunities = false;
+            let suggestions = [];  // Collect follow-up suggestions
+
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Section headers with icons
+                if (line.startsWith('### 💰')) {
+                    html += '<div class="price-section">';
+                    html += '<div class="section-header price-header">💰 Price</div>';
+                    continue;
+                } else if (line.startsWith('### ✨')) {
+                    // Close previous section (price or breakdown)
+                    if (currentSection === 'price') html += '</div>';
+                    if (currentSection === 'breakdown') html += '</ul></div></div>';
+                    html += '<div class="features-section">';
+                    html += '<div class="section-header features-header">✨ Key Features</div>';
+                    currentSection = 'features';
+                    continue;
+                } else if (line.startsWith('### 🎯')) {
+                    // Close previous section (features or price)
+                    if (currentSection === 'features') html += '</div>';
+                    if (currentSection === 'price') html += '</div>';
+                    if (currentSection === 'breakdown') html += '</ul></div></div>';
+                    html += '<div class="opportunities-section">';
+                    html += '<div class="section-header opportunities-header">🎯 Opportunities to Enhance</div>';
+                    currentSection = 'opportunities';
+                    inOpportunities = true;
+                    continue;
+                } else if (line.startsWith('### 💬')) {
+                    // Close previous section (opportunities)
+                    console.log('[SUGGESTIONS] Section detected');
+                    if (currentSection === 'opportunities') html += '</div>';
+                    currentSection = 'suggestions';
+                    continue;  // Don't render header yet, will render with chips
+                }
+
+                // Total price (for multiple items) - CHECK THIS FIRST
+                if (line.startsWith('**TOTAL:') || line.startsWith('TOTAL:')) {
+                    // Pattern: **TOTAL: £amount** or TOTAL: £amount
+                    const totalMatch = line.match(/\*\*?TOTAL:\s*£([\d,]+)\*\*?/);
+                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
+                    if (totalMatch) {
+                        const totalAmount = totalMatch[1];
+                        html += `<div class="total-price">TOTAL: £${totalAmount}`;
+                        if (savingsMatch) {
+                            html += ` <span style="font-size: 1.25rem; color: #dc2626;">(Save £${savingsMatch[1]}!)</span>`;
+                        }
+                        html += '</div>';
+                        html += '<div class="price-breakdown"><ul>';
+                        currentSection = 'breakdown';
+                        continue;
+                    }
+                }
+
+                // Price breakdown items (bullet list after TOTAL)
+                if (currentSection === 'breakdown' && (line.startsWith('-') || line.startsWith('•'))) {
+                    const text = line.substring(1).trim();
+
+                    // Extract item name (everything before the colon)
+                    const colonIndex = text.indexOf(':');
+                    if (colonIndex !== -1) {
+                        const itemName = text.substring(0, colonIndex).trim();
+                        const priceInfo = text.substring(colonIndex + 1).trim();
+
+                        // Extract new price - find last **£amount** pattern
+                        const newPriceMatch = priceInfo.match(/\*\*£([\d,]+)\*\*/g);
+                        if (newPriceMatch && newPriceMatch.length > 0) {
+                            // Get the last match (the new price, not old price)
+                            const lastMatch = newPriceMatch[newPriceMatch.length - 1];
+                            const priceValue = lastMatch.match(/£([\d,]+)/)[1];
+
+                            html += `<li><span>${escapeHtml(itemName)}</span><strong>£${priceValue}</strong></li>`;
+                        } else {
+                            // No price found, just show the item
+                            html += `<li>${escapeHtml(itemName)}</li>`;
+                        }
+                    } else {
+                        // No colon, just show the whole line
+                        html += `<li>${escapeHtml(text)}</li>`;
+                    }
+                    continue;
+                }
+
+                // Close breakdown when we hit a non-bullet line
+                if (currentSection === 'breakdown' && !line.startsWith('-') && !line.startsWith('•')) {
+                    html += '</ul></div>';
+                    currentSection = 'price';
+                }
+
+                // Price line with old and new prices (for single items, NOT breakdown items)
+                if (line.includes('~~£') && line.includes('**£') && !line.startsWith('-') && !line.startsWith('•') && currentSection !== 'breakdown') {
+                    const oldPriceMatch = line.match(/~~£([\d,]+)~~/);
+                    const newPriceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    const savingsMatch = line.match(/\(Save £([\d,]+)!\)/);
+
+                    if (oldPriceMatch && newPriceMatch) {
+                        const oldPrice = oldPriceMatch[1];
+                        const newPrice = newPriceMatch[1];
+                        const savings = savingsMatch ? savingsMatch[1] : null;
+
+                        html += '<div class="price-display">';
+                        html += `<div class="old-price">Was £${oldPrice}</div>`;
+                        html += `<div class="new-price">£${newPrice}</div>`;
+                        if (savings) {
+                            html += `<div class="savings-badge">Save £${savings}!</div>`;
+                        }
+                        html += '</div>';
+                        currentSection = 'price';
+                        continue;
+                    }
+                }
+
+                // Product name (bold text not in price display)
+                if (line.startsWith('**') && line.endsWith('**')) {
+                    const productName = line.replace(/\*\*/g, '');
+                    if (currentSection === 'price' || !currentSection) {
+                        // Parse product name and fabric (format: "Product in Fabric")
+                        const parts = productName.split(' in ');
+                        if (parts.length === 2) {
+                            html += `<div class="product-name">${escapeHtml(parts[0])} <span class="fabric-detail">in ${escapeHtml(parts[1])}</span></div>`;
+                        } else {
+                            html += `<div class="product-name">${escapeHtml(productName)}</div>`;
+                        }
+                    }
+                    continue;
+                }
+
+                // Bullet points
+                if (line.startsWith('•') || line.startsWith('-')) {
+                    // Check if this is a suggestion bullet
+                    if (currentSection === 'suggestions') {
+                        const suggestion = line.substring(1).trim();
+                        console.log('[SUGGESTION] Found:', suggestion);
+                        suggestions.push(suggestion);
+                        continue;
+                    }
+
+                    // Regular feature bullet
+                    if (!html.includes('<ul class="feature-list">')) {
+                        html += '<ul class="feature-list">';
+                    }
+                    const text = line.substring(1).trim();
+                    html += `<li>${escapeHtml(text)}</li>`;
+                    continue;
+                }
+
+                // Opportunities (blockquote items)
+                if (line.startsWith('>')) {
+                    const text = line.substring(1).trim();
+                    // Parse bold and pricing from opportunity
+                    const formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    html += `<div class="opportunity-item">${formatted}</div>`;
+                    continue;
+                }
+
+                // Regular text
+                if (line && !line.startsWith('#')) {
+                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
+                }
+            }
+
+            // Close any open sections
+            if (currentSection && currentSection !== 'suggestions') html += '</div>';
+
+            // Render suggestions if we have any
+            if (suggestions.length > 0) {
+                console.log('[SUGGESTIONS] Rendering', suggestions.length, 'suggestions');
+                html += '<div class="suggestions-section">';
+                html += '<div class="section-header suggestions-header">💬 What next?</div>';
+                html += '<div class="suggestions-chips">';
+                suggestions.forEach(suggestion => {
+                    html += `<button class="suggestion-chip" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // Close any open lists
+            if (html.includes('<ul class="feature-list">') && !html.includes('</ul>')) {
+                html += '</ul>';
+            }
+
+            return html || `<p class="response-text">${escapeHtml(content)}</p>`;
+        }
+
+        /**
+         * Handle suggestion chip click
+         * Auto-fills input and sends message
+         */
+        function handleSuggestionClick(suggestionText) {
+            console.log('[CLICK] Suggestion clicked:', suggestionText);
+            // Fill input with suggestion text
+            messageInput.value = suggestionText;
+            // Send immediately
+            sendMessage();
+        }
+
+        /**
+         * Send message to backend
+         * Why: Main function for user interaction
+         */
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message to UI
+            addMessage(message, true);
+
+            // Clear input and reset height
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                if (USE_LLM) {
+                    // ========================================
+                    // LLM PATH (/chat endpoint with Grok)
+                    // ========================================
+
+                    // Add user message to conversation history
+                    conversationHistory.push({
+                        role: 'user',
+                        content: message
+                    });
+
+                    console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
+
+                    // Call /chat endpoint with full conversation history
+                    const response = await fetch(`${BACKEND_API_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messages: conversationHistory,
+                            session_id: sessionId
+                        })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    if (response.ok && data.response) {
+                        // Success - show LLM response
+                        addMessage(data.response, false);
+
+                        // Add assistant response to conversation history
+                        conversationHistory.push({
+                            role: 'assistant',
+                            content: data.response
+                        });
+
+                        // Log metadata
+                        if (data.metadata) {
+                            console.log('[Frontend] LLM Response metadata:', {
+                                tokens: data.metadata.tokens,
+                                iterations: data.metadata.iterations,
+                                model: data.metadata.model
+                            });
+                        }
+
+                    } else if (data.error) {
+                        // Error from LLM
+                        addMessage(
+                            "Sorry, I encountered an issue processing your request.\n\n" +
+                            (data.details ? `Details: ${data.details}` : "Please try again or rephrase your question."),
+                            false
+                        );
+
+                        // Remove failed user message from history
+                        conversationHistory.pop();
+                    } else {
+                        // Unexpected response
+                        addMessage("Hmm, something unexpected happened. Please try again.", false);
+                        conversationHistory.pop();
+                    }
+
+                } else {
+                    // ========================================
+                    // NON-LLM PATH (/getPrice endpoint - direct keyword matching)
+                    // ========================================
+
+                    // Check for greetings or casual queries first
+                    const lowerMessage = message.toLowerCase().trim();
+                    const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
+                    if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                        hideTypingIndicator();
+                        addMessage(
+                            "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
+                            "Try asking me something like:\n" +
+                            "• \"alwinton snuggler pacific\"\n" +
+                            "• \"aldingbourne snuggler waves\"\n" +
+                            "• \"rye snuggler pacific\"\n\n" +
+                            "Format: product name + size + color",
+                            false
+                        );
+                        return;
+                    }
+
+                    // Call /getPrice endpoint (existing Phase 1.5 logic)
+                    const response = await fetch(`${BACKEND_API_URL}/getPrice`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ query: message })
+                    });
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    // Handle response
+                    if (response.ok && data.price) {
+                        // Success - format the price response
+                        const responseText = formatPriceResponse(data);
+                        addMessage(responseText, false);
+                    } else if (data.error) {
+                        // Error from backend - provide helpful guidance
+                        let helpfulError = "I couldn't find that exact product.\n\n";
+
+                        // Check if it might be a typo
+                        if (lowerMessage.length > 3) {
+                            helpfulError += "💡 Try:\n" +
+                                "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
+                                "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
+                                "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
+                        }
+
+                        helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
+
+                        addMessage(helpfulError, false);
+                    } else {
+                        // Unexpected response
+                        addMessage(
+                            "Hmm, I'm not sure about that.\n\n" +
+                            "I work best when you give me:\n" +
+                            "• Product name (e.g., Alwinton)\n" +
+                            "• Size (e.g., 3 seater, snuggler)\n" +
+                            "• Fabric (e.g., Sussex Plain, Velvet)",
+                            false
+                        );
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+                addMessage('Sorry, I encountered a connection error. Please try again.', false);
+
+                // Remove failed message from history if using LLM
+                if (USE_LLM && conversationHistory.length > 0 &&
+                    conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        /**
+         * Format price response from backend into friendly message
+         * Why: Make API response readable for sales staff
+         */
+        function formatPriceResponse(data) {
+            // If no price found, return error message
+            if (!data.price) {
+                return "I couldn't find pricing for that. Could you try specifying the product, size, and fabric?";
+            }
+
+            let response = '';
+
+            // Product name and price
+            if (data.productName && data.price) {
+                response = `${data.productName}\n`;
+                response += `💷 Price: ${data.price}`;
+            }
+
+            // Add old price if on sale
+            if (data.oldPrice) {
+                response += ` (was ${data.oldPrice})`;
+            }
+
+            // Add fabric info
+            if (data.fabricName) {
+                response += `\n\n🎨 Fabric: ${data.fabricName}`;
+            }
+
+            // Add fabric tier if available
+            if (data.fabricDetails && data.fabricDetails.tier) {
+                response += ` (${data.fabricDetails.tier})`;
+            }
+
+            return response;
+        }
+
+        /**
+         * Start new conversation
+         * Why: Sales staff need to start fresh for new customers
+         */
+        function startNewConversation() {
+            if (messageCount > 0 && !confirm('Start a new conversation? Current chat will be cleared.')) {
+                return;
+            }
+
+            // Clear messages
+            messagesList.innerHTML = '';
+            messageCount = 0;
+
+            // Show welcome message
+            welcomeMessage.classList.remove('hidden');
+
+            // Reset conversation history and session (Phase 1C)
+            resetConversation();
+
+            // Reset orb animation state
+            hasStartedTyping = false;
+            const orbContainer = document.querySelector('.orb-container');
+            if (orbContainer) {
+                orbContainer.classList.remove('move-down');
+            }
+
+            // Restart orb animation
+            startOrbAnimation();
+
+            // Focus input
+            messageInput.focus();
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enter key to send (Shift+Enter for new line)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // New conversation button
+        newConversationBtn.addEventListener('click', startNewConversation);
+
+        // Focus input on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            messageInput.focus();
+            startOrbAnimation();
+        });
+
+        // ========================================
+        // MAGICAL ORB & QUESTION ANIMATION
+        // ========================================
+
+        /**
+         * Cycle through example questions with fade effect
+         * Why: Shows users what they can ask in a subtle, elegant way
+         */
+        const exampleQuestions = [
+            "What's the price for Alwinton in House Wool?",
+            "Show me all options for Berkeley sofa",
+            "Compare Alwinton vs Aldingbourne",
+            "What 3-seaters are under £3000?",
+            "Find me fabrics in sage green",
+            "Which sofas come in velvet?",
+            "Show me corner sofas under £4000"
+        ];
+
+        let questionIndex = 0;
+        let questionInterval;
+        let hasStartedTyping = false;
+
+        function cycleQuestions() {
+            const exampleQuestionEl = document.getElementById('example-question');
+            if (!exampleQuestionEl) return;
+
+            // Fade out
+            exampleQuestionEl.style.opacity = '0';
+
+            setTimeout(() => {
+                // Change text
+                exampleQuestionEl.textContent = exampleQuestions[questionIndex];
+                questionIndex = (questionIndex + 1) % exampleQuestions.length;
+
+                // Fade in
+                exampleQuestionEl.style.opacity = '1';
+            }, 500);
+        }
+
+        function startOrbAnimation() {
+            // Only animate if welcome message is visible
+            if (!welcomeMessage.classList.contains('hidden')) {
+                // Start with first question
+                const exampleQuestionEl = document.getElementById('example-question');
+                if (exampleQuestionEl) {
+                    exampleQuestionEl.textContent = exampleQuestions[0];
+                    exampleQuestionEl.style.opacity = '1';
+                }
+
+                // Cycle questions every 3 seconds
+                questionInterval = setInterval(cycleQuestions, 3000);
+            }
+        }
+
+        /**
+         * Animate orb down to submit button when user starts typing
+         * Why: Creates magical transition from welcome to chat mode
+         */
+        function moveOrbDown() {
+            if (hasStartedTyping) return;
+            hasStartedTyping = true;
+
+            const orbContainer = document.querySelector('.orb-container');
+            const exampleQuestionEl = document.getElementById('example-question');
+
+            if (orbContainer) {
+                orbContainer.classList.add('move-down');
+            }
+
+            if (exampleQuestionEl) {
+                exampleQuestionEl.style.opacity = '0';
+            }
+
+            // Stop cycling questions
+            if (questionInterval) {
+                clearInterval(questionInterval);
+            }
+        }
+
+        // Trigger orb animation when user starts typing
+        messageInput.addEventListener('input', function() {
+            if (this.value.length === 1 && !hasStartedTyping) {
+                moveOrbDown();
+            }
+        });
+
+        messageInput.addEventListener('focus', function() {
+            // Don't move orb on focus, only on actual typing
+        });
+
+    
+// Test cases
+const tests = [
+    { input: "### 💰 Price\n£1,958", expect: "price-section" },
+    { input: "### 🎯 Opportunities\n> Add cushions", expect: "opportunities-section" },
+    { input: "**TOTAL: £3,000**\n- Item: £2,000", expect: "total-price" },
+    { input: "### 💬 What next?\n- Option 1\n- Option 2", expect: "suggestion-chip" },
+    { input: "Was ~~£2,000~~ now **£1,500**", expect: "old-price" }
+];
+
+let passed = 0;
+let failed = 0;
+
+tests.forEach(test => {
+    const result = formatLLMResponse(test.input);
+    if (result.includes(test.expect)) {
+        console.log("PASS: " + test.expect);
+        passed++;
+    } else {
+        console.log("FAIL: " + test.expect + " - Result: " + result.substring(0, 100));
+        failed++;
+    }
+});
+
+console.log("SUMMARY: " + passed + " passed, " + failed + " failed");
+</script></head>
+<body></body>
+</html>

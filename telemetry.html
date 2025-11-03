@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitor - British Made AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f5f5f3;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* CRITICAL ALERTS */
+        .critical-alert {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(220, 38, 38, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .critical-alert h2 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .critical-alert ul {
+            margin-top: 12px;
+            margin-left: 20px;
+        }
+
+        .critical-alert li {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+        }
+
+        .warning-alert {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .success-alert {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            margin-bottom: 12px;
+        }
+
+        .last-updated {
+            padding: 8px 12px;
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #0369a1;
+        }
+
+        /* Section */
+        .section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            font-size: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 12px;
+        }
+
+        /* API Status Cards */
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .api-card {
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .api-card.online {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+
+        .api-card.offline {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .api-card h3 {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+
+        .status-badge.online {
+            background: #22c55e;
+            color: white;
+        }
+
+        .status-badge.offline {
+            background: #ef4444;
+            color: white;
+        }
+
+        .api-card .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .api-card .metric:last-child {
+            border-bottom: none;
+        }
+
+        .api-card .metric .label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .api-card .metric .value {
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        /* Query History Table */
+        .query-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .query-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 14px;
+        }
+
+        .query-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .query-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .query-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .query-type.typed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .query-type.suggestion {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .query-type.opportunity {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .response-preview {
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #666;
+        }
+
+        .response-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .response-status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .response-status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .stat-card {
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #C67E5F;
+        }
+
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1a1a1a;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* Error List */
+        .error-list {
+            margin-top: 16px;
+        }
+
+        .error-item {
+            padding: 12px;
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .error-item .error-time {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .error-item .error-query {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .error-item .error-message {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .refresh-btn {
+            background: #C67E5F;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: #a86a4f;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🎯 System Monitor</h1>
+        <p class="subtitle">Real-time monitoring for British Made AI pricing assistant</p>
+        <div class="last-updated">Last refreshed: <span id="lastRefresh">Loading...</span></div>
+        <button class="refresh-btn" onclick="loadData()" style="margin-top: 12px;">🔄 Refresh Now</button>
+    </div>
+
+    <!-- Critical Alerts (only shown when there are issues) -->
+    <div id="criticalAlerts"></div>
+
+    <!-- API Health Status -->
+    <div class="section">
+        <h2>🏥 API Health Status</h2>
+        <div class="api-grid">
+            <div class="api-card" id="chatApiCard">
+                <h3>
+                    💬 Chat API (Grok-4-fast)
+                    <span class="status-badge" id="chatStatus">Checking...</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Endpoint:</span>
+                    <span class="value">OpenRouter/Grok</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Last Successful:</span>
+                    <span class="value" id="chatLastSuccess">Never</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Total Requests (24h):</span>
+                    <span class="value" id="chatRequests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Success Rate:</span>
+                    <span class="value" id="chatSuccessRate">--</span>
+                </div>
+            </div>
+
+            <div class="api-card" id="priceApiCard">
+                <h3>
+                    💰 Price API (Direct)
+                    <span class="status-badge" id="priceStatus">Checking...</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Endpoint:</span>
+                    <span class="value">GCF/getPrice</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Last Successful:</span>
+                    <span class="value" id="priceLastSuccess">Never</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Total Requests (24h):</span>
+                    <span class="value" id="priceRequests">0</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Success Rate:</span>
+                    <span class="value" id="priceSuccessRate">--</span>
+                </div>
+            </div>
+
+            <div class="api-card online">
+                <h3>
+                    🌐 Active Sessions
+                    <span class="status-badge online">Active</span>
+                </h3>
+                <div class="metric">
+                    <span class="label">Current Sessions:</span>
+                    <span class="value" id="activeSessions">1</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Today's Sessions:</span>
+                    <span class="value" id="todaySessions">1</span>
+                </div>
+                <div class="metric">
+                    <span class="label">Peak Hour:</span>
+                    <span class="value" id="peakHour">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="section">
+        <h2>📊 Quick Stats (24h)</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="value" id="totalQueries">0</div>
+                <div class="label">Total Queries</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="successfulQueries">0</div>
+                <div class="label">Successful Responses</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="failedQueries">0</div>
+                <div class="label">Failed Queries</div>
+            </div>
+            <div class="stat-card">
+                <div class="value" id="avgResponseTime">--</div>
+                <div class="label">Avg Response Time</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Query History -->
+    <div class="section">
+        <h2>🔍 Query History (Last 100)</h2>
+        <div id="queryHistoryContainer"></div>
+    </div>
+
+    <!-- Recent Errors -->
+    <div class="section">
+        <h2>⚠️ Recent Errors (Last 24h)</h2>
+        <div id="errorContainer"></div>
+    </div>
+
+    <!-- Top Queries -->
+    <div class="section">
+        <h2>🔥 Most Popular Queries (Last 100)</h2>
+        <div id="topQueriesContainer"></div>
+    </div>
+
+    <!-- User Satisfaction -->
+    <div class="section">
+        <h2>😊 User Satisfaction</h2>
+        <div id="satisfactionContainer"></div>
+    </div>
+
+    <!-- Performance Insights -->
+    <div class="section">
+        <h2>⚡ Performance & Cost Insights (24h)</h2>
+        <div id="performanceContainer"></div>
+    </div>
+
+    <script>
+        function loadData() {
+            const now = new Date();
+            document.getElementById('lastRefresh').textContent = now.toLocaleString();
+
+            // Get analytics data from localStorage
+            const eventsData = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const comprehensiveData = JSON.parse(localStorage.getItem('analyticsComprehensive') || '{}');
+            const p1Errors = comprehensiveData.p1Errors || { noPriceErrors: [], totalCount: 0 };
+
+            // Calculate 24h cutoff
+            const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+
+            // Filter events to last 24h
+            const recent24h = eventsData.filter(e => e.timestamp > cutoff24h);
+
+            // Check API Health
+            checkAPIHealth(recent24h, p1Errors);
+
+            // Calculate stats
+            calculateStats(recent24h);
+
+            // Show query history
+            showQueryHistory(eventsData.slice().reverse().slice(0, 100));
+
+            // Show recent errors
+            showRecentErrors(p1Errors);
+
+            // Show top queries
+            showTopQueries(eventsData);
+
+            // Show user satisfaction
+            showUserSatisfaction(eventsData);
+
+            // Show performance insights
+            showPerformanceInsights(recent24h);
+        }
+
+        function checkAPIHealth(events24h, p1Errors) {
+            // Check Chat API
+            const chatEvents = events24h.filter(e => e.name === 'llm_response' || e.name === 'llm_no_price');
+            const chatSuccesses = chatEvents.filter(e => e.name === 'llm_response').length;
+            const chatTotal = chatEvents.length;
+
+            if (chatTotal > 0) {
+                const lastSuccess = chatEvents.filter(e => e.name === 'llm_response')[0];
+                document.getElementById('chatLastSuccess').textContent = lastSuccess ?
+                    new Date(lastSuccess.timestamp).toLocaleString() : 'Never';
+                document.getElementById('chatRequests').textContent = chatTotal;
+                document.getElementById('chatSuccessRate').textContent =
+                    Math.round((chatSuccesses / chatTotal) * 100) + '%';
+
+                document.getElementById('chatApiCard').className = 'api-card online';
+                document.getElementById('chatStatus').className = 'status-badge online';
+                document.getElementById('chatStatus').textContent = 'Online';
+            } else {
+                document.getElementById('chatApiCard').className = 'api-card offline';
+                document.getElementById('chatStatus').className = 'status-badge offline';
+                document.getElementById('chatStatus').textContent = 'No Data';
+            }
+
+            // Check Price API (direct)
+            const priceEvents = events24h.filter(e => e.name === 'price_response' || e.name === 'direct_price_error');
+            const priceSuccesses = priceEvents.filter(e => e.name === 'price_response').length;
+            const priceTotal = priceEvents.length;
+
+            if (priceTotal > 0) {
+                const lastSuccess = priceEvents.filter(e => e.name === 'price_response')[0];
+                document.getElementById('priceLastSuccess').textContent = lastSuccess ?
+                    new Date(lastSuccess.timestamp).toLocaleString() : 'Never';
+                document.getElementById('priceRequests').textContent = priceTotal;
+                document.getElementById('priceSuccessRate').textContent =
+                    Math.round((priceSuccesses / priceTotal) * 100) + '%';
+
+                if (priceSuccesses > 0) {
+                    document.getElementById('priceApiCard').className = 'api-card online';
+                    document.getElementById('priceStatus').className = 'status-badge online';
+                    document.getElementById('priceStatus').textContent = 'Online';
+                } else {
+                    document.getElementById('priceApiCard').className = 'api-card offline';
+                    document.getElementById('priceStatus').className = 'status-badge offline';
+                    document.getElementById('priceStatus').textContent = 'Offline';
+                }
+            } else {
+                document.getElementById('priceApiCard').className = 'api-card offline';
+                document.getElementById('priceStatus').className = 'status-badge offline';
+                document.getElementById('priceStatus').textContent = 'No Data';
+            }
+
+            // Show critical alerts
+            showCriticalAlerts(chatTotal, chatSuccesses, priceTotal, priceSuccesses, p1Errors);
+        }
+
+        function showCriticalAlerts(chatTotal, chatSuccesses, priceTotal, priceSuccesses, p1Errors) {
+            const container = document.getElementById('criticalAlerts');
+            const alerts = [];
+            const eventsData = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+            const recent24h = eventsData.filter(e => e.timestamp > cutoff24h);
+
+            // ====== CRITICAL ALERTS (RED) ======
+
+            // 1. Price API completely down
+            if (priceTotal > 0 && priceSuccesses === 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: Price API is DOWN',
+                    messages: [
+                        `ALL ${priceTotal} price requests in last 24h FAILED`,
+                        'Users cannot get real-time pricing',
+                        'Likely cause: Sofas & Stuff API is down or blocking requests',
+                        'Action: Check https://sofasandstuff.com/ - if down, wait for recovery',
+                        'Our system is hallucination-proof - showing "unavailable" correctly ✅'
+                    ]
+                });
+            }
+
+            // 2. NO user activity (system might be down)
+            if (chatTotal === 0 && priceTotal === 0 && recent24h.length === 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: NO USER ACTIVITY DETECTED',
+                    messages: [
+                        'Zero queries in last 24 hours',
+                        'Frontend may be offline or inaccessible',
+                        'Action: Check https://britishmade.ai/ is loading',
+                        'Action: Check GitHub Pages deployment status'
+                    ]
+                });
+            }
+
+            // 3. High P1 error rate (queries returning no price)
+            if (p1Errors.totalCount > 5) {
+                const recentP1 = p1Errors.noPriceErrors.filter(e => e.timestamp > cutoff24h);
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 HIGH ERROR RATE: Queries Failing to Return Prices',
+                    messages: [
+                        `${p1Errors.totalCount} queries returned "system unavailable"`,
+                        `${recentP1.length} in last 24h`,
+                        'Last occurred: ' + (p1Errors.lastOccurred ? new Date(p1Errors.lastOccurred).toLocaleString() : 'Unknown'),
+                        'System correctly preventing hallucination ✅',
+                        'Check "Recent Errors" section below for query patterns'
+                    ]
+                });
+            }
+
+            // 4. OpenRouter API key issues (401 errors)
+            const authErrors = recent24h.filter(e =>
+                e.name === 'api_error' &&
+                e.data && (e.data.error || '').includes('401')
+            );
+            if (authErrors.length > 0) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: OpenRouter API Authentication Failed',
+                    messages: [
+                        `${authErrors.length} authentication failures detected`,
+                        'OpenRouter API key may be invalid or expired',
+                        'Action: Generate new key at https://openrouter.ai/settings/keys',
+                        'Action: Deploy with: gcloud functions deploy --set-env-vars OPENROUTER_API_KEY=NEW_KEY'
+                    ]
+                });
+            }
+
+            // 5. Extremely slow response times (>15 seconds)
+            const responses = recent24h.filter(e => e.data && e.data.responseTime);
+            const slowResponses = responses.filter(e => e.data.responseTime > 15000);
+            if (responses.length > 0 && slowResponses.length / responses.length > 0.3) {
+                alerts.push({
+                    level: 'critical',
+                    title: '🚨 CRITICAL: System Extremely Slow',
+                    messages: [
+                        `${Math.round((slowResponses.length / responses.length) * 100)}% of responses took >15 seconds`,
+                        'Users experiencing severe delays',
+                        'Possible causes: Grok API throttling, cold starts, network issues',
+                        'Action: Check GCF logs for timeouts'
+                    ]
+                });
+            }
+
+            // ====== WARNING ALERTS (ORANGE) ======
+
+            // 6. Moderate chat API failures
+            if (chatTotal > 0 && chatSuccesses < chatTotal) {
+                const failRate = Math.round(((chatTotal - chatSuccesses) / chatTotal) * 100);
+                if (failRate > 20) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: Chat API Partial Failures',
+                        messages: [
+                            `${failRate}% of chat requests failed (${chatTotal - chatSuccesses}/${chatTotal})`,
+                            'Some users experiencing issues',
+                            'Possible causes: OpenRouter rate limits, Grok availability',
+                            'Action: Monitor for pattern - if persistent, check API status'
+                        ]
+                    });
+                }
+            }
+
+            // 7. Slow response times (>8 seconds but <15)
+            if (responses.length > 0) {
+                const avgTime = responses.reduce((sum, e) => sum + e.data.responseTime, 0) / responses.length;
+                if (avgTime > 8000 && avgTime <= 15000) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: Slower Than Normal Response Times',
+                        messages: [
+                            `Average response time: ${(avgTime / 1000).toFixed(1)}s (normal: 5-7s)`,
+                            'Performance degraded but functional',
+                            'Possible causes: Increased load, Grok API slower than usual',
+                            'Consider: Switching to faster model if persistent'
+                        ]
+                    });
+                }
+            }
+
+            // 8. High token usage (costly queries)
+            const tokenUsage = recent24h.filter(e => e.data && e.data.tokens);
+            if (tokenUsage.length > 0) {
+                const totalTokens = tokenUsage.reduce((sum, e) => sum + e.data.tokens, 0);
+                const avgTokens = totalTokens / tokenUsage.length;
+                const estimatedCost = (totalTokens / 1000000) * 4.00; // Rough estimate for Grok-4-fast
+
+                if (avgTokens > 10000 || estimatedCost > 5) {
+                    alerts.push({
+                        level: 'warning',
+                        title: '⚠️ WARNING: High Token Usage / Costs',
+                        messages: [
+                            `Total tokens (24h): ${totalTokens.toLocaleString()}`,
+                            `Average per query: ${Math.round(avgTokens).toLocaleString()} tokens`,
+                            `Estimated cost (24h): $${estimatedCost.toFixed(2)}`,
+                            'Consider: Optimizing system prompt or using cheaper model for simple queries'
+                        ]
+                    });
+                }
+            }
+
+            // 9. No data yet (not critical, just informational)
+            if (alerts.length === 0 && recent24h.length === 0) {
+                alerts.push({
+                    level: 'warning',
+                    title: '📊 No Data Yet',
+                    messages: [
+                        'No analytics data collected yet',
+                        'Dashboard will populate as users interact with the system',
+                        'Try making a test query at https://britishmade.ai/'
+                    ]
+                });
+            }
+
+            // ====== SUCCESS (GREEN) ======
+
+            // 10. Everything working normally
+            if (alerts.length === 0 && (chatTotal > 0 || priceTotal > 0)) {
+                const successRate = Math.round(((chatSuccesses + priceSuccesses) / (chatTotal + priceTotal)) * 100);
+                alerts.push({
+                    level: 'success',
+                    title: '✅ All Systems Operational',
+                    messages: [
+                        `Success rate: ${successRate}%`,
+                        'No critical issues detected',
+                        'APIs responding normally',
+                        'Hallucination prevention active ✅'
+                    ]
+                });
+            }
+
+            // Render alerts
+            container.innerHTML = alerts.map(alert => `
+                <div class="${alert.level}-alert">
+                    <h2>${alert.title}</h2>
+                    <ul>
+                        ${alert.messages.map(msg => `<li>${msg}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        function calculateStats(events24h) {
+            const queries = events24h.filter(e => e.name === 'query');
+            const responses = events24h.filter(e => e.name === 'llm_response' || e.name === 'price_response');
+            const errors = events24h.filter(e => e.name === 'p1_error' || e.name === 'api_error');
+
+            document.getElementById('totalQueries').textContent = queries.length;
+            document.getElementById('successfulQueries').textContent = responses.length;
+            document.getElementById('failedQueries').textContent = errors.length;
+
+            // Avg response time
+            const responseTimes = events24h
+                .filter(e => e.data && e.data.responseTime)
+                .map(e => e.data.responseTime);
+            if (responseTimes.length > 0) {
+                const avg = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+                document.getElementById('avgResponseTime').textContent = (avg / 1000).toFixed(2) + 's';
+            }
+        }
+
+        function showQueryHistory(recentEvents) {
+            const queries = recentEvents.filter(e => e.name === 'query');
+            const container = document.getElementById('queryHistoryContainer');
+
+            if (queries.length === 0) {
+                container.innerHTML = '<div class="no-data">No queries yet</div>';
+                return;
+            }
+
+            const html = `
+                <table class="query-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Query</th>
+                            <th>Type</th>
+                            <th>Session</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${queries.map(q => `
+                            <tr>
+                                <td>${new Date(q.timestamp).toLocaleString()}</td>
+                                <td><strong>${q.data.query || 'N/A'}</strong></td>
+                                <td><span class="query-type ${q.data.source || 'typed'}">${q.data.source || 'typed'}</span></td>
+                                <td style="font-family: monospace; font-size: 12px;">${q.data.sessionId ? q.data.sessionId.substring(0, 8) : 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            container.innerHTML = html;
+        }
+
+        function showRecentErrors(p1Errors) {
+            const container = document.getElementById('errorContainer');
+            const errors = p1Errors.noPriceErrors || [];
+
+            if (errors.length === 0) {
+                container.innerHTML = '<div class="no-data">No errors in last 24h 🎉</div>';
+                return;
+            }
+
+            const html = `
+                <div class="error-list">
+                    ${errors.slice(0, 20).map(err => `
+                        <div class="error-item">
+                            <div class="error-time">${new Date(err.timestamp).toLocaleString()}</div>
+                            <div class="error-query">"${err.query}"</div>
+                            <div class="error-message">${err.error || 'No price returned'}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function showTopQueries(eventsData) {
+            const container = document.getElementById('topQueriesContainer');
+            const queries = eventsData.filter(e => e.name === 'query' && e.data && e.data.query);
+
+            if (queries.length === 0) {
+                container.innerHTML = '<div class="no-data">No queries yet</div>';
+                return;
+            }
+
+            // Count query frequency
+            const queryCounts = {};
+            queries.forEach(q => {
+                const query = q.data.query.toLowerCase().trim();
+                queryCounts[query] = (queryCounts[query] || 0) + 1;
+            });
+
+            // Sort by frequency
+            const sorted = Object.entries(queryCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 20);
+
+            const html = `
+                <table class="query-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Query</th>
+                            <th>Count</th>
+                            <th>% of Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sorted.map(([query, count], idx) => `
+                            <tr>
+                                <td>${idx + 1}</td>
+                                <td><strong>${query}</strong></td>
+                                <td>${count}</td>
+                                <td>${Math.round((count / queries.length) * 100)}%</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Insight:</strong> Top queries show what users want most.
+                    If a query appears frequently with errors, prioritize fixing it!
+                </p>
+            `;
+            container.innerHTML = html;
+        }
+
+        function showUserSatisfaction(eventsData) {
+            const container = document.getElementById('satisfactionContainer');
+            const feedback = eventsData.filter(e => e.name === 'feedback');
+
+            if (feedback.length === 0) {
+                container.innerHTML = '<div class="no-data">No user feedback yet (thumbs up/down buttons)</div>';
+                return;
+            }
+
+            const positive = feedback.filter(f => f.data && f.data.feedback === 'positive').length;
+            const negative = feedback.filter(f => f.data && f.data.feedback === 'negative').length;
+            const total = positive + negative;
+            const satisfaction = total > 0 ? Math.round((positive / total) * 100) : 0;
+
+            let satisfactionColor = '#22c55e';
+            let satisfactionLabel = 'Excellent';
+            if (satisfaction < 70) {
+                satisfactionColor = '#f59e0b';
+                satisfactionLabel = 'Needs Improvement';
+            }
+            if (satisfaction < 50) {
+                satisfactionColor = '#ef4444';
+                satisfactionLabel = 'Poor';
+            }
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card" style="border-left-color: ${satisfactionColor};">
+                        <div class="value" style="color: ${satisfactionColor};">${satisfaction}%</div>
+                        <div class="label">${satisfactionLabel}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: #22c55e;">👍 ${positive}</div>
+                        <div class="label">Positive Feedback</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: #ef4444;">👎 ${negative}</div>
+                        <div class="label">Negative Feedback</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${total}</div>
+                        <div class="label">Total Feedback</div>
+                    </div>
+                </div>
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Insight:</strong>
+                    ${satisfaction >= 80 ? 'Users are very satisfied! Keep up the good work.' : ''}
+                    ${satisfaction >= 60 && satisfaction < 80 ? 'Satisfaction is good but could be better. Check negative feedback patterns.' : ''}
+                    ${satisfaction < 60 ? '⚠️ Low satisfaction - investigate negative feedback and recent errors immediately!' : ''}
+                </p>
+            `;
+            container.innerHTML = html;
+        }
+
+        function showPerformanceInsights(events24h) {
+            const container = document.getElementById('performanceContainer');
+
+            // Calculate metrics
+            const responses = events24h.filter(e => e.data && e.data.responseTime);
+            const tokenEvents = events24h.filter(e => e.data && e.data.tokens);
+
+            if (responses.length === 0 && tokenEvents.length === 0) {
+                container.innerHTML = '<div class="no-data">No performance data yet</div>';
+                return;
+            }
+
+            // Response time stats
+            const responseTimes = responses.map(e => e.data.responseTime);
+            const avgTime = responseTimes.length > 0 ?
+                responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length : 0;
+            const minTime = responseTimes.length > 0 ? Math.min(...responseTimes) : 0;
+            const maxTime = responseTimes.length > 0 ? Math.max(...responseTimes) : 0;
+
+            // Token stats
+            const totalTokens = tokenEvents.reduce((sum, e) => sum + e.data.tokens, 0);
+            const avgTokens = tokenEvents.length > 0 ? totalTokens / tokenEvents.length : 0;
+
+            // Cost estimation (Grok-4-fast: ~$0.10 per 1M input tokens, ~$0.40 per 1M output)
+            // Rough estimate: average $4 per 1M tokens
+            const estimatedCost = (totalTokens / 1000000) * 4.00;
+            const costPerQuery = tokenEvents.length > 0 ? estimatedCost / tokenEvents.length : 0;
+
+            const html = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="value">${(avgTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Avg Response Time</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${(minTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Fastest Response</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${(maxTime / 1000).toFixed(2)}s</div>
+                        <div class="label">Slowest Response</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${Math.round(avgTokens).toLocaleString()}</div>
+                        <div class="label">Avg Tokens/Query</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${totalTokens.toLocaleString()}</div>
+                        <div class="label">Total Tokens (24h)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value" style="color: ${estimatedCost > 5 ? '#ef4444' : '#22c55e'};">$${estimatedCost.toFixed(2)}</div>
+                        <div class="label">Estimated Cost (24h)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">$${costPerQuery.toFixed(4)}</div>
+                        <div class="label">Cost per Query</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="value">${responses.length}</div>
+                        <div class="label">Total Responses</div>
+                    </div>
+                </div>
+                <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                    💡 <strong>Performance Insights:</strong><br>
+                    • Target response time: 5-7 seconds (${avgTime / 1000 < 8 ? '✅ Good' : '⚠️ Slow'})<br>
+                    • Token efficiency: ${avgTokens < 5000 ? '✅ Efficient' : avgTokens < 10000 ? '⚠️ Moderate' : '🚨 High usage'}<br>
+                    • Daily cost: ${estimatedCost < 2 ? '✅ Low' : estimatedCost < 5 ? '⚠️ Moderate' : '🚨 High - consider optimization'}<br>
+                    • At current rate, monthly cost: ~$${(estimatedCost * 30).toFixed(2)}
+                </p>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Load data on page load
+        loadData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>

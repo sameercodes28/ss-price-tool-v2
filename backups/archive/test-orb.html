@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Fabric Orb Test</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+
+        /* Fabric-inspired color variables */
+        :root {
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-linen: #E8DFD3;
+            --fabric-wool: #D4C5B9;
+            --fabric-silk: #F5EEE6;
+            --fabric-gold: #D4A574;
+        }
+
+        /* Ultra fabric orb container */
+        .ultra-fabric-orb {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Main orb with enhanced texture */
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation:
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background:
+                /* Holographic layer */
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                /* Depth gradient */
+                radial-gradient(
+                    ellipse at 30% 30%,
+                    rgba(255, 255, 255, 0.4),
+                    transparent 50%
+                ),
+                /* Core gradient */
+                linear-gradient(
+                    135deg,
+                    var(--fabric-sage),
+                    var(--fabric-bark)
+                );
+            background-size:
+                100% 100%,
+                120% 120%,
+                100% 100%;
+            background-position:
+                center,
+                -20% -20%,
+                center;
+            box-shadow:
+                0 4px 6px rgba(0, 0, 0, 0.1),
+                0 2px 4px rgba(0, 0, 0, 0.06),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Depth pulse animation */
+        @keyframes depthPulse {
+            0%, 100% {
+                transform: rotateX(0deg) rotateY(0deg) scale(1);
+            }
+            50% {
+                transform: rotateX(10deg) rotateY(10deg) scale(1.05);
+            }
+        }
+
+        /* Holographic shift animation */
+        @keyframes holographicShift {
+            0%, 100% {
+                filter: hue-rotate(0deg) brightness(1);
+            }
+            33% {
+                filter: hue-rotate(20deg) brightness(1.1);
+            }
+            66% {
+                filter: hue-rotate(-20deg) brightness(0.95);
+            }
+        }
+
+        .test-container {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ultra Fabric Orb Test Page</h1>
+
+    <div class="test-container">
+        <div>
+            <h3>Standard Orb (44px)</h3>
+            <div class="ultra-fabric-orb">
+                <div class="ultra-fabric-sphere"></div>
+            </div>
+        </div>
+
+        <div>
+            <h3>What you should see:</h3>
+            <ul>
+                <li>A round orb with fabric-inspired colors (terracotta, sage, bark)</li>
+                <li>Smooth pulsing animation (4s cycle)</li>
+                <li>Color shifting effect (8s cycle)</li>
+                <li>Subtle depth and shadow</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <div>
+            <h3>With Background Colors</h3>
+            <div style="background: #333; padding: 20px; border-radius: 8px;">
+                <div class="ultra-fabric-orb">
+                    <div class="ultra-fabric-sphere"></div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <p>The orb should be visible against both light and dark backgrounds.</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('Test page loaded. Orb should be animating.');
+
+        // Test CSS animation support
+        const testElement = document.querySelector('.ultra-fabric-sphere');
+        if (testElement) {
+            const computedStyle = window.getComputedStyle(testElement);
+            console.log('Animation property:', computedStyle.animation);
+            console.log('Background:', computedStyle.background);
+        }
+    </script>
+</body>
+</html>

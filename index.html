@@ -1,0 +1,3473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--
+    ================================================================
+    SOFAS & STUFF INTELLIGENT PRICING PLATFORM V5
+    ================================================================
+
+    VERSION 5 - ULTRA FABRIC ORB EDITION
+    - Enhanced multi-dimensional fabric orb
+    - Complex weaving patterns with depth
+    - Particle fiber effects
+    - Premium textile animations
+    - Holographic quality shifts
+    - Full LLM integration with Grok API
+    - Session management and conversation history
+
+    ================================================================
+    -->
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sofas & Stuff Pricing Assistant - Showroom Tool">
+    <meta name="author" content="Sofas & Stuff">
+    <meta name="theme-color" content="#C67E5F">
+
+    <title>Sofas & Stuff | Pricing Assistant</title>
+
+    <!-- Marked.js for markdown rendering (Phase 1C - Demo Polish) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ============================================
+           CSS VARIABLES - FABRIC INSPIRED PALETTE
+           ============================================ */
+        :root {
+            /* Core colors */
+            --bg-primary: #FAFAF8;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F5F3EE;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B6B6B;
+            --text-tertiary: #9B9B9B;
+
+            /* Fabric-inspired colors */
+            --fabric-terracotta: #C67E5F;
+            --fabric-sage: #8B9A7B;
+            --fabric-bark: #7A6B5D;
+            --fabric-linen: #E8DFD3;
+            --fabric-wool: #D4C5B9;
+            --fabric-silk: #F5EEE6;
+            --fabric-gold: #D4A574;
+
+            /* UI colors */
+            --border-light: #E8E8E4;
+            --border-medium: #D4D4D0;
+            --hover-bg: #F0EDE6;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+            --shadow-fabric: 0 4px 20px rgba(198, 126, 95, 0.15);
+        }
+
+        /* ============================================
+           ACCESS CODE OVERLAY
+           ============================================ */
+        .access-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .access-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .access-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .access-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+        }
+
+        .access-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .access-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .access-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .access-input:focus {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 4px rgba(198, 126, 95, 0.1);
+        }
+
+        .access-input.error {
+            border-color: #ef4444;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .access-button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .access-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(198, 126, 95, 0.3);
+        }
+
+        .access-button:active {
+            transform: translateY(0);
+        }
+
+        .access-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .access-error.show {
+            opacity: 1;
+        }
+
+        .access-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           ULTRA FABRIC ORB DESIGN SYSTEM
+
+           Multi-layered textile visualization with:
+           - Complex weaving patterns
+           - Individual fiber strands
+           - Depth and dimension
+           - Holographic shimmer
+           - Living textile feel
+           ============================================ */
+
+        /* Complex weaving animation */
+        @keyframes ultraWeave {
+            0% {
+                transform: rotate(0deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            25% {
+                transform: rotate(90deg) scale(1.02);
+                filter: hue-rotate(10deg);
+            }
+            50% {
+                transform: rotate(180deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+            75% {
+                transform: rotate(270deg) scale(1.02);
+                filter: hue-rotate(-10deg);
+            }
+            100% {
+                transform: rotate(360deg) scale(1);
+                filter: hue-rotate(0deg);
+            }
+        }
+
+        /* Fiber movement animation */
+        @keyframes fiberFlow {
+            0%, 100% {
+                transform: translateX(0) translateY(0);
+                opacity: 0.6;
+            }
+            33% {
+                transform: translateX(2px) translateY(-1px);
+                opacity: 0.8;
+            }
+            66% {
+                transform: translateX(-1px) translateY(2px);
+                opacity: 0.7;
+            }
+        }
+
+        /* Holographic shimmer */
+        @keyframes holographicShift {
+            0% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+            50% {
+                background-position: 100% 100%, 0% 0%, 50% 50%;
+                filter: brightness(1.1);
+            }
+            100% {
+                background-position: 0% 0%, 100% 100%, 50% 50%;
+                filter: brightness(1);
+            }
+        }
+
+        /* Depth pulse */
+        @keyframes depthPulse {
+            0%, 100% {
+                box-shadow:
+                    inset 0 0 10px rgba(198, 126, 95, 0.3),
+                    inset 0 0 20px rgba(139, 154, 123, 0.2),
+                    0 5px 20px rgba(122, 107, 93, 0.25);
+            }
+            50% {
+                box-shadow:
+                    inset 0 0 15px rgba(198, 126, 95, 0.4),
+                    inset 0 0 30px rgba(139, 154, 123, 0.3),
+                    0 8px 30px rgba(122, 107, 93, 0.35);
+            }
+        }
+
+        /* Ultra fabric orb container */
+        .ultra-fabric-orb {
+            width: 44px;
+            height: 44px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* Main orb with enhanced texture */
+        .ultra-fabric-sphere {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation:
+                depthPulse 4s ease-in-out infinite,
+                holographicShift 8s ease-in-out infinite;
+            background:
+                /* Holographic layer */
+                conic-gradient(
+                    from 45deg at 50% 50%,
+                    var(--fabric-terracotta),
+                    var(--fabric-gold),
+                    var(--fabric-sage),
+                    var(--fabric-bark),
+                    var(--fabric-terracotta)
+                ),
+                /* Depth gradient */
+                radial-gradient(
+                    circle at 30% 30%,
+                    rgba(245, 238, 230, 0.8),
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 70% 70%,
+                    rgba(122, 107, 93, 0.4),
+                    transparent 50%
+                ),
+                /* Base texture */
+                linear-gradient(135deg,
+                    var(--fabric-silk) 0%,
+                    var(--fabric-linen) 50%,
+                    var(--fabric-wool) 100%
+                );
+            background-size: 200% 200%, 100% 100%, 100% 100%, 100% 100%;
+            background-blend-mode: multiply, overlay, normal, normal;
+        }
+
+        /* Complex weaving pattern - Layer 1 */
+        .ultra-fabric-sphere::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background:
+                /* Vertical threads */
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(198, 126, 95, 0.2) 3px,
+                    rgba(198, 126, 95, 0.2) 4px
+                ),
+                /* Horizontal threads */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(139, 154, 123, 0.2) 3px,
+                    rgba(139, 154, 123, 0.2) 4px
+                ),
+                /* Diagonal weave 1 */
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(212, 165, 116, 0.15) 5px,
+                    rgba(212, 165, 116, 0.15) 6px
+                ),
+                /* Diagonal weave 2 */
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 5px,
+                    rgba(122, 107, 93, 0.15) 5px,
+                    rgba(122, 107, 93, 0.15) 6px
+                );
+            animation: ultraWeave 30s linear infinite;
+            mix-blend-mode: multiply;
+        }
+
+        /* Individual fiber strands - Layer 2 */
+        .ultra-fabric-sphere::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 50%;
+            background:
+                /* Fine fibers */
+                repeating-conic-gradient(
+                    from 0deg at 50% 50%,
+                    transparent 0deg,
+                    rgba(255, 255, 255, 0.1) 1deg,
+                    transparent 2deg,
+                    transparent 10deg
+                ),
+                /* Shimmer highlight */
+                radial-gradient(
+                    ellipse at 35% 35%,
+                    rgba(255, 255, 255, 0.8),
+                    rgba(255, 255, 255, 0.4) 30%,
+                    transparent 60%
+                );
+            animation: fiberFlow 5s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* Extra depth layer */
+        .fabric-depth-layer {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background:
+                conic-gradient(
+                    from 180deg at 50% 50%,
+                    transparent,
+                    rgba(198, 126, 95, 0.1),
+                    transparent,
+                    rgba(139, 154, 123, 0.1),
+                    transparent
+                );
+            animation: ultraWeave 20s linear infinite reverse;
+            pointer-events: none;
+        }
+
+        /* Particle fibers floating */
+        .fabric-particles {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .fabric-particle {
+            position: absolute;
+            width: 1px;
+            height: 8px;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(212, 165, 116, 0.6),
+                transparent
+            );
+            animation: particleFloat 10s infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            20% {
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.3;
+            }
+            80% {
+                opacity: 0.6;
+            }
+        }
+
+        .fabric-particle:nth-child(1) {
+            left: 20%;
+            top: 50%;
+            animation-delay: 0s;
+        }
+
+        .fabric-particle:nth-child(2) {
+            left: 50%;
+            top: 20%;
+            animation-delay: 2s;
+        }
+
+        .fabric-particle:nth-child(3) {
+            left: 80%;
+            top: 50%;
+            animation-delay: 4s;
+        }
+
+        .fabric-particle:nth-child(4) {
+            left: 50%;
+            top: 80%;
+            animation-delay: 6s;
+        }
+
+        .fabric-particle:nth-child(5) {
+            left: 35%;
+            top: 35%;
+            animation-delay: 8s;
+        }
+
+        /* Hover state - intensified */
+        .ultra-fabric-orb:hover .ultra-fabric-sphere {
+            transform: scale(1.1) rotateX(10deg) rotateY(-10deg);
+            box-shadow:
+                inset 0 0 20px rgba(198, 126, 95, 0.5),
+                inset 0 0 40px rgba(139, 154, 123, 0.4),
+                0 10px 40px rgba(122, 107, 93, 0.4),
+                0 0 60px rgba(212, 165, 116, 0.2);
+        }
+
+        .ultra-fabric-orb:hover .fabric-particle {
+            animation-duration: 5s;
+        }
+
+        /* Small version for chat */
+        .ultra-fabric-orb-small {
+            width: 36px;
+            height: 36px;
+        }
+
+        .ultra-fabric-orb-small .ultra-fabric-sphere {
+            animation-duration: 6s, 10s;
+        }
+
+        /* When used as message avatar */
+        .message-avatar.ultra-fabric-orb-small {
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           HEADER - MINIMAL WITH ULTRA FABRIC ORB
+           ============================================ */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .brand-tagline {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .new-conversation-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .new-conversation-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .new-conversation-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* ============================================
+           LANDING PAGE - CENTERED LAYOUT
+           ============================================ */
+        .landing-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .landing-container.hidden {
+            opacity: 0;
+            transform: scale(0.98);
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .welcome-section {
+            text-align: center;
+            max-width: 680px;
+            width: 100%;
+        }
+
+        .welcome-heading {
+            font-family: 'Newsreader', serif;
+            font-size: 48px;
+            font-weight: 500;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-subheading {
+            font-size: 17px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.1s forwards;
+        }
+
+        /* ============================================
+           SEARCH WITH CLEAN PLACEHOLDER ANIMATION
+           ============================================ */
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .search-wrapper {
+            width: 100%;
+            max-width: 640px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.2s forwards;
+            position: relative;
+        }
+
+        .search-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 4px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 3px rgba(198, 126, 95, 0.1), var(--shadow-md);
+        }
+
+        .search-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            position: relative;
+        }
+
+        .search-icon {
+            color: var(--text-tertiary);
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: transparent;
+            padding: 12px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .search-input::-webkit-input-placeholder { color: transparent; }
+        .search-input::-moz-placeholder { color: transparent; }
+        .search-input:-ms-input-placeholder { color: transparent; }
+        .search-input::placeholder { color: transparent; }
+
+        .animated-placeholder {
+            position: absolute;
+            left: 32px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #B8B8B8; /* Lighter gray for ghost text */
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .search-input:focus ~ .animated-placeholder,
+        .search-input:not(:placeholder-shown) ~ .animated-placeholder {
+            display: none;
+        }
+
+        .placeholder-text {
+            display: inline-block;
+            margin-right: 2px;
+            color: #B8B8B8; /* Lighter gray for better ghost text effect */
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        .placeholder-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background: #B8B8B8; /* Match cursor color with text */
+            animation: blink 1s infinite;
+            opacity: 0.8;
+        }
+
+        .search-submit {
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .search-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .search-submit:active {
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           SUGGESTION CHIPS
+           ============================================ */
+        .suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease 0.3s forwards;
+        }
+
+        .suggestion-chip {
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 24px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .suggestion-chip:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INTERFACE
+           ============================================ */
+        .chat-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            height: calc(100vh - 73px);
+        }
+
+        .chat-container.active {
+            display: flex;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
+        }
+
+        .messages-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            animation: messageSlideIn 0.3s ease;
+            display: flex;
+            gap: 12px;
+            padding: 8px 16px;
+        }
+
+        /* User messages - aligned RIGHT */
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        /* Assistant messages - aligned LEFT */
+        .message.assistant {
+            flex-direction: row;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-wrapper {
+            max-width: 70%;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            padding: 0 4px;
+        }
+
+        .message.user .message-header {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667EEA, #764BA2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .message-author {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .message-time {
+            color: var(--text-tertiary);
+            font-size: 12px;
+        }
+
+        .message-content {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .message.user .message-content {
+            background: #DCF8C6; /* WhatsApp-style green */
+            color: var(--text-primary);
+            border: none;
+            border-radius: 18px 18px 4px 18px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message.assistant .message-content {
+            border-radius: 4px 18px 18px 18px;
+        }
+
+        /* Remove avatar for user messages */
+        .message.user .message-avatar {
+            display: none;
+        }
+
+        /* ============================================
+           CARD-BASED LLM RESPONSE STYLING
+           ============================================ */
+        .llm-response {
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        /* Modern card-based pricing display */
+        .pricing-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid var(--border-light);
+        }
+
+        .pricing-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .pricing-card-title-section {
+            flex: 1;
+        }
+
+        .pricing-card-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-card-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .pricing-card-price {
+            text-align: right;
+        }
+
+        .pricing-card-price-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+
+        .pricing-card-price-amount {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--fabric-terracotta);
+        }
+
+        /* Price breakdown table */
+        .pricing-breakdown {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .pricing-breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .pricing-breakdown-row:not(:last-child) {
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .pricing-breakdown-row.total {
+            font-weight: 600;
+            font-size: 15px;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .pricing-breakdown-label {
+            color: var(--text-secondary);
+        }
+
+        .pricing-breakdown-value {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .pricing-breakdown-value.highlight {
+            color: var(--fabric-terracotta);
+        }
+
+        /* Description text */
+        .pricing-card-description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin: 16px 0;
+        }
+
+        .intro-text {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+
+        .product-info {
+            margin: 20px 0;
+        }
+
+        .product-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .product-specs {
+            font-size: 14px;
+            color: var(--text-tertiary);
+            margin-bottom: 16px;
+        }
+
+        .main-price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .price-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
+        }
+
+        .price-amount {
+            font-size: 32px;
+            font-weight: 500;
+            color: var(--fabric-terracotta);
+        }
+
+        .price-breakdown-table {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .price-row:last-child {
+            border-bottom: none;
+        }
+
+        .price-row.price-total {
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 2px solid var(--border-medium);
+            font-weight: 600;
+        }
+
+        .price-item {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .price-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .price-value.total {
+            color: var(--fabric-terracotta);
+            font-size: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 20px 0 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .features-section {
+            margin: 20px 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-primary);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--text-primary);
+        }
+
+        .opportunities-section {
+            margin: 20px 0;
+        }
+
+        /* Opportunity buttons - same style as suggestion chips */
+        .opportunity-button {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            text-align: left;
+        }
+
+        .opportunity-button:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        .opportunity-button strong {
+            color: var(--fabric-terracotta);
+        }
+
+        .savings-text {
+            color: #16a34a;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+
+        .price-breakdown-item {
+            padding: 4px 0 4px 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* Feedback buttons */
+        .message-feedback {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message-wrapper:hover .message-feedback {
+            opacity: 1;
+        }
+
+        .feedback-btn {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .feedback-btn:hover {
+            background: white;
+            border-color: var(--border-medium);
+        }
+
+        .feedback-btn.active-positive {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+
+        .feedback-btn.active-negative {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .feedback-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .follow-up-text {
+            color: var(--text-secondary);
+            margin: 24px 0 20px;
+            font-size: 15px;
+        }
+
+        .suggestion-chips-container {
+            margin-top: 20px;
+        }
+
+        .chips-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .suggestion-chip-minimal {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            outline: none;
+        }
+
+        .suggestion-chip-minimal:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+        }
+
+        /* Product Name */
+        .product-name {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+        }
+
+        .product-name .fabric-detail {
+            font-style: italic;
+            font-weight: 500;
+            color: #4b5563;
+        }
+
+        /* Price Display - PROMINENT */
+        .price-display {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid #f59e0b;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            margin: 0.875rem 0;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .old-price {
+            font-size: 0.9375rem;
+            color: #78716c;
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            font-weight: 500;
+        }
+
+        .new-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #059669;
+            line-height: 1;
+            letter-spacing: -0.025em;
+        }
+
+        /* Total Price (for multiple items) */
+        .total-price {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #047857;
+            line-height: 1;
+            letter-spacing: -0.025em;
+            margin: 1rem 0 0.5rem 0;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        /* Price Breakdown List */
+        .price-breakdown {
+            background: white;
+            border-left: 4px solid #10b981;
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .price-breakdown ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .price-breakdown li {
+            padding: 0.375rem 0;
+            color: #374151;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .price-breakdown li strong {
+            color: #047857;
+            font-weight: 600;
+        }
+
+        .savings-badge {
+            background: #dc2626;
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.3);
+        }
+
+        /* Features Section */
+        .features-section {
+            margin: 1rem 0;
+        }
+
+        /* Removed duplicate feature-list styles - using the ones above */
+
+        /* Removed duplicate opportunities-section - using the one above */
+
+        /* Suggestions Section */
+        .suggestions-section {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+        }
+
+        .suggestions-header {
+            color: #0369a1;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .suggestions-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.625rem;
+        }
+
+        .suggestion-chip-llm {
+            background: white;
+            border: 2px solid #38bdf8;
+            border-radius: 9999px;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0369a1;
+            cursor: pointer;
+            min-height: 44px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
+        }
+
+        .suggestion-chip-llm:hover {
+            background: #0ea5e9;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+        }
+
+        .suggestion-chip-llm:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
+        }
+
+        /* Price Section */
+        .price-section {
+            margin: 1rem 0;
+        }
+
+        /* Response Text */
+        .response-text {
+            color: #4b5563;
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           FOLLOW-UP QUESTIONS
+           ============================================ */
+        .follow-up-questions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .follow-up-btn {
+            padding: 9px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .follow-up-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            transform: translateY(-1px);
+        }
+
+        /* ============================================
+           CHAT INPUT
+           ============================================ */
+        .chat-input-container {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-light);
+            padding: 20px 24px;
+        }
+
+        .chat-input-wrapper {
+            max-width: 740px;
+            margin: 0 auto;
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            transition: all 0.2s;
+            line-height: 1.4;
+        }
+
+        .chat-input-field:focus {
+            border-color: var(--fabric-terracotta);
+            background: var(--bg-secondary);
+        }
+
+        .chat-send-btn {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           TYPING INDICATOR
+           ============================================ */
+        .typing-indicator {
+            /* Inherits message styling when using message class */
+        }
+
+        .typing-indicator.active {
+            /* Active state handled by message class */
+        }
+
+        .typing-animation {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .header-orb-logo {
+            width: 54px;
+            height: 54px;
+            flex-shrink: 0;
+        }
+
+        .typing-text {
+            color: var(--text-tertiary);
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        /* ============================================
+           RESPONSIVE DESIGN
+           ============================================ */
+        @media (max-width: 768px) {
+            .welcome-heading {
+                font-size: 36px;
+            }
+
+            .follow-up-questions {
+                gap: 6px;
+            }
+
+            .follow-up-btn {
+                font-size: 12px;
+                padding: 8px 12px;
+            }
+
+            .chat-messages {
+                padding: 20px 16px;
+            }
+
+            .landing-container {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .welcome-heading {
+                font-size: 28px;
+            }
+
+            .welcome-subheading {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Access Code Overlay -->
+    <div class="access-overlay" id="accessOverlay">
+        <div class="access-card">
+            <img src="orbgif.gif" alt="British Made AI" class="access-logo">
+            <h1 class="access-title">Welcome to British Made AI</h1>
+            <p class="access-subtitle">Please enter your access code to continue</p>
+            <input
+                type="text"
+                class="access-input"
+                id="accessInput"
+                placeholder="ENTER CODE"
+                maxlength="10"
+                autocomplete="off"
+                spellcheck="false"
+            >
+            <button class="access-button" onclick="checkAccessCode()">
+                Access Pricing Assistant
+            </button>
+            <div class="access-error" id="accessError">
+                Incorrect access code. Please try again.
+            </div>
+            <div class="access-hint">
+                For pricing tool access, please contact Swap
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ================================================================
+    HEADER WITH ULTRA FABRIC ORB
+    ================================================================
+    -->
+    <header class="header">
+        <a href="https://britishmade.ai" class="header-left" title="Go to main site">
+            <!-- Animated orb GIF logo -->
+            <div class="header-orb-logo">
+                <img src="orbgif.gif" alt="Logo" style="width: 54px; height: 54px; border-radius: 50%;">
+            </div>
+            <div class="brand-info">
+                <div class="brand-name">Sofas & Stuff</div>
+                <div class="brand-tagline">Pricing Assistant</div>
+            </div>
+        </a>
+        <button class="new-conversation-btn" onclick="resetToLanding()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Conversation
+        </button>
+    </header>
+
+    <!--
+    ================================================================
+    LANDING PAGE
+    ================================================================
+    -->
+    <div class="landing-container" id="landingContainer">
+        <div class="welcome-section">
+            <h1 class="welcome-heading" id="welcomeHeading">How can I help with pricing today?</h1>
+            <p class="welcome-subheading">Your personal assistant for British handmade furniture</p>
+
+            <div class="search-wrapper">
+                <div class="search-container">
+                    <div class="search-inner">
+                        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            class="search-input"
+                            id="landingSearchInput"
+                            placeholder=" "
+                            autocomplete="off">
+                        <div class="animated-placeholder" id="animatedPlaceholder">
+                            <span class="placeholder-text" id="placeholderText"></span>
+                            <span class="placeholder-cursor"></span>
+                        </div>
+                        <button class="search-submit" onclick="startConversation()">Ask</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="suggestions">
+                <button class="suggestion-chip" onclick="quickSearch('Brunel 3 seater sofa pricing')">
+                    Brunel 3 seater sofa pricing
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Velvet options')">
+                    Velvet options
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Under £2000')">
+                    Under £2000
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Chesterfield')">
+                    Chesterfield
+                </button>
+                <button class="suggestion-chip" onclick="quickSearch('Pet-friendly')">
+                    Pet-friendly
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!--
+    ================================================================
+    CHAT INTERFACE
+    ================================================================
+    -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-messages" id="chatMessages">
+            <div class="messages-wrapper" id="messagesWrapper"></div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea
+                    class="chat-input-field"
+                    id="chatInput"
+                    placeholder="Ask about models, fabrics, or pricing..."
+                    rows="1"></textarea>
+                <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // CONFIGURATION
+        // ========================================
+
+        // Feature flag: Use LLM (/chat) vs Direct matching (/getPrice)
+        const USE_LLM = true;
+
+        // Backend API URL
+        const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        // Configure marked.js for GFM
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                headerIds: false,
+                mangle: false
+            });
+        }
+
+        // Session Management
+        let sessionId = null;
+        let conversationHistory = [];
+
+        /**
+         * Generates unique session ID for tracking user conversations.
+         * Format: "session_{timestamp}_{random}"
+         *
+         * @returns {string} Unique session identifier
+         */
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
+        }
+
+        /**
+         * Resets conversation state and generates new session ID.
+         * Clears message history and creates fresh session for request tracking.
+         *
+         * @returns {void}
+         */
+        function resetConversation() {
+            conversationHistory = [];
+            sessionId = generateSessionId();
+            console.log('[Frontend] Conversation reset. New session:', sessionId);
+        }
+
+        // Initialize session
+        sessionId = generateSessionId();
+        console.log('[Frontend] Session initialized:', sessionId);
+
+        // ========================================
+        // FETCH WITH TIMEOUT UTILITY
+        // ========================================
+
+        /**
+         * Fetch with timeout using AbortController.
+         * Prevents infinite waiting if backend is slow or unresponsive.
+         *
+         * @param {string} url - URL to fetch
+         * @param {object} options - Fetch options
+         * @param {number} timeout - Timeout in milliseconds (default 30000 = 30s)
+         * @returns {Promise<Response>}
+         * @throws {Error} If request times out or network fails
+         */
+        async function fetchWithTimeout(url, options = {}, timeout = 30000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error(`Request timed out after ${timeout/1000} seconds. The server may be experiencing high load. Please try again.`);
+                }
+                throw error;
+            }
+        }
+
+        /**
+         * Fetch with automatic retry and exponential backoff.
+         * Retries on network errors and 5xx server errors, but not on 4xx client errors.
+         * Automatically injects X-Request-ID header for request tracing.
+         *
+         * @param {string} url - URL to fetch
+         * @param {object} options - Fetch options
+         * @param {number} maxRetries - Maximum number of retry attempts (default 3)
+         * @param {number} timeout - Timeout per attempt in milliseconds (default 30000)
+         * @returns {Promise<Response>}
+         * @throws {Error} If all retries fail
+         *
+         * Retry strategy:
+         * - Attempt 1: Immediate
+         * - Attempt 2: After 1 second
+         * - Attempt 3: After 2 seconds (total 3s delay)
+         * - Attempt 4: After 4 seconds (total 7s delay)
+         *
+         * Example delays with maxRetries=3:
+         * Try 1 → fail → wait 1s → Try 2 → fail → wait 2s → Try 3 → fail → throw
+         */
+        async function fetchWithRetry(url, options = {}, maxRetries = 3, timeout = 30000) {
+            let lastError;
+
+            // Inject request ID header for backend correlation
+            const optionsWithRequestId = {
+                ...options,
+                headers: {
+                    ...(options.headers || {}),
+                    'X-Request-ID': sessionId
+                }
+            };
+
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    console.log(`[Fetch:${sessionId.substring(8, 16)}] Attempt ${attempt}/${maxRetries} to ${url.split('/').pop()}`);
+
+                    const response = await fetchWithTimeout(url, optionsWithRequestId, timeout);
+
+                    // SUCCESS - check if we should retry based on status
+                    if (response.ok) {
+                        if (attempt > 1) {
+                            console.log(`[Fetch] ✅ Success on attempt ${attempt}`);
+                        }
+                        return response;
+                    }
+
+                    // Got a response, but not OK
+                    // Don't retry on 4xx errors (client fault)
+                    if (response.status >= 400 && response.status < 500) {
+                        console.log(`[Fetch] ❌ Client error ${response.status}, not retrying`);
+                        return response; // Return error response, don't retry
+                    }
+
+                    // 5xx server error - should retry
+                    console.warn(`[Fetch] Server error ${response.status}, will retry`);
+                    lastError = new Error(`Server error: ${response.status}`);
+
+                } catch (error) {
+                    console.warn(`[Fetch] Attempt ${attempt} failed:`, error.message);
+                    lastError = error;
+
+                    // Don't retry if this was a client-side issue (invalid URL, etc.)
+                    if (error.message.includes('Failed to fetch') ||
+                        error.message.includes('Network request failed') ||
+                        error.message.includes('timed out')) {
+                        // Network/timeout errors - should retry
+                    } else {
+                        // Other errors (invalid URL, CORS, etc.) - don't retry
+                        throw error;
+                    }
+                }
+
+                // If not last attempt, wait before retrying (exponential backoff)
+                if (attempt < maxRetries) {
+                    const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 8000); // 1s, 2s, 4s, max 8s
+                    console.log(`[Fetch] ⏳ Waiting ${delayMs}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                }
+            }
+
+            // All retries exhausted
+            console.error(`[Fetch] ❌ All ${maxRetries} attempts failed`);
+            throw lastError || new Error(`Request failed after ${maxRetries} attempts`);
+        }
+
+        // ========================================
+        // LANDING PAGE LOGIC
+        // ========================================
+
+        const welcomeMessages = [
+            "How can I help with pricing today?",
+            "Ready to check a price for your client?",
+            "What pricing information do you need?",
+            "Let's find that price quickly",
+            "Which model shall we price up?",
+            "Need a quick price check?",
+            "Looking up pricing for a client?",
+            "What configuration are we pricing?",
+            "Ready to assist with pricing",
+            "Which sofa pricing do you need?"
+        ];
+
+        const timeBasedGreetings = {
+            morning: [
+                "Good morning! What pricing do you need?",
+                "Morning! Ready for today's consultations?",
+                "Starting the day - what can I price?"
+            ],
+            afternoon: [
+                "Good afternoon! Need a price check?",
+                "Afternoon! What are we pricing?",
+                "Busy afternoon? Let me help with pricing"
+            ],
+            evening: [
+                "Good evening! Still helping clients?",
+                "Evening consultation? I'll find that price",
+                "Late showing? Let's get that pricing"
+            ]
+        };
+
+        const placeholderExamples = [
+            "Brunel 3 seater sofa in Two Tone Plain Biscuit",
+            "Midhurst snuggler in House Wool Sky",
+            "Show all velvet fabric options under £2500",
+            "Petworth 2 seater in pet-friendly fabric",
+            "Chesterfield corner sofa configurations",
+            "Aldingbourne bed in neutral linen blend"
+        ];
+
+        let currentPlaceholderIndex = 0;
+        let placeholderInterval;
+        let typingTimeout;
+        let isTyping = false;
+
+        function typewriterEffect() {
+            const placeholderText = document.getElementById('placeholderText');
+            const placeholderCursor = document.querySelector('.placeholder-cursor');
+            const currentText = placeholderExamples[currentPlaceholderIndex];
+
+            if (isTyping) return;
+            isTyping = true;
+
+            // Clear existing text with backspace effect
+            let existingText = placeholderText.textContent;
+
+            // Delete text word by word
+            function deleteText() {
+                if (existingText.length > 0) {
+                    // Find the last space to delete word by word
+                    let lastSpaceIndex = existingText.lastIndexOf(' ');
+                    if (lastSpaceIndex === -1) {
+                        // No more spaces, clear everything
+                        placeholderText.textContent = '';
+                    } else {
+                        // Delete to the last space
+                        placeholderText.textContent = existingText.substring(0, lastSpaceIndex);
+                    }
+                    existingText = placeholderText.textContent;
+
+                    if (existingText.length > 0) {
+                        typingTimeout = setTimeout(deleteText, 100); // 100ms between word deletions
+                    } else {
+                        // Start typing new text
+                        typeNewText();
+                    }
+                } else {
+                    typeNewText();
+                }
+            }
+
+            // Type new text letter by letter
+            let newCharIndex = 0;
+            function typeNewText() {
+                if (newCharIndex < currentText.length) {
+                    placeholderText.textContent = currentText.substring(0, newCharIndex + 1);
+                    newCharIndex++;
+                    typingTimeout = setTimeout(typeNewText, 30 + Math.random() * 20); // Keep letter-by-letter typing
+                } else {
+                    // Pause before next example
+                    isTyping = false;
+                    currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderExamples.length;
+                    typingTimeout = setTimeout(typewriterEffect, 1000); // 1 second pause as requested
+                }
+            }
+
+            // Start the animation
+            if (existingText.length > 0) {
+                deleteText();
+            } else {
+                typeNewText();
+            }
+        }
+
+        function getTimeOfDay() {
+            const hour = new Date().getHours();
+            if (hour < 12) return 'morning';
+            if (hour < 18) return 'afternoon';
+            return 'evening';
+        }
+
+        function setRandomWelcomeMessage() {
+            const heading = document.getElementById('welcomeHeading');
+            const timeOfDay = getTimeOfDay();
+            const useTimeGreeting = Math.random() > 0.6;
+
+            let message;
+            if (useTimeGreeting && timeBasedGreetings[timeOfDay]) {
+                const greetings = timeBasedGreetings[timeOfDay];
+                message = greetings[Math.floor(Math.random() * greetings.length)];
+            } else {
+                message = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+            }
+
+            heading.textContent = message;
+        }
+
+        function saveSearch(query) {
+            const recent = JSON.parse(localStorage.getItem('ssPricingSearches') || '[]');
+            recent.unshift(query);
+            const unique = [...new Set(recent)].slice(0, 10);
+            localStorage.setItem('ssPricingSearches', JSON.stringify(unique));
+        }
+
+        function resetToLanding() {
+            document.getElementById('landingContainer').classList.remove('hidden');
+            document.getElementById('chatContainer').classList.remove('active');
+            document.getElementById('landingSearchInput').value = '';
+            document.getElementById('landingSearchInput').focus();
+            setRandomWelcomeMessage();
+
+            // Reset conversation
+            resetConversation();
+            document.getElementById('messagesWrapper').innerHTML = '';
+        }
+
+        function startConversation() {
+            const input = document.getElementById('landingSearchInput');
+            const query = input.value.trim();
+
+            if (!query) {
+                input.focus();
+                return;
+            }
+
+            saveSearch(query);
+
+            document.getElementById('landingContainer').classList.add('hidden');
+            document.getElementById('chatContainer').classList.add('active');
+
+            document.getElementById('messagesWrapper').innerHTML = '';
+
+            addMessage('user', query);
+            showTypingIndicator();
+
+            // Send to backend
+            processMessage(query);
+        }
+
+        function quickSearch(query) {
+            document.getElementById('landingSearchInput').value = query;
+            startConversation();
+        }
+
+        // ========================================
+        // ANALYTICS AND TELEMETRY SYSTEM
+        // ========================================
+
+        // ========================================
+        // SIMPLIFIED ANALYTICS - v2.0 (CLEANED UP)
+        // ========================================
+        // Removed 500+ lines of bloat. Keeping only what's actually used:
+        // - events[] for debug history
+        // - p1Errors for error tracking
+        // - sessionId for session continuity
+        // + Enhanced debug tracking (Option A) for Claude collaboration
+
+        const Analytics = {
+            sessionId: null,
+            events: [],
+            p1Errors: {
+                noPriceErrors: [],
+                totalCount: 0,
+                lastOccurred: null
+            },
+            maxEvents: 500, // Keep last 500 events only
+
+            // === OPTION A: ENHANCED DEBUG TRACKING ===
+            // Comprehensive tracking for effective Claude debugging
+            debugData: {
+                fullResponses: [], // Complete query/response pairs
+                toolCalls: [],     // All tool invocations with args/results
+                apiCalls: [],      // Backend API request/response logs
+                errorStacks: [],   // Errors with full stack traces
+                maxDebugItems: 100 // Keep last 100 of each type
+            },
+
+            init() {
+                this.sessionId = localStorage.getItem('sessionId') || this.generateSessionId();
+                localStorage.setItem('sessionId', this.sessionId);
+                this.loadData();
+
+                // Auto-save every 30s
+                setInterval(() => this.saveData(), 30000);
+
+                // Save on page unload
+                window.addEventListener('beforeunload', () => this.saveData());
+
+                console.log('[Analytics] Initialized - Session:', this.sessionId);
+            },
+
+            // === CORE TRACKING ===
+
+            track(eventName, data = {}) {
+                const event = {
+                    name: eventName,
+                    timestamp: Date.now(),
+                    data: { ...data, sessionId: this.sessionId }
+                };
+
+                this.events.push(event);
+
+                // Keep only last maxEvents
+                if (this.events.length > this.maxEvents) {
+                    this.events = this.events.slice(-this.maxEvents);
+                }
+
+                // Special handling for P1 errors
+                if (eventName === 'p1_error') {
+                    this.p1Errors.noPriceErrors.push({
+                        timestamp: Date.now(),
+                        query: data.query,
+                        error: data.error || data.message,
+                        sessionId: this.sessionId
+                    });
+                    this.p1Errors.totalCount++;
+                    this.p1Errors.lastOccurred = Date.now();
+                }
+
+                this.saveData();
+                console.log('[Analytics]', eventName, data);
+            },
+
+            trackFeedback(messageId, feedback, responseContent) {
+                this.track('feedback', {
+                    messageId,
+                    feedback,
+                    responseContent: responseContent.substring(0, 500)
+                });
+            },
+
+            // === OPTION A: ENHANCED DEBUG TRACKING ===
+
+            trackFullResponse(query, response, metadata = {}) {
+                const fullResponseData = {
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId,
+                    query: query,
+                    response: response,
+                    metadata: {
+                        responseTime: metadata.responseTime || null,
+                        hasPrice: response.includes('£'),
+                        priceCount: (response.match(/£[\d,]+/g) || []).length,
+                        responseLength: response.length,
+                        ...metadata
+                    }
+                };
+
+                this.debugData.fullResponses.push(fullResponseData);
+
+                // Keep only last 100
+                if (this.debugData.fullResponses.length > this.debugData.maxDebugItems) {
+                    this.debugData.fullResponses = this.debugData.fullResponses.slice(-this.debugData.maxDebugItems);
+                }
+
+                // Check for P1 error (no price returned)
+                if (!fullResponseData.metadata.hasPrice && query && !query.includes('health check')) {
+                    this.track('p1_error', {
+                        query: query,
+                        message: 'No price returned in response',
+                        responsePreview: response.substring(0, 200)
+                    });
+                }
+
+                this.saveData();
+            },
+
+            trackToolCall(toolName, args, result, statusCode) {
+                const toolCallData = {
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId,
+                    toolName: toolName,
+                    arguments: args,
+                    result: result,
+                    statusCode: statusCode,
+                    success: statusCode >= 200 && statusCode < 400
+                };
+
+                this.debugData.toolCalls.push(toolCallData);
+
+                // Keep only last 100
+                if (this.debugData.toolCalls.length > this.debugData.maxDebugItems) {
+                    this.debugData.toolCalls = this.debugData.toolCalls.slice(-this.debugData.maxDebugItems);
+                }
+
+                this.saveData();
+                console.log('[Analytics] Tool call:', toolName, 'Status:', statusCode);
+            },
+
+            trackAPICall(endpoint, request, response, httpCode) {
+                const apiCallData = {
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId,
+                    endpoint: endpoint,
+                    request: request,
+                    response: response,
+                    httpCode: httpCode,
+                    success: httpCode >= 200 && httpCode < 400
+                };
+
+                this.debugData.apiCalls.push(apiCallData);
+
+                // Keep only last 100
+                if (this.debugData.apiCalls.length > this.debugData.maxDebugItems) {
+                    this.debugData.apiCalls = this.debugData.apiCalls.slice(-this.debugData.maxDebugItems);
+                }
+
+                // Track errors
+                if (httpCode >= 400) {
+                    this.track('api_error', {
+                        endpoint: endpoint,
+                        httpCode: httpCode,
+                        error: response.error || 'Unknown error'
+                    });
+                }
+
+                this.saveData();
+            },
+
+            trackErrorWithStack(error, context = {}) {
+                // Enhanced error context capture for easier debugging
+                const errorData = {
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId,
+                    requestId: sessionId ? sessionId.substring(sessionId.length - 8) : 'unknown',
+                    message: error.message || error.toString(),
+                    stack: error.stack || 'No stack trace available',
+                    context: context,
+                    type: error.name || 'Error',
+
+                    // Environment context
+                    environment: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        online: navigator.onLine,
+                        cookieEnabled: navigator.cookieEnabled,
+                        viewportWidth: window.innerWidth,
+                        viewportHeight: window.innerHeight,
+                        url: window.location.href,
+                        referrer: document.referrer || 'direct'
+                    },
+
+                    // Storage availability
+                    storage: {
+                        localStorage: typeof(Storage) !== "undefined",
+                        quotaExceeded: false  // Will be set if storage error
+                    }
+                };
+
+                // Check if error is quota exceeded
+                if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
+                    errorData.storage.quotaExceeded = true;
+                }
+
+                this.debugData.errorStacks.push(errorData);
+
+                // Keep only last 100
+                if (this.debugData.errorStacks.length > this.debugData.maxDebugItems) {
+                    this.debugData.errorStacks = this.debugData.errorStacks.slice(-this.debugData.maxDebugItems);
+                }
+
+                // Also track as regular error event
+                this.track('error', {
+                    message: errorData.message,
+                    type: errorData.type,
+                    context: context
+                });
+
+                this.saveData();
+                console.error('[Analytics] Error:', error, 'Context:', context);
+            },
+
+            // === DATA PERSISTENCE ===
+
+            saveData() {
+                try {
+                    const data = {
+                        events: this.events,
+                        p1Errors: this.p1Errors,
+                        debugData: this.debugData,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('analyticsComprehensive', JSON.stringify(data));
+                    localStorage.setItem('analyticsEvents', JSON.stringify(this.events));
+                } catch (e) {
+                    console.error('[Analytics] Save failed:', e);
+                }
+            },
+
+            loadData() {
+                try {
+                    const saved = localStorage.getItem('analyticsComprehensive');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        this.events = data.events || [];
+                        this.p1Errors = data.p1Errors || { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        this.debugData = data.debugData || {
+                            fullResponses: [],
+                            toolCalls: [],
+                            apiCalls: [],
+                            errorStacks: [],
+                            maxDebugItems: 100
+                        };
+                        console.log('[Analytics] Loaded data from', new Date(data.timestamp).toISOString());
+                    } else {
+                        // Legacy support
+                        const legacyEvents = localStorage.getItem('analyticsEvents');
+                        if (legacyEvents) {
+                            this.events = JSON.parse(legacyEvents);
+                            console.log('[Analytics] Loaded legacy events');
+                        }
+                    }
+                } catch (e) {
+                    console.error('[Analytics] Load failed:', e);
+                }
+            },
+
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+        };
+
+        // Initialize analytics on page load
+        window.addEventListener('load', () => Analytics.init());
+
+        // ========================================
+        // ACCESS CONTROL
+        // ========================================
+
+        const ACCESS_CODE = 'SOFAS25';
+        const AUTH_KEY = 'britishmade_authenticated';
+
+        function checkAuthentication() {
+            // Check if user is authenticated in session
+            const isAuthenticated = sessionStorage.getItem(AUTH_KEY);
+            const accessOverlay = document.getElementById('accessOverlay');
+
+            if (isAuthenticated === 'true') {
+                // User is authenticated, hide overlay
+                accessOverlay.classList.add('hidden');
+            } else {
+                // User needs to authenticate
+                accessOverlay.classList.remove('hidden');
+                document.getElementById('accessInput').focus();
+            }
+        }
+
+        function checkAccessCode() {
+            const input = document.getElementById('accessInput');
+            const errorMsg = document.getElementById('accessError');
+            const overlay = document.getElementById('accessOverlay');
+
+            const enteredCode = input.value.toUpperCase().trim();
+
+            if (enteredCode === ACCESS_CODE) {
+                // Correct code
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                overlay.classList.add('hidden');
+                errorMsg.classList.remove('show');
+                input.classList.remove('error');
+                input.value = '';
+
+                // Track successful login
+                Analytics.track('access_granted', { timestamp: new Date().toISOString() });
+            } else {
+                // Incorrect code
+                input.classList.add('error');
+                errorMsg.classList.add('show');
+
+                // Track failed attempt
+                Analytics.track('access_denied', {
+                    attemptedCode: enteredCode,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Clear after animation
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    input.value = '';
+                    input.focus();
+                }, 500);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('DOMContentLoaded', () => {
+            const accessInput = document.getElementById('accessInput');
+            if (accessInput) {
+                accessInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAccessCode();
+                    }
+                });
+            }
+
+            // Check authentication on page load
+            checkAuthentication();
+        });
+
+        // ========================================
+        // CHAT INTERFACE LOGIC
+        // ========================================
+
+        let messageIdCounter = 0;
+
+        /**
+         * Adds message bubble to chat interface.
+         *
+         * Creates and appends formatted message element with:
+         * - User messages: Simple text with timestamp
+         * - Assistant messages: Formatted HTML, avatar, feedback buttons
+         *
+         * @param {string} type - Message type: 'user' or 'assistant'
+         * @param {string} content - Message content (raw text or markdown)
+         * @returns {void}
+         */
+        function addMessage(type, content) {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const message = document.createElement('div');
+            const messageId = `msg-${++messageIdCounter}`;
+            message.className = `message ${type}`;
+            message.setAttribute('data-message-id', messageId);
+
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+
+            if (type === 'user') {
+                message.innerHTML = `
+                    <div class="message-wrapper">
+                        <div class="message-header">
+                            <span class="message-author">You</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content">${escapeHtml(content)}</div>
+                    </div>
+                `;
+            } else {
+                // Assistant message with ultra fabric orb and feedback buttons
+                const formattedContent = USE_LLM
+                    ? formatLLMResponse(content)
+                    : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;
+
+                message.innerHTML = `
+                    <div class="message-avatar">
+                        <img src="orbgif.gif" alt="Assistant" style="width: 100%; height: 100%; border-radius: 50%;">
+                    </div>
+                    <div class="message-wrapper" style="position: relative;">
+                        <div class="message-header">
+                            <span class="message-author">Assistant</span>
+                            <span class="message-time">${time}</span>
+                        </div>
+                        <div class="message-content llm-response">
+                            ${formattedContent}
+                        </div>
+                        <div class="message-feedback">
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'positive')" title="Good response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                            </button>
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'negative')" title="Poor response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Track the response with enhanced debug tracking
+                const responseTime = Date.now() - window.lastQueryTime || 0;
+                Analytics.track('llm_response', { responseTime, responseLength: content.length });
+                Analytics.trackFullResponse(window.currentQuery || '', content, { responseTime });
+            }
+
+            messagesWrapper.appendChild(message);
+            scrollToBottom();
+        }
+
+        function provideFeedback(messageId, feedback) {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            const feedbackBtns = messageElement.querySelectorAll('.feedback-btn');
+
+            // Remove all active classes
+            feedbackBtns.forEach(btn => {
+                btn.classList.remove('active-positive', 'active-negative');
+            });
+
+            // Add active class to clicked button
+            if (feedback === 'positive') {
+                feedbackBtns[0].classList.add('active-positive');
+            } else {
+                feedbackBtns[1].classList.add('active-negative');
+            }
+
+            // Track the feedback
+            const responseContent = messageElement.querySelector('.message-content').innerText;
+            Analytics.trackFeedback(messageId, feedback, responseContent);
+
+            // Show confirmation
+            console.log(`[Feedback] ${feedback} for message ${messageId}`);
+        }
+
+        /**
+         * Escapes HTML special characters to prevent XSS attacks.
+         * Converts <, >, &, ", ' to their HTML entity equivalents.
+         *
+         * @param {string} text - Text to escape
+         * @returns {string} HTML-safe escaped text
+         */
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        /**
+         * Parse markdown in a single line of text
+         * @param {string} text - Text with markdown syntax
+         * @returns {string} HTML with markdown rendered
+         */
+        /**
+         * Helper: Parse markdown in a single line
+         */
+        function parseMarkdown(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/_(.+?)_/g, '<em>$1</em>')
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        }
+
+        /**
+         * Formats LLM markdown response into structured HTML.
+         *
+         * Parses LLM-generated markdown into clean HTML with:
+         * - Price display with currency formatting
+         * - Clickable product suggestions
+         * - Opportunity chips for related queries
+         * - Properly formatted lists and sections
+         *
+         * Falls back to plain text if parsing fails.
+         *
+         * @param {string} content - Raw markdown content from LLM
+         * @returns {string} Formatted HTML string ready for display
+         * @throws {Error} Logs error to Analytics but returns safe fallback
+         */
+        function formatLLMResponse(content) {
+            try {
+                let html = '';
+                const lines = content.split('\n');
+                let currentSection = '';
+                let suggestions = [];
+                let features = [];
+                let opportunities = [];
+                let priceShown = false;  // Track if we've already shown a price
+                let hasStructuredContent = false; // Track if response has our expected format
+
+            // Check if content has our expected format
+            hasStructuredContent = content.includes('### 💰') ||
+                                  content.includes('### ✨') ||
+                                  content.includes('### 🎯') ||
+                                  content.includes('### 💬');
+
+            // If no structured content, parse markdown manually (simple, reliable)
+            if (!hasStructuredContent) {
+                console.log('[LLM Response] No structured format, parsing markdown manually');
+
+                // Simple markdown parser - ONE code path, no dependencies
+                // Bold: **text** -> <strong>text</strong>
+                let parsed = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+                // Italic: _text_ -> <em>text</em>
+                parsed = parsed.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+                // Links: [text](url) -> <a href="url">text</a>
+                parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+                // Build HTML
+                html = '<div class="llm-suggestion-response">';
+                const paragraphs = parsed.split('\n\n');
+
+                for (let para of paragraphs) {
+                    para = para.trim();
+                    if (!para) continue;
+
+                    // Headers
+                    if (para.startsWith('###')) {
+                        html += `<h3 style="margin: 15px 0 10px 0; font-weight: 600;">${para.replace(/^###\s*/, '')}</h3>`;
+                        continue;
+                    }
+
+                    // Paragraphs
+                    html += `<p style="margin: 10px 0;">${para.replace(/\n/g, '<br>')}</p>`;
+                }
+
+                html += '</div>';
+                console.log('[SUCCESS] Markdown parsed');
+                return html;
+            }
+
+            // Helper function to build a product card
+            function buildProductCard(productName, fabricInfo, mainPrice, priceItems, description) {
+                if (!productName && !mainPrice) return '';
+
+                let cardHtml = '<div class="pricing-card">';
+
+                // Header with product name and price
+                cardHtml += '<div class="pricing-card-header">';
+                cardHtml += '<div class="pricing-card-title-section">';
+
+                // If no product name but we have price items, use first item as title
+                if (!productName && priceItems.length > 0) {
+                    cardHtml += `<div class="pricing-card-title">${escapeHtml(priceItems[0].label)}</div>`;
+                } else if (productName) {
+                    cardHtml += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
+                }
+
+                if (fabricInfo) {
+                    cardHtml += `<div class="pricing-card-subtitle">${escapeHtml(fabricInfo)}</div>`;
+                }
+                cardHtml += '</div>';
+                cardHtml += '<div class="pricing-card-price">';
+                cardHtml += '<div class="pricing-card-price-label">CLIENT PRICE</div>';
+                cardHtml += `<div class="pricing-card-price-amount">£${mainPrice}</div>`;
+                cardHtml += '</div>';
+                cardHtml += '</div>';
+
+                // Price breakdown if items exist
+                if (priceItems.length > 0) {
+                    cardHtml += '<div class="pricing-breakdown">';
+                    priceItems.forEach((item, index) => {
+                        const isTotal = item.label.toLowerCase().includes('total');
+                        cardHtml += `<div class="pricing-breakdown-row ${isTotal ? 'total' : ''}">`;
+                        cardHtml += `<span class="pricing-breakdown-label">${escapeHtml(item.label)}</span>`;
+                        cardHtml += `<span class="pricing-breakdown-value ${isTotal ? 'highlight' : ''}">£${item.value}</span>`;
+                        cardHtml += '</div>';
+                    });
+                    cardHtml += '</div>';
+                }
+
+                // Description
+                if (description && description.trim()) {
+                    cardHtml += `<div class="pricing-card-description">${parseMarkdown(description.trim())}</div>`;
+                }
+
+                cardHtml += '</div>'; // Close pricing-card
+                return cardHtml;
+            }
+
+            // Track all products (for multi-product responses)
+            let products = [];
+            let currentProduct = {
+                name: '',
+                fabric: '',
+                price: '',
+                items: [],
+                description: ''
+            };
+
+            // Process structured response
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+
+                // Section headers
+                if (line.startsWith('### 💰')) {
+                    currentSection = 'price';
+                    continue;
+                } else if (line.startsWith('### ✨')) {
+                    currentSection = 'features';
+                    continue;
+                } else if (line.startsWith('### 🎯')) {
+                    currentSection = 'opportunities';
+                    continue;
+                } else if (line.startsWith('### 💬')) {
+                    currentSection = 'suggestions';
+                    continue;
+                }
+
+                // Product name from #### header (multi-product responses like "under 2000")
+                // Handle this BEFORE section-specific logic since #### appears in intro text
+                if (line.startsWith('####')) {
+                    // Save previous product if it has data
+                    if (currentProduct.name || currentProduct.price) {
+                        products.push({...currentProduct});
+                        // Reset for new product
+                        currentProduct = { name: '', fabric: '', price: '', items: [], description: '' };
+                    }
+
+                    const name = line.replace(/^####\s*/, '');
+                    if (name.includes(' in ')) {
+                        const parts = name.split(' in ');
+                        currentProduct.name = parts[0];
+                        currentProduct.fabric = parts[1];
+                    } else {
+                        currentProduct.name = name;
+                    }
+                    continue;
+                }
+
+                // Price that appears right after #### header (before any emoji sections)
+                if (!currentSection && line.startsWith('**£') && line.endsWith('**')) {
+                    const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    if (priceMatch) {
+                        currentProduct.price = priceMatch[1];
+                    }
+                    continue;
+                }
+
+                // Description text that appears between products (before emoji sections)
+                if (!currentSection && !line.startsWith('#') && !line.startsWith('**£')) {
+                    if (currentProduct.name || currentProduct.price) {
+                        currentProduct.description += line + ' ';
+                    } else {
+                        // Intro text before any products
+                        html += `<p class="response-text">${parseMarkdown(line)}</p>`;
+                    }
+                    continue;
+                }
+
+                // Handle different sections - COLLECT DATA
+                if (currentSection === 'price') {
+                    // Product name: **Product Name in Fabric** (single-product format)
+                    if (line.startsWith('**') && line.endsWith('**') && !line.includes('£')) {
+                        // Save previous product if exists
+                        if (currentProduct.name || currentProduct.price) {
+                            products.push({...currentProduct});
+                            currentProduct = { name: '', fabric: '', price: '', items: [], description: '' };
+                        }
+
+                        const name = line.replace(/\*\*/g, '');
+                        if (name.includes(' in ')) {
+                            const parts = name.split(' in ');
+                            currentProduct.name = parts[0];
+                            currentProduct.fabric = parts[1];
+                        } else {
+                            currentProduct.name = name;
+                        }
+                        continue;
+                    }
+
+                    // Main price: **£1,095**
+                    if (line.startsWith('**£') && line.endsWith('**') && !line.includes('Total')) {
+                        const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                        if (priceMatch && !currentProduct.price) {
+                            currentProduct.price = priceMatch[1];
+                        }
+                        continue;
+                    }
+
+                    // Price breakdown items: • Base product: £895
+                    if (line.startsWith('•') && line.includes('£')) {
+                        const itemMatch = line.match(/•\s*(.+?):\s*£([\d,]+)/);
+                        if (itemMatch) {
+                            currentProduct.items.push({ label: itemMatch[1], value: itemMatch[2] });
+                        }
+                        continue;
+                    }
+
+                    // Total line: Total: **£1,095**
+                    if (line.toLowerCase().includes('total') && line.includes('£')) {
+                        const totalMatch = line.match(/£([\d,]+)/);
+                        if (totalMatch) {
+                            currentProduct.price = totalMatch[1]; // Override with total if present
+                        }
+                        continue;
+                    }
+
+                    // Description text
+                    if (!line.includes('£') && !line.startsWith('**') && !line.startsWith('•')) {
+                        currentProduct.description += line + ' ';
+                    }
+                }
+                else if (currentSection === 'features') {
+                    // Feature bullet points - parse markdown
+                    if (line.startsWith('-') || line.startsWith('•')) {
+                        const featureText = line.substring(1).trim();
+                        features.push(parseMarkdown(featureText));
+                    }
+                }
+                else if (currentSection === 'opportunities') {
+                    if (line.startsWith('>')) {
+                        const text = line.substring(1).trim();
+                        opportunities.push(text);
+                    }
+                }
+                else if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
+                    suggestions.push(line.substring(1).trim());
+                }
+            }
+
+            // Save the final product if it has data
+            if (currentProduct.name || currentProduct.price) {
+                products.push({...currentProduct});
+            }
+
+            // BUILD CARDS FOR ALL PRODUCTS
+            products.forEach(product => {
+                html += buildProductCard(
+                    product.name,
+                    product.fabric,
+                    product.price,
+                    product.items,
+                    product.description
+                );
+            });
+
+            // Add opportunities section ONLY for single-product queries
+            // For multi-product results (like "under 2000"), opportunities don't make sense
+            if (opportunities.length > 0 && products.length === 1) {
+                html += '<div class="opportunities-section">';
+                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
+                opportunities.forEach(opp => {
+                    const parsedOpp = parseMarkdown(opp);
+                    const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
+                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')" style="flex: 1; min-width: 200px;">${parsedOpp}</button>`;
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+            // Add suggestion chips
+            if (suggestions.length > 0) {
+                html += '<div class="suggestion-chips-container" style="margin-top: 20px;">';
+                html += '<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Other related questions?</div>';
+                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
+                suggestions.forEach(suggestion => {
+                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')" style="padding: 8px 16px;">${escapeHtml(suggestion)}</button>`;
+                });
+                html += '</div>';
+                html += '</div>';
+            }
+
+                return html || `<p class="response-text">${escapeHtml(content)}</p>`;
+            } catch (error) {
+                // CRITICAL: If markdown parsing fails, fallback to plain text display
+                console.error('[ERROR] formatLLMResponse failed:', error);
+                Analytics.trackErrorWithStack(error, {
+                    function: 'formatLLMResponse',
+                    contentLength: content ? content.length : 0,
+                    contentPreview: content ? content.substring(0, 100) : 'null'
+                });
+                // Return safe fallback - escaped plain text with line breaks
+                return `<p class="response-text" style="white-space: pre-wrap;">${escapeHtml(content || 'Error rendering response')}</p>`;
+            }
+        }
+
+        /**
+         * Handles clicks on product suggestion chips.
+         * Populates input with suggestion and submits query automatically.
+         *
+         * @param {string} suggestionText - Product name suggestion to query
+         * @returns {void}
+         */
+        function handleSuggestionClick(suggestionText) {
+            console.log('[CLICK] Suggestion clicked:', suggestionText);
+            Analytics.track('query', { query: suggestionText, source: 'suggestion' });
+            document.getElementById('chatInput').value = suggestionText;
+            sendChatMessage();
+        }
+
+        /**
+         * Handles clicks on opportunity/upsell chips.
+         * Creates followup query to add suggested item to current selection.
+         *
+         * @param {string} opportunityText - Opportunity text (e.g., "Cushions", "Ottoman")
+         * @returns {void}
+         */
+        function handleOpportunityClick(opportunityText) {
+            console.log('[CLICK] Opportunity clicked:', opportunityText);
+
+            // Extract item name: "Add matching footstool - From £495" → "footstool"
+            let itemName = opportunityText.toLowerCase();
+            itemName = itemName.replace(/^add\s+(matching\s+)?/i, '');  // Remove "Add" / "Add matching"
+            itemName = itemName.replace(/\s*-.*$/,'');  // Remove " - From £495" suffix
+            itemName = itemName.trim();
+
+            // Track the opportunity click
+            Analytics.track('opportunity_click', { opportunity: itemName });
+
+            // Create query to get combined price: "with footstool"
+            // Backend will use conversation context to combine with current product
+            let query = `with ${itemName}`;
+            Analytics.track('query', { query: query, source: 'opportunity' });
+            document.getElementById('chatInput').value = query;
+            sendChatMessage();
+        }
+
+        /**
+         * Processes user message and fetches pricing response.
+         *
+         * Main query processing function that:
+         * - Routes to LLM chat endpoint or direct getPrice endpoint based on USE_LLM flag
+         * - Manages conversation history for multi-turn chats
+         * - Handles automatic retries on transient failures
+         * - Tracks errors and analytics events
+         * - Displays responses with formatted HTML
+         *
+         * @async
+         * @param {string} message - User's pricing query
+         * @returns {Promise<void>}
+         * @throws {Error} Displays error message to user and logs to Analytics
+         */
+        async function processMessage(message) {
+            // Store current query globally for tracking
+            window.currentQuery = message;
+
+            // Performance timing tracking
+            // Timing tracking removed for simplicity
+
+            try {
+                if (USE_LLM) {
+                    // LLM PATH
+                    conversationHistory.push({
+                        role: 'user',
+                        content: message
+                    });
+
+                    console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
+
+                    // Use fetchWithRetry for automatic retry on transient failures
+                    const response = await fetchWithRetry(`${BACKEND_API_URL}/chat`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            messages: conversationHistory,
+                            session_id: sessionId
+                        })
+                    }, 3, 30000);  // 3 retries, 30s timeout per attempt
+
+                    const data = await response.json();
+
+                    hideTypingIndicator();
+
+                    // Handle rate limiting (429)
+                    if (response.status === 429) {
+                        const retryAfter = data.details?.retry_after_seconds || 60;
+                        const limitType = data.details?.limit_type || 'unknown';
+
+                        addMessage('assistant',
+                            `⏸️ **Rate limit reached**\n\n` +
+                            `${data.error || "You're making requests too quickly."}\n\n` +
+                            `Please wait ${retryAfter} seconds before trying again.\n\n` +
+                            `_Limit type: ${limitType}_`
+                        );
+
+                        console.warn('[Rate Limit] Backend rate limit hit:', data);
+                        Analytics.track('rate_limit_backend', {
+                            limit_type: limitType,
+                            retry_after: retryAfter,
+                            error_code: data.error_code
+                        });
+
+                        conversationHistory.pop(); // Remove the failed query
+                        return;
+                    }
+
+                    if (response.ok && data.response) {
+                        // Log the raw response for debugging
+                        console.log('[LLM Response]:', data.response.substring(0, 200) + '...');
+
+                        addMessage('assistant', data.response);
+
+                        conversationHistory.push({
+                            role: 'assistant',
+                            content: data.response
+                        });
+
+                        // Only track as P1 error if response doesn't contain a price AND doesn't contain helpful guidance
+                        const hasPrice = data.response.includes('£') && data.response.includes('### 💰');
+                        const hasHelpfulContent = data.response.includes('Did you mean') ||
+                                                 data.response.includes('Let me') ||
+                                                 data.response.includes('I found') ||
+                                                 data.response.includes('Here are') ||
+                                                 data.response.includes('available');
+
+                        if (!hasPrice && !hasHelpfulContent && message.toLowerCase().includes('price')) {
+                            console.warn('[LLM Response] No price or helpful content for price query');
+                            Analytics.track('llm_no_price', {
+                                query: message,
+                                response: data.response.substring(0, 200)
+                            });
+                        }
+
+                        if (data.metadata) {
+                            console.log('[Frontend] LLM Response metadata:', {
+                                tokens: data.metadata.tokens,
+                                iterations: data.metadata.iterations,
+                                model: data.metadata.model
+                            });
+                        }
+
+                    } else if (data.error) {
+                        // Log and track LLM chat errors
+                        console.error('[LLM Chat Error]:', data.error);
+
+                        // Track as P1 error - LLM failed to return price
+                        Analytics.track('p1_error', {
+                            type: 'llm_chat_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'LLM chat failed to return price'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'LLM_CHAT_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
+                        addMessage('assistant',
+                            "Sorry, I encountered an issue processing your request.\n\n" +
+                            (data.details ? `Details: ${data.details}` : "Please try again or rephrase your question.")
+                        );
+                        conversationHistory.pop();
+                    } else {
+                        addMessage('assistant', "Hmm, something unexpected happened. Please try again.");
+                        conversationHistory.pop();
+                    }
+
+                } else {
+                    // NON-LLM PATH
+                    const lowerMessage = message.toLowerCase().trim();
+                    const greetings = ['hello', 'hi', 'hey', 'help', 'what can you do'];
+                    if (greetings.some(g => lowerMessage === g || lowerMessage.startsWith(g + ' '))) {
+                        hideTypingIndicator();
+                        addMessage('assistant',
+                            "Hi! I'm your Sofas & Stuff pricing assistant. I can help you find prices for our products.\n\n" +
+                            "Try asking me something like:\n" +
+                            "• \"alwinton snuggler pacific\"\n" +
+                            "• \"aldingbourne snuggler waves\"\n" +
+                            "• \"rye snuggler pacific\"\n\n" +
+                            "Format: product name + size + color"
+                        );
+                        return;
+                    }
+
+                    // Use fetchWithRetry for automatic retry on transient failures
+                    const response = await fetchWithRetry(`${BACKEND_API_URL}/getPrice`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ query: message })
+                    }, 3, 30000);  // 3 retries, 30s timeout per attempt
+
+                    const data = await response.json();
+                    hideTypingIndicator();
+
+                    // Handle rate limiting (429)
+                    if (response.status === 429) {
+                        const retryAfter = data.details?.retry_after_seconds || 60;
+                        const limitType = data.details?.limit_type || 'unknown';
+
+                        addMessage('assistant',
+                            `⏸️ **Rate limit reached**\n\n` +
+                            `${data.error || "You're making requests too quickly."}\n\n` +
+                            `Please wait ${retryAfter} seconds before trying again.\n\n` +
+                            `_Limit type: ${limitType}_`
+                        );
+
+                        console.warn('[Rate Limit] Backend rate limit hit:', data);
+                        Analytics.track('rate_limit_backend', {
+                            limit_type: limitType,
+                            retry_after: retryAfter,
+                            error_code: data.error_code
+                        });
+
+                        return;
+                    }
+
+                    if (response.ok && data.price) {
+                        const responseText = formatPriceResponse(data);
+                        addMessage('assistant', responseText);
+                    } else if (data.error) {
+                        // Log backend error
+                        console.error('[Direct Price Error]:', data.error);
+
+                        // Track as P1 error
+                        Analytics.track('p1_error', {
+                            type: 'direct_price_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'Direct price query failed'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'DIRECT_PRICE_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
+                        let helpfulError = "I couldn't find that exact product.\n\n";
+
+                        // Provide specific guidance based on error type
+                        if (data.error.includes('Product not found')) {
+                            helpfulError = "❌ **Product not recognized**\n\n";
+                            helpfulError += "Available products: Alwinton, Midhurst, Petworth, Chesterfield, Aldingbourne\n\n";
+                            helpfulError += "Check spelling carefully!";
+                        } else if (data.error.includes('Fabric not found')) {
+                            helpfulError = "❌ **Fabric/color not found**\n\n";
+                            helpfulError += "Common fabrics: Sussex (Plain/Weave), House (Plain/Wool/Weave)\n";
+                            helpfulError += "Common colors: Pacific, Sky, Waves, Mink, Stone, Duck Egg";
+                        } else if (data.error.includes('Ambiguous')) {
+                            helpfulError = "❓ **Multiple matches found**\n\n" + data.error;
+                        } else if (lowerMessage.length > 3) {
+                            helpfulError += "💡 Try:\n" +
+                                "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
+                                "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
+                                "• Include fabric/color (e.g., 'pacific', 'waves', 'velvet')\n\n";
+                        }
+
+                        helpfulError += "Popular products: Alwinton, Aldingbourne, Stockbridge, Saltdean";
+
+                        addMessage('assistant', helpfulError);
+                    } else {
+                        addMessage('assistant',
+                            "Hmm, I'm not sure about that.\n\n" +
+                            "I work best when you give me:\n" +
+                            "• Product name (e.g., Alwinton)\n" +
+                            "• Size (e.g., 3 seater, snuggler)\n" +
+                            "• Fabric (e.g., Sussex Plain, Velvet)"
+                        );
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+
+                // Track as P1 error
+                Analytics.track('p1_error', {
+                    type: 'api_failure',
+                    query: message,
+                    error: error.message,
+                    severity: 'P1',
+                    message: 'API call failed completely'
+                });
+
+                addMessage('assistant', 'Sorry, I encountered a connection error. Please try again.');
+
+                // Track the error with full stack trace
+                Analytics.trackErrorWithStack(error, {
+                    endpoint: USE_LLM ? '/chat' : '/getPrice',
+                    query: message
+                });
+
+                if (USE_LLM && conversationHistory.length > 0 &&
+                    conversationHistory[conversationHistory.length - 1].role === 'user') {
+                    conversationHistory.pop();
+                }
+            }
+        }
+
+        function formatPriceResponse(data) {
+            if (!data.price) {
+                return "I couldn't find pricing for that. Could you try specifying the product, size, and fabric?";
+            }
+
+            let response = '';
+
+            if (data.productName && data.price) {
+                response = `${data.productName}\n`;
+                response += `💷 Price: ${data.price}`;
+            }
+
+            if (data.oldPrice) {
+                response += ` (was ${data.oldPrice})`;
+            }
+
+            if (data.fabricName) {
+                response += `\n\n🎨 Fabric: ${data.fabricName}`;
+            }
+
+            if (data.fabricDetails && data.fabricDetails.tier) {
+                response += ` (${data.fabricDetails.tier})`;
+            }
+
+            return response;
+        }
+
+        function sendChatMessage(text) {
+            const chatInput = document.getElementById('chatInput');
+            const message = text || chatInput.value.trim();
+
+            if (!message) return;
+
+            // Client-side rate limiting (v2.5.0 Phase 4)
+            // Prevent accidental spam - max 20 requests per minute
+            if (!window.requestTimestamps) {
+                window.requestTimestamps = [];
+            }
+
+            const now = Date.now();
+            const oneMinuteAgo = now - 60000;
+
+            // Clean old timestamps
+            window.requestTimestamps = window.requestTimestamps.filter(ts => ts > oneMinuteAgo);
+
+            // Check limit (20 per minute client-side, backend allows 30)
+            if (window.requestTimestamps.length >= 20) {
+                const oldestRequest = Math.min(...window.requestTimestamps);
+                const retryAfter = Math.ceil((oldestRequest + 60000 - now) / 1000);
+
+                addMessage('assistant',
+                    `⏸️ **Please slow down**\n\n` +
+                    `You're sending requests too quickly. Please wait ${retryAfter} seconds before trying again.\n\n` +
+                    `This helps us keep costs under control and ensures good service for everyone.`
+                );
+
+                console.warn('[Rate Limit] Client-side rate limit hit (20 req/min)');
+                Analytics.track('rate_limit_client', { requests_in_window: window.requestTimestamps.length });
+                return;
+            }
+
+            // Record this request
+            window.requestTimestamps.push(now);
+
+            // Track query if typed by user
+            if (!text) {
+                Analytics.track('query', { query: message, source: 'typed' });
+            }
+
+            window.lastQueryTime = Date.now();
+            addMessage('user', message);
+
+            if (!text) {
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+
+            showTypingIndicator();
+            processMessage(message);
+        }
+
+        // British thinking messages
+        const thinkingMessages = [
+            "Putting the kettle on...",
+            "Having a think over tea...",
+            "Just a tick...",
+            "Having a proper look...",
+            "Popping to the warehouse...",
+            "Checking fabric swatches...",
+            "Measuring the dimensions...",
+            "Consulting the workshop...",
+            "Fluffing the cushions...",
+            "Right, let me check...",
+            "Reviewing the catalogue...",
+            "Doing the maths...",
+            "Working it out properly...",
+            "Testing the springs...",
+            "Asking the upholsterers..."
+        ];
+
+        function showTypingIndicator() {
+            const messagesWrapper = document.getElementById('messagesWrapper');
+            const indicator = document.createElement('div');
+            indicator.className = 'message assistant typing-indicator active';
+            indicator.id = 'typingIndicator';
+
+            const time = new Date().toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+
+            // Pick a random thinking message
+            const randomMessage = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
+
+            indicator.innerHTML = `
+                <div class="message-avatar">
+                    <img src="orbgif.gif" alt="Assistant" style="width: 100%; height: 100%; border-radius: 50%;">
+                </div>
+                <div class="message-wrapper">
+                    <div class="message-header">
+                        <span class="message-author">Assistant</span>
+                        <span class="message-time">${time}</span>
+                    </div>
+                    <div class="typing-text">
+                        <em>${randomMessage}</em>
+                    </div>
+                </div>
+            `;
+            messagesWrapper.appendChild(indicator);
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // ========================================
+        // EVENT LISTENERS
+        // ========================================
+
+        const chatInput = document.getElementById('chatInput');
+        const landingInput = document.getElementById('landingSearchInput');
+        const placeholderText = document.getElementById('placeholderText');
+
+        placeholderText.style.transition = 'opacity 0.3s ease';
+
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendChatMessage();
+            }
+        });
+
+        landingInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                startConversation();
+            }
+        });
+
+        landingInput.addEventListener('focus', () => {
+            clearTimeout(typingTimeout);
+            isTyping = false;
+            placeholderText.style.opacity = '0';
+        });
+
+        landingInput.addEventListener('blur', () => {
+            if (!landingInput.value) {
+                placeholderText.style.opacity = '1';
+                placeholderText.textContent = ''; // Start fresh
+                typewriterEffect(); // Start typewriter effect
+            }
+        });
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setRandomWelcomeMessage();
+            const placeholderText = document.getElementById('placeholderText');
+            if (placeholderText) {
+                placeholderText.textContent = ''; // Start with empty
+                // Start typewriter effect immediately when DOM is ready
+                typewriterEffect();
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(typingTimeout);
+        });
+    </script>
+</body>
+</html>
