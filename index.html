@@ -452,7 +452,7 @@
             align-items: center;
             gap: 8px;
             padding: 8px 16px;
-            background: linear-gradient(135deg, #667EEA, #764BA2);
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -464,7 +464,7 @@
 
         .new-conversation-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.25);
         }
 
         .new-conversation-btn svg {
@@ -957,18 +957,29 @@
             margin: 20px 0;
         }
 
-        .opportunity-item {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-light);
+        /* Opportunity buttons - same style as suggestion chips */
+        .opportunity-button {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            color: var(--text-secondary);
             font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+            text-align: left;
+        }
+
+        .opportunity-button:hover {
+            background: white;
+            border: 1px solid var(--border-medium);
             color: var(--text-primary);
         }
 
-        .opportunity-item:last-child {
-            border-bottom: none;
-        }
-
-        .opportunity-item strong {
+        .opportunity-button strong {
             color: var(--fabric-terracotta);
         }
 
@@ -1179,21 +1190,7 @@
             box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
         }
 
-        .opportunity-item {
-            background: white;
-            border-left: 4px solid #8b5cf6;
-            padding: 0.75rem 1rem;
-            margin: 0.625rem 0;
-            border-radius: 0.5rem;
-            color: #581c87;
-            font-size: 0.875rem;
-            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
-        }
-
-        .opportunity-item strong {
-            color: #6b21a8;
-            font-weight: 600;
-        }
+        /* Removed duplicate opportunity-item styles - now using opportunity-button */
 
         /* Suggestions Section */
         .suggestions-section {
@@ -1792,7 +1789,7 @@
 
         /**
          * Format LLM response into clean, minimal HTML
-         * VERSION: COMPREHENSIVE PARSER WITH CLEAN DESIGN
+         * VERSION: COMPREHENSIVE PARSER WITH CLICKABLE OPPORTUNITIES
          */
         function formatLLMResponse(content) {
             let html = '';
@@ -1801,6 +1798,7 @@
             let suggestions = [];
             let features = [];
             let opportunities = [];
+            let priceShown = false;  // Track if we've already shown a price
 
             for (let line of lines) {
                 line = line.trim();
@@ -1823,8 +1821,8 @@
 
                 // Handle different sections
                 if (currentSection === 'price') {
-                    // Product name (bold text)
-                    if (line.startsWith('**') && line.endsWith('**')) {
+                    // Product name (bold text) - show first product only
+                    if (!priceShown && line.startsWith('**') && line.endsWith('**')) {
                         const productName = line.replace(/\*\*/g, '');
                         if (productName.includes(' in ')) {
                             const parts = productName.split(' in ');
@@ -1833,11 +1831,12 @@
                         } else {
                             html += `<h3 class="product-title">${escapeHtml(productName)}</h3>`;
                         }
+                        priceShown = true;
                         continue;
                     }
 
-                    // Price with strikethrough
-                    if (line.includes('~~£') && line.includes('**£')) {
+                    // Price with strikethrough - show first price only
+                    if (!priceShown && line.includes('~~£') && line.includes('**£')) {
                         const oldMatch = line.match(/~~£([\d,]+)~~/);
                         const newMatch = line.match(/\*\*£([\d,]+)\*\*/);
                         const saveMatch = line.match(/Save £([\d,]+)/);
@@ -1850,17 +1849,19 @@
                                 html += `<span class="savings-text">Save £${saveMatch[1]}!</span>`;
                             }
                             html += '</div>';
+                            priceShown = true;
                         }
                         continue;
                     }
                 }
-                else if (currentSection === 'features' && (line.startsWith('•') || line.startsWith('-'))) {
-                    features.push(line.substring(1).trim());
+                else if (currentSection === 'features' && (line.startsWith('•') || line.startsWith('-') || line.startsWith('✓'))) {
+                    // Remove any leading checkmarks to avoid duplication
+                    let feature = line.replace(/^[•\-✓]\s*/, '').trim();
+                    features.push(feature);
                 }
                 else if (currentSection === 'opportunities') {
                     if (line.startsWith('>')) {
-                        const text = line.substring(1).trim()
-                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        const text = line.substring(1).trim();
                         opportunities.push(text);
                     }
                 }
@@ -1885,13 +1886,17 @@
                 html += '</div>';
             }
 
-            // Add opportunities section
+            // Add opportunities section as clickable buttons
             if (opportunities.length > 0) {
                 html += '<div class="opportunities-section">';
                 html += '<h4 class="section-title">🎯 Opportunities to Enhance</h4>';
+                html += '<div class="chips-wrapper">';
                 opportunities.forEach(opp => {
-                    html += `<div class="opportunity-item">${opp}</div>`;
+                    // Parse the opportunity text and make it clickable
+                    const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
+                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')">${opp.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</button>`;
                 });
+                html += '</div>';
                 html += '</div>';
             }
 
@@ -1913,6 +1918,14 @@
         function handleSuggestionClick(suggestionText) {
             console.log('[CLICK] Suggestion clicked:', suggestionText);
             document.getElementById('chatInput').value = suggestionText;
+            sendChatMessage();
+        }
+
+        function handleOpportunityClick(opportunityText) {
+            console.log('[CLICK] Opportunity clicked:', opportunityText);
+            // Build a query that adds the opportunity to the current configuration
+            let query = `Add ${opportunityText} to my current selection`;
+            document.getElementById('chatInput').value = query;
             sendChatMessage();
         }
 
