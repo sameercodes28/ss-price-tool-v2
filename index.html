@@ -2715,59 +2715,51 @@
                     continue;
                 }
 
-                // Handle different sections
+                // Handle different sections - COLLECT DATA
                 if (currentSection === 'price') {
-                    // Product name (bold text) - could be "Product Name in Fabric Name"
+                    // Product name: **Product Name in Fabric**
                     if (line.startsWith('**') && line.endsWith('**') && !line.includes('£')) {
-                        const productName = line.replace(/\*\*/g, '');
-                        if (productName.includes(' in ')) {
-                            const parts = productName.split(' in ');
-                            html += `<h3 class="product-title">${escapeHtml(parts[0])}</h3>`;
-                            html += `<p class="product-specs">in ${escapeHtml(parts[1])}</p>`;
+                        const name = line.replace(/\*\*/g, '');
+                        if (name.includes(' in ')) {
+                            const parts = name.split(' in ');
+                            productName = parts[0];
+                            fabricInfo = parts[1];
                         } else {
-                            html += `<h3 class="product-title">${escapeHtml(productName)}</h3>`;
+                            productName = name;
                         }
                         continue;
                     }
 
-                    // Main price display - **£PRICE**
-                    if (line.startsWith('**£') && line.endsWith('**')) {
+                    // Main price: **£1,095**
+                    if (line.startsWith('**£') && line.endsWith('**') && !line.includes('Total')) {
                         const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                        if (priceMatch && !priceShown) {
-                            html += '<div class="main-price-display">';
-                            html += `<span class="price-amount">£${priceMatch[1]}</span>`;
-                            html += '</div>';
-                            priceShown = true;
+                        if (priceMatch && !mainPrice) {
+                            mainPrice = priceMatch[1];
                         }
                         continue;
                     }
 
-                    // Handle price breakdown for added items
-                    if (line.includes('Total:') && line.includes('£')) {
-                        const totalMatch = line.match(/Total:.*£([\d,]+)/);
-                        if (totalMatch) {
-                            html += '<div class="main-price-display">';
-                            html += '<span class="price-label" style="display: block;">TOTAL</span>';
-                            html += `<span class="price-amount">£${totalMatch[1]}</span>`;
-                            html += '</div>';
-                            priceShown = true;
-                        }
-                        continue;
-                    }
-
-                    // Handle breakdown items
-                    if (currentSection === 'price' && line.includes('•') && line.includes('£')) {
+                    // Price breakdown items: • Base product: £895
+                    if (line.startsWith('•') && line.includes('£')) {
                         const itemMatch = line.match(/•\s*(.+?):\s*£([\d,]+)/);
                         if (itemMatch) {
-                            html += `<div class="price-breakdown-item">• ${escapeHtml(itemMatch[1])}: £${itemMatch[2]}</div>`;
+                            priceItems.push({ label: itemMatch[1], value: itemMatch[2] });
                         }
                         continue;
                     }
 
-                    // Other content in price section (parse markdown first, then escape)
-                    if (!line.includes('£') && !line.startsWith('**')) {
-                        html += `<p class="response-text">${parseMarkdown(line)}</p>`;
+                    // Total line: Total: **£1,095**
+                    if (line.toLowerCase().includes('total') && line.includes('£')) {
+                        const totalMatch = line.match(/£([\d,]+)/);
+                        if (totalMatch) {
+                            mainPrice = totalMatch[1]; // Override with total if present
+                        }
                         continue;
+                    }
+
+                    // Description text
+                    if (!line.includes('£') && !line.startsWith('**') && !line.startsWith('•')) {
+                        description += line + ' ';
                     }
                 }
                 else if (currentSection === 'features') {
@@ -2792,27 +2784,54 @@
                 }
             }
 
+            // BUILD CARD-BASED HTML
+            if (productName && mainPrice) {
+                // Main pricing card
+                html += '<div class="pricing-card">';
 
-            // Add features section
-            if (features.length > 0) {
-                html += '<div class="features-section" style="margin: 15px 0;">';
-                html += '<h4 class="section-title" style="margin-bottom: 10px;">✨ Features</h4>';
-                features.forEach(feature => {
-                    html += `<div class="feature-item" style="margin: 5px 0;">• ${feature}</div>`;
-                });
+                // Header with product name and price
+                html += '<div class="pricing-card-header">';
+                html += '<div class="pricing-card-title-section">';
+                html += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
+                if (fabricInfo) {
+                    html += `<div class="pricing-card-subtitle">${escapeHtml(fabricInfo)}</div>`;
+                }
                 html += '</div>';
+                html += '<div class="pricing-card-price">';
+                html += '<div class="pricing-card-price-label">CLIENT PRICE</div>';
+                html += `<div class="pricing-card-price-amount">£${mainPrice}</div>`;
+                html += '</div>';
+                html += '</div>';
+
+                // Price breakdown if items exist
+                if (priceItems.length > 0) {
+                    html += '<div class="pricing-breakdown">';
+                    priceItems.forEach((item, index) => {
+                        const isTotal = item.label.toLowerCase().includes('total');
+                        html += `<div class="pricing-breakdown-row ${isTotal ? 'total' : ''}">`;
+                        html += `<span class="pricing-breakdown-label">${escapeHtml(item.label)}</span>`;
+                        html += `<span class="pricing-breakdown-value ${isTotal ? 'highlight' : ''}">£${item.value}</span>`;
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Description
+                if (description.trim()) {
+                    html += `<div class="pricing-card-description">${parseMarkdown(description.trim())}</div>`;
+                }
+
+                html += '</div>'; // Close pricing-card
             }
 
             // Add opportunities section as clickable buttons
             if (opportunities.length > 0) {
                 html += '<div class="opportunities-section">';
-                html += '<h4 class="section-title">🎯 Opportunities to Enhance</h4>';
-                html += '<div class="chips-wrapper">';
+                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
                 opportunities.forEach(opp => {
-                    // Parse markdown in opportunity text
                     const parsedOpp = parseMarkdown(opp);
                     const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
-                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')">${parsedOpp}</button>`;
+                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')" style="flex: 1; min-width: 200px;">${parsedOpp}</button>`;
                 });
                 html += '</div>';
                 html += '</div>';
@@ -2820,11 +2839,10 @@
 
             // Add suggestion chips
             if (suggestions.length > 0) {
-                html += '<div class="suggestion-chips-container">';
-                html += '<h4 class="section-title">💬 What next?</h4>';
-                html += '<div class="chips-wrapper">';
+                html += '<div class="suggestion-chips-container" style="margin-top: 16px;">';
+                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
                 suggestions.forEach(suggestion => {
-                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')">${escapeHtml(suggestion)}</button>`;
+                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')" style="padding: 8px 16px;">${escapeHtml(suggestion)}</button>`;
                 });
                 html += '</div>';
                 html += '</div>';
