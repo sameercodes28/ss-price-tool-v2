@@ -2785,14 +2785,23 @@
             }
 
             // BUILD CARD-BASED HTML
-            if (productName && mainPrice) {
+            // Show card if we have either a product name OR price items (for combined pricing)
+            if (productName || (priceItems.length > 0 && mainPrice)) {
                 // Main pricing card
                 html += '<div class="pricing-card">';
 
                 // Header with product name and price
                 html += '<div class="pricing-card-header">';
                 html += '<div class="pricing-card-title-section">';
-                html += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
+
+                // If no product name but we have price items, use first item as title
+                if (!productName && priceItems.length > 0) {
+                    // For combined pricing, show first item as title
+                    html += `<div class="pricing-card-title">${escapeHtml(priceItems[0].label)}</div>`;
+                } else if (productName) {
+                    html += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
+                }
+
                 if (fabricInfo) {
                     html += `<div class="pricing-card-subtitle">${escapeHtml(fabricInfo)}</div>`;
                 }
@@ -2839,7 +2848,8 @@
 
             // Add suggestion chips
             if (suggestions.length > 0) {
-                html += '<div class="suggestion-chips-container" style="margin-top: 16px;">';
+                html += '<div class="suggestion-chips-container" style="margin-top: 20px;">';
+                html += '<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Other related questions?</div>';
                 html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
                 suggestions.forEach(suggestion => {
                     html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')" style="padding: 8px 16px;">${escapeHtml(suggestion)}</button>`;
