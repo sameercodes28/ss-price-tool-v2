@@ -2505,6 +2505,21 @@
         }
 
         /**
+         * Parse markdown in a single line of text
+         * @param {string} text - Text with markdown syntax
+         * @returns {string} HTML with markdown rendered
+         */
+        function parseMarkdown(text) {
+            // Bold: **text** -> <strong>text</strong>
+            let parsed = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            // Italic: _text_ -> <em>text</em>
+            parsed = parsed.replace(/_([^_]+)_/g, '<em>$1</em>');
+            // Links: [text](url) -> <a href="url" target="_blank">text</a>
+            parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            return parsed;
+        }
+
+        /**
          * Formats LLM markdown response into structured HTML.
          *
          * Parses LLM-generated markdown into clean HTML with:
@@ -2521,12 +2536,6 @@
          */
         function formatLLMResponse(content) {
             try {
-                // FIRST: Parse ALL markdown in the content (before any other processing)
-                // This ensures **bold**, _italic_, [links]() work in both structured and unstructured responses
-                content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-                content = content.replace(/_([^_]+)_/g, '<em>$1</em>');
-                content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-
                 let html = '';
                 const lines = content.split('\n');
                 let currentSection = '';
@@ -2588,6 +2597,9 @@
                 if (line.startsWith('### 💰')) {
                     currentSection = 'price';
                     continue;
+                } else if (line.startsWith('### ✨')) {
+                    currentSection = 'features';
+                    continue;
                 } else if (line.startsWith('### 🎯')) {
                     currentSection = 'opportunities';
                     continue;
@@ -2644,6 +2656,19 @@
                         }
                         continue;
                     }
+
+                    // Other content in price section (parse markdown first, then escape)
+                    if (!line.includes('£') && !line.startsWith('**')) {
+                        html += `<p class="response-text">${parseMarkdown(line)}</p>`;
+                        continue;
+                    }
+                }
+                else if (currentSection === 'features') {
+                    // Feature bullet points - parse markdown
+                    if (line.startsWith('-') || line.startsWith('•')) {
+                        const featureText = line.substring(1).trim();
+                        features.push(parseMarkdown(featureText));
+                    }
                 }
                 else if (currentSection === 'opportunities') {
                     if (line.startsWith('>')) {
@@ -2655,11 +2680,21 @@
                     suggestions.push(line.substring(1).trim());
                 }
                 else if (!currentSection && !line.startsWith('#')) {
-                    // Regular paragraph text
-                    html += `<p class="response-text">${escapeHtml(line)}</p>`;
+                    // Regular paragraph text - parse markdown first
+                    html += `<p class="response-text">${parseMarkdown(line)}</p>`;
                 }
             }
 
+
+            // Add features section
+            if (features.length > 0) {
+                html += '<div class="features-section" style="margin: 15px 0;">';
+                html += '<h4 class="section-title" style="margin-bottom: 10px;">✨ Features</h4>';
+                features.forEach(feature => {
+                    html += `<div class="feature-item" style="margin: 5px 0;">• ${feature}</div>`;
+                });
+                html += '</div>';
+            }
 
             // Add opportunities section as clickable buttons
             if (opportunities.length > 0) {
@@ -2667,9 +2702,10 @@
                 html += '<h4 class="section-title">🎯 Opportunities to Enhance</h4>';
                 html += '<div class="chips-wrapper">';
                 opportunities.forEach(opp => {
-                    // Parse the opportunity text and make it clickable
+                    // Parse markdown in opportunity text
+                    const parsedOpp = parseMarkdown(opp);
                     const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
-                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')">${opp.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</button>`;
+                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')">${parsedOpp}</button>`;
                 });
                 html += '</div>';
                 html += '</div>';
