@@ -1,6 +1,6 @@
 # Sofas & Stuff Voice Price Check Tool - v2
 
-**Version:** 2.3.1 (Hallucination-Proof)
+**Version:** 2.4.0 (Lean & Debug-Ready)
 **Status:** 🚀 **PRODUCTION** - Intelligent LLM-Powered Assistant (Hallucination-Safe)
 **Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
 **Last Updated:** November 3, 2025
@@ -24,6 +24,14 @@ An AI-powered conversational assistant for Sofas & Stuff salespeople. This v2 ve
 - [x] Multi-turn conversation context (maintains conversation history)
 - [x] OpenRouter API integration for Grok-4 access
 - [x] Feature flag architecture (can toggle LLM on/off)
+
+### ✅ v2.4.0 Complete - Telemetry Cleanup & Debug Enhancement
+- [x] **Removed 488 lines of bloat** (66% reduction in Analytics code)
+- [x] **Deleted 10 unused tracking systems** (conversionFunnel, productPopularity, etc.)
+- [x] **Enhanced debug tracking** - Full query/response pairs, tool calls, API logs, error stacks
+- [x] **Developer debug dashboard** (debug.html) - Generate comprehensive reports for Claude debugging
+- [x] **Simplified localStorage** - Reduced from ~50KB+ to ~10KB
+- [x] **Faster page load** - Less JavaScript to parse and execute
 
 ### 🎭 Demo Polish Phase
 - [ ] Real-time streaming responses (eliminate loading dots)
@@ -193,7 +201,8 @@ If you fix a bug in v1 and want it in v2:
 ### v2 Deployments (Separate from v1)
 - **Backend:** `https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2`
 - **Frontend:** `https://britishmade.ai/`
-- **Telemetry:** `https://britishmade.ai/telemetry.html` (Password: SOFAS25)
+- **Telemetry Dashboard:** `https://britishmade.ai/telemetry.html` (Password: SOFAS25) - User monitoring
+- **Debug Dashboard:** `https://britishmade.ai/debug.html` - Developer debugging with Claude
 - **Google Cloud Project:** `sofa-project-v2` (Separate project)
 - **OpenRouter API:** Proxies requests to Grok-4 via OpenAI-compatible SDK
 
