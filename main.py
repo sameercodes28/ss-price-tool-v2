@@ -12,6 +12,9 @@ from flask import jsonify # GCF's functions_framework includes Flask for helpers
 from fuzzywuzzy import process # For fuzzy matching
 from urllib.parse import quote # For URL encoding image paths
 from openai import OpenAI # For Grok LLM integration via OpenRouter
+from google.cloud import storage # For global query tracking
+from datetime import datetime # For timestamps in query logs
+from concurrent.futures import ThreadPoolExecutor # For async logging
 
 # Import error code system (v2.5.0)
 from error_codes import create_error_response, ERROR_CODES
@@ -229,6 +232,93 @@ def load_json_file(filename):
         # Catch-all for unexpected errors
         raise RuntimeError(f"[FATAL ERROR] Could not load {filename}: {type(e).__name__}: {e}")
 
+# --- Query Logging Helper Functions (v2.5.0 Phase 5) ---
+def log_query_to_gcs(query_data):
+    """
+    Logs a query to GCS (Google Cloud Storage) in queries.json.
+
+    This function runs asynchronously in a thread pool to avoid blocking the main request.
+    Uses simple append pattern - reads existing queries, appends new one, writes back.
+
+    Args:
+        query_data (dict): Query information to log
+            - timestamp: ISO 8601 timestamp
+            - session_id: User session identifier
+            - query: The actual query text
+            - endpoint: /chat or /getPrice
+            - response_time_ms: Response time in milliseconds
+            - status: HTTP status code
+            - tokens: Token count (if /chat endpoint)
+            - error_code: Error code (if error occurred)
+
+    Side effects:
+        - Writes to gs://sofa-project-v2-analytics/queries.json
+        - Prints warning if logging fails (non-fatal)
+    """
+    if not analytics_bucket:
+        return  # GCS not initialized, skip logging
+
+    try:
+        blob = analytics_bucket.blob('queries.json')
+
+        # Read existing queries
+        try:
+            existing_data = blob.download_as_text()
+            queries = json.loads(existing_data)
+        except Exception:
+            # File doesn't exist or is corrupted, start fresh
+            queries = []
+
+        # Append new query
+        queries.append(query_data)
+
+        # Keep only last 10,000 queries to prevent file from growing too large
+        if len(queries) > 10000:
+            queries = queries[-10000:]
+
+        # Write back to GCS
+        blob.upload_from_string(
+            json.dumps(queries),
+            content_type='application/json'
+        )
+
+        print(f"[Analytics] Query logged: {query_data.get('endpoint')} - {query_data.get('query', 'N/A')[:50]}")
+
+    except Exception as e:
+        # Non-fatal - don't break the main request if logging fails
+        print(f"[WARNING] Query logging failed: {e}")
+
+def get_queries_from_gcs(limit=100, session_id=None):
+    """
+    Retrieves queries from GCS for telemetry dashboard.
+
+    Args:
+        limit (int): Maximum number of queries to return (default: 100)
+        session_id (str): Optional - filter by session ID
+
+    Returns:
+        list: List of query dictionaries, newest first
+    """
+    if not analytics_bucket:
+        return []
+
+    try:
+        blob = analytics_bucket.blob('queries.json')
+        data = blob.download_as_text()
+        queries = json.loads(data)
+
+        # Filter by session_id if provided
+        if session_id:
+            queries = [q for q in queries if q.get('session_id') == session_id]
+
+        # Sort by timestamp (newest first) and limit
+        queries.sort(key=lambda q: q.get('timestamp', ''), reverse=True)
+        return queries[:limit]
+
+    except Exception as e:
+        print(f"[ERROR] Failed to retrieve queries: {e}")
+        return []
+
 # --- Load our "Translation Dictionaries" ---
 # This happens once when the function instance starts.
 print("Loading translation dictionaries...")
@@ -258,6 +348,20 @@ if XAI_API_KEY:
     print(f"xAI client initialized with model: {GROK_MODEL}")
 else:
     print("[WARNING] XAI_API_KEY not found. Chat endpoint will not work.")
+
+# --- Setup: Global Query Tracking (v2.5.0 Phase 5) ---
+# Initialize GCS client for storing global query analytics
+try:
+    storage_client = storage.Client()
+    analytics_bucket = storage_client.bucket('sofa-project-v2-analytics')
+    print("[INFO] GCS client initialized for query tracking")
+except Exception as e:
+    storage_client = None
+    analytics_bucket = None
+    print(f"[WARNING] GCS client initialization failed: {e}. Query tracking disabled.")
+
+# Thread pool for async query logging (non-blocking)
+query_log_executor = ThreadPoolExecutor(max_workers=2)
 
 # --- System Prompt for Grok (Phase 1C) - LEAN VERSION FOR SPEED ---
 SYSTEM_PROMPT = """You are an elite sales assistant for Sofas & Stuff. Your mission: Find what the customer wants WITHOUT making them work for it.
@@ -1447,6 +1551,7 @@ def main(request):
         - GET / : Health check
         - POST /chat : Grok LLM conversational interface
         - POST /getPrice : Direct keyword-based pricing
+        - GET /queries : Retrieve global query analytics (for telemetry dashboard)
 
     Args:
         request (Flask Request): Incoming HTTP request from Google Cloud Functions
@@ -1495,9 +1600,34 @@ def main(request):
         response.headers['Retry-After'] = str(retry_after)
         return _add_cors_headers(response)
 
+    # Track request start time for analytics
+    request_start_time = time.time()
+
     # Handle the /chat endpoint (Phase 1C: Grok LLM conversations)
     if request.path == '/chat' and request.method == 'POST':
         response_data, status_code = chat_handler(request)
+
+        # Log query to GCS (async, non-blocking)
+        try:
+            data = request.get_json(silent=True)
+            messages = data.get('messages', []) if data else []
+            query_text = messages[-1].get('content', '') if messages else ''
+
+            query_log_data = {
+                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'session_id': session_id,
+                'query': query_text[:200],  # Truncate to 200 chars
+                'endpoint': '/chat',
+                'response_time_ms': int((time.time() - request_start_time) * 1000),
+                'status': status_code,
+                'tokens': response_data.get('tokens', 0),
+                'error_code': response_data.get('error_code')
+            }
+
+            query_log_executor.submit(log_query_to_gcs, query_log_data)
+        except Exception as e:
+            print(f"[WARNING] Failed to prepare query log: {e}")
+
         response = jsonify(response_data)
         response.status_code = status_code
         return _add_cors_headers(response)
@@ -1505,9 +1635,62 @@ def main(request):
     # Handle the main /getPrice endpoint (Phase 1.5: Direct keyword matching)
     if request.path == '/getPrice' and request.method == 'POST':
         response_data, status_code = get_price_logic(request)
+
+        # Log query to GCS (async, non-blocking)
+        try:
+            data = request.get_json(silent=True)
+            query_text = data.get('query', '') if data else ''
+
+            query_log_data = {
+                'timestamp': datetime.utcnow().isoformat() + 'Z',
+                'session_id': session_id,
+                'query': query_text[:200],  # Truncate to 200 chars
+                'endpoint': '/getPrice',
+                'response_time_ms': int((time.time() - request_start_time) * 1000),
+                'status': status_code,
+                'error_code': response_data.get('error_code')
+            }
+
+            query_log_executor.submit(log_query_to_gcs, query_log_data)
+        except Exception as e:
+            print(f"[WARNING] Failed to prepare query log: {e}")
+
         response = jsonify(response_data)
         response.status_code = status_code
         return _add_cors_headers(response)
+
+    # Handle the /queries endpoint for telemetry dashboard (v2.5.0 Phase 5)
+    if request.path == '/queries' and request.method == 'GET':
+        try:
+            # Parse query parameters
+            limit = int(request.args.get('limit', 100))
+            session_filter = request.args.get('session_id')
+
+            # Validate limit
+            if limit < 1 or limit > 1000:
+                limit = 100
+
+            # Fetch queries from GCS
+            queries = get_queries_from_gcs(limit=limit, session_id=session_filter)
+
+            response_data = {
+                'queries': queries,
+                'count': len(queries),
+                'limit': limit
+            }
+
+            response = jsonify(response_data)
+            response.status_code = 200
+            return _add_cors_headers(response)
+
+        except Exception as e:
+            print(f"[ERROR] /queries endpoint failed: {e}")
+            response = jsonify({
+                'error': 'Failed to retrieve queries',
+                'details': str(e)
+            })
+            response.status_code = 500
+            return _add_cors_headers(response)
 
     # Handle the root path and /health for health checks
     if (request.path == '/' or request.path == '/health') and request.method == 'GET':

@@ -445,7 +445,7 @@
 
     <!-- Query History -->
     <div class="section">
-        <h2>🔍 Query History (Last 100)</h2>
+        <h2>🌍 Global Query History (Last 100 - All Users)</h2>
         <div id="queryHistoryContainer"></div>
     </div>
 
@@ -457,7 +457,7 @@
 
     <!-- Top Queries -->
     <div class="section">
-        <h2>🔥 Most Popular Queries (Last 100)</h2>
+        <h2>🔥 Most Popular Queries Globally (All Users)</h2>
         <div id="topQueriesContainer"></div>
     </div>
 
@@ -474,11 +474,13 @@
     </div>
 
     <script>
-        function loadData() {
+        const API_BASE_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        async function loadData() {
             const now = new Date();
             document.getElementById('lastRefresh').textContent = now.toLocaleString();
 
-            // Get analytics data from localStorage
+            // Get analytics data from localStorage (for local events)
             const eventsData = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
             const comprehensiveData = JSON.parse(localStorage.getItem('analyticsComprehensive') || '{}');
             const p1Errors = comprehensiveData.p1Errors || { noPriceErrors: [], totalCount: 0 };
@@ -495,20 +497,35 @@
             // Calculate stats
             calculateStats(recent24h);
 
-            // Show query history
-            showQueryHistory(eventsData.slice().reverse().slice(0, 100));
+            // Fetch and show GLOBAL query history from backend
+            await fetchGlobalQueryHistory();
 
             // Show recent errors
             showRecentErrors(p1Errors);
 
-            // Show top queries
-            showTopQueries(eventsData);
+            // Show top queries (now includes global queries)
+            await showTopQueries();
 
             // Show user satisfaction
             showUserSatisfaction(eventsData);
 
             // Show performance insights
             showPerformanceInsights(recent24h);
+        }
+
+        async function fetchGlobalQueryHistory() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/queries?limit=100`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                showQueryHistory(data.queries || []);
+            } catch (error) {
+                console.error('Failed to fetch global queries:', error);
+                document.getElementById('queryHistoryContainer').innerHTML =
+                    '<div class="no-data">⚠️ Failed to load global query data</div>';
+            }
         }
 
         function checkAPIHealth(events24h, p1Errors) {
@@ -771,8 +788,7 @@
             }
         }
 
-        function showQueryHistory(recentEvents) {
-            const queries = recentEvents.filter(e => e.name === 'query');
+        function showQueryHistory(queries) {
             const container = document.getElementById('queryHistoryContainer');
 
             if (queries.length === 0) {
@@ -786,19 +802,33 @@
                         <tr>
                             <th>Time</th>
                             <th>Query</th>
-                            <th>Type</th>
+                            <th>Endpoint</th>
+                            <th>Response Time</th>
+                            <th>Status</th>
                             <th>Session</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${queries.map(q => `
-                            <tr>
-                                <td>${new Date(q.timestamp).toLocaleString()}</td>
-                                <td><strong>${q.data.query || 'N/A'}</strong></td>
-                                <td><span class="query-type ${q.data.source || 'typed'}">${q.data.source || 'typed'}</span></td>
-                                <td style="font-family: monospace; font-size: 12px;">${q.data.sessionId ? q.data.sessionId.substring(0, 8) : 'N/A'}</td>
-                            </tr>
-                        `).join('')}
+                        ${queries.map(q => {
+                            const timestamp = new Date(q.timestamp).toLocaleString();
+                            const query = q.query || 'N/A';
+                            const endpoint = q.endpoint || 'N/A';
+                            const responseTime = q.response_time_ms ? `${q.response_time_ms}ms` : 'N/A';
+                            const status = q.status || 'N/A';
+                            const statusClass = status >= 200 && status < 300 ? 'success' : 'error';
+                            const sessionId = q.session_id ? q.session_id.substring(0, 8) : 'N/A';
+
+                            return `
+                                <tr>
+                                    <td>${timestamp}</td>
+                                    <td><strong>${query}</strong></td>
+                                    <td><span class="query-type">${endpoint}</span></td>
+                                    <td>${responseTime}</td>
+                                    <td><span class="${statusClass}">${status}</span></td>
+                                    <td style="font-family: monospace; font-size: 12px;">${sessionId}</td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
@@ -828,54 +858,68 @@
             container.innerHTML = html;
         }
 
-        function showTopQueries(eventsData) {
+        async function showTopQueries() {
             const container = document.getElementById('topQueriesContainer');
-            const queries = eventsData.filter(e => e.name === 'query' && e.data && e.data.query);
 
-            if (queries.length === 0) {
-                container.innerHTML = '<div class="no-data">No queries yet</div>';
-                return;
-            }
+            try {
+                // Fetch global queries from backend
+                const response = await fetch(`${API_BASE_URL}/queries?limit=1000`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                const queries = data.queries || [];
 
-            // Count query frequency
-            const queryCounts = {};
-            queries.forEach(q => {
-                const query = q.data.query.toLowerCase().trim();
-                queryCounts[query] = (queryCounts[query] || 0) + 1;
-            });
+                if (queries.length === 0) {
+                    container.innerHTML = '<div class="no-data">No queries yet</div>';
+                    return;
+                }
 
-            // Sort by frequency
-            const sorted = Object.entries(queryCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 20);
+                // Count query frequency
+                const queryCounts = {};
+                queries.forEach(q => {
+                    if (q.query) {
+                        const query = q.query.toLowerCase().trim();
+                        queryCounts[query] = (queryCounts[query] || 0) + 1;
+                    }
+                });
 
-            const html = `
-                <table class="query-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Query</th>
-                            <th>Count</th>
-                            <th>% of Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${sorted.map(([query, count], idx) => `
+                // Sort by frequency
+                const sorted = Object.entries(queryCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 20);
+
+                const html = `
+                    <table class="query-table">
+                        <thead>
                             <tr>
-                                <td>${idx + 1}</td>
-                                <td><strong>${query}</strong></td>
-                                <td>${count}</td>
-                                <td>${Math.round((count / queries.length) * 100)}%</td>
+                                <th>#</th>
+                                <th>Query</th>
+                                <th>Count</th>
+                                <th>% of Total</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <p style="margin-top: 16px; color: #666; font-size: 14px;">
-                    💡 <strong>Insight:</strong> Top queries show what users want most.
-                    If a query appears frequently with errors, prioritize fixing it!
-                </p>
-            `;
-            container.innerHTML = html;
+                        </thead>
+                        <tbody>
+                            ${sorted.map(([query, count], idx) => `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td><strong>${query}</strong></td>
+                                    <td>${count}</td>
+                                    <td>${Math.round((count / queries.length) * 100)}%</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 16px; color: #666; font-size: 14px;">
+                        💡 <strong>Insight:</strong> Top queries show what users want most across ALL users globally.
+                        If a query appears frequently with errors, prioritize fixing it!
+                    </p>
+                `;
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Failed to fetch top queries:', error);
+                container.innerHTML = '<div class="no-data">⚠️ Failed to load top queries</div>';
+            }
         }
 
         function showUserSatisfaction(eventsData) {
