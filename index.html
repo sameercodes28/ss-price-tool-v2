@@ -2059,6 +2059,7 @@
                 toolCalls: [],     // All tool invocations with args/results
                 apiCalls: [],      // Backend API request/response logs
                 errorStacks: [],   // Errors with full stack traces
+                timingBreakdowns: [], // Performance timing for requests
                 maxDebugItems: 100 // Keep last 100 of each type
             },
 
@@ -2205,14 +2206,40 @@
             },
 
             trackErrorWithStack(error, context = {}) {
+                // Enhanced error context capture for easier debugging
                 const errorData = {
                     timestamp: Date.now(),
                     sessionId: this.sessionId,
+                    requestId: sessionId ? sessionId.substring(sessionId.length - 8) : 'unknown',
                     message: error.message || error.toString(),
                     stack: error.stack || 'No stack trace available',
                     context: context,
-                    type: error.name || 'Error'
+                    type: error.name || 'Error',
+
+                    // Environment context
+                    environment: {
+                        userAgent: navigator.userAgent,
+                        platform: navigator.platform,
+                        language: navigator.language,
+                        online: navigator.onLine,
+                        cookieEnabled: navigator.cookieEnabled,
+                        viewportWidth: window.innerWidth,
+                        viewportHeight: window.innerHeight,
+                        url: window.location.href,
+                        referrer: document.referrer || 'direct'
+                    },
+
+                    // Storage availability
+                    storage: {
+                        localStorage: typeof(Storage) !== "undefined",
+                        quotaExceeded: false  // Will be set if storage error
+                    }
                 };
+
+                // Check if error is quota exceeded
+                if (error.name === 'QuotaExceededError' || error.message.includes('quota')) {
+                    errorData.storage.quotaExceeded = true;
+                }
 
                 this.debugData.errorStacks.push(errorData);
 
@@ -2230,6 +2257,41 @@
 
                 this.saveData();
                 console.error('[Analytics] Error:', error, 'Context:', context);
+            },
+
+            /**
+             * Tracks timing breakdown for request/response cycles.
+             * Helps identify performance bottlenecks.
+             *
+             * @param {Object} timingData - Timing measurements
+             * @param {string} timingData.query - User query
+             * @param {number} timingData.total - Total request time (ms)
+             * @param {number} timingData.network - Network/API time (ms)
+             * @param {number} timingData.parse - Response parsing time (ms)
+             * @param {number} timingData.render - DOM rendering time (ms)
+             * @param {string} timingData.endpoint - API endpoint used
+             */
+            trackTiming(timingData) {
+                const timing = {
+                    timestamp: Date.now(),
+                    sessionId: this.sessionId,
+                    requestId: sessionId ? sessionId.substring(sessionId.length - 8) : 'unknown',
+                    ...timingData
+                };
+
+                this.debugData.timingBreakdowns.push(timing);
+
+                // Keep only last 100
+                if (this.debugData.timingBreakdowns.length > this.debugData.maxDebugItems) {
+                    this.debugData.timingBreakdowns = this.debugData.timingBreakdowns.slice(-this.debugData.maxDebugItems);
+                }
+
+                // Log slow requests (> 5 seconds)
+                if (timingData.total > 5000) {
+                    console.warn('[Performance] Slow request detected:', timingData.total + 'ms', timingData);
+                }
+
+                this.saveData();
             },
 
             // === DATA PERSISTENCE ===
@@ -2721,6 +2783,10 @@
             // Store current query globally for tracking
             window.currentQuery = message;
 
+            // Performance timing tracking
+            const timingStart = performance.now();
+            let timingNetwork = 0, timingParse = 0, timingRender = 0;
+
             try {
                 if (USE_LLM) {
                     // LLM PATH
@@ -2732,6 +2798,7 @@
                     console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
 
                     // Use fetchWithRetry for automatic retry on transient failures
+                    const fetchStart = performance.now();
                     const response = await fetchWithRetry(`${BACKEND_API_URL}/chat`, {
                         method: 'POST',
                         headers: {
@@ -2742,19 +2809,37 @@
                             session_id: sessionId
                         })
                     }, 3, 30000);  // 3 retries, 30s timeout per attempt
+                    timingNetwork = performance.now() - fetchStart;
 
+                    const parseStart = performance.now();
                     const data = await response.json();
+                    timingParse = performance.now() - parseStart;
+
                     hideTypingIndicator();
 
                     if (response.ok && data.response) {
                         // Log the raw response for debugging
                         console.log('[LLM Response]:', data.response.substring(0, 200) + '...');
 
+                        const renderStart = performance.now();
                         addMessage('assistant', data.response);
+                        timingRender = performance.now() - renderStart;
 
                         conversationHistory.push({
                             role: 'assistant',
                             content: data.response
+                        });
+
+                        // Track performance timing breakdown
+                        const timingTotal = performance.now() - timingStart;
+                        Analytics.trackTiming({
+                            query: message,
+                            total: Math.round(timingTotal),
+                            network: Math.round(timingNetwork),
+                            parse: Math.round(timingParse),
+                            render: Math.round(timingRender),
+                            endpoint: '/chat',
+                            success: true
                         });
 
                         // Only track as P1 error if response doesn't contain a price AND doesn't contain helpful guidance
