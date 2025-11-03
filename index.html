@@ -2521,6 +2521,12 @@
          */
         function formatLLMResponse(content) {
             try {
+                // FIRST: Parse ALL markdown in the content (before any other processing)
+                // This ensures **bold**, _italic_, [links]() work in both structured and unstructured responses
+                content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                content = content.replace(/_([^_]+)_/g, '<em>$1</em>');
+                content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
                 let html = '';
                 const lines = content.split('\n');
                 let currentSection = '';
