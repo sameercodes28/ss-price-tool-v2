@@ -750,7 +750,7 @@ def _build_cors_preflight_response():
     """
     response = jsonify({'message': 'CORS preflight OK'})
     response.headers.add("Access-Control-Allow-Origin", "*")
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Request-ID')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
     return response, 200
 
