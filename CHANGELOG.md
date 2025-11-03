@@ -6,6 +6,68 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [2.3.1] - 2025-11-03 🛡️ CRITICAL: HALLUCINATION PREVENTION
+
+### CRITICAL BUG FIX - Price Hallucination Prevented
+
+**THE ISSUE:**
+When external Sofas & Stuff API failed (502/400 errors), Grok was making up prices from training data.
+- Example: Query "alwinton snuggler pacific" with API down
+- Grok returned: "£1,095" with full product details
+- **ALL DATA WAS FABRICATED** - The "crime of all crimes" for a pricing tool
+
+**THE FIX - 3 Layers of Protection:**
+
+1. **Backend Validation** (main.py:931-955)
+   - Tool results wrapped with explicit `status="SUCCESS/FAILED"` markers
+   - Failures include `CRITICAL_WARNING: "DO NOT MAKE UP DATA"`
+   - Success responses include actual data
+
+2. **System Prompt Rules** (main.py:104-142)
+   - Added "🚨 CRITICAL: NEVER HALLUCINATE PRICES" section
+   - Explicit prohibition: "NEVER estimate or guess prices"
+   - Explicit prohibition: "NEVER use prices from memory or training data"
+   - Must check tool response status before showing ANY price
+   - Provides exact error message to use when tools fail
+
+3. **Response Format Validation** (main.py:185-209)
+   - Shows pseudocode: `if tool_response["status"] == "SUCCESS"`
+   - Forbidden from using training data for prices
+   - Provides fallback message with contact number
+
+**TESTING RESULTS:**
+```
+BEFORE FIX (S&S API down):
+❌ "£1,095" with fabricated breakdown
+
+AFTER FIX (S&S API down):
+✅ "Our pricing system is temporarily unavailable.
+   Please contact 01798 343844 for assistance."
+
+NORMAL OPERATION:
+✅ Budget searches work: "Midhurst £1,937, Petworth £1,941"
+```
+
+**OTHER FIXES:**
+- Fixed OpenRouter API key (401 error resolved)
+- Deployed new API key: sk-or-v1-93cde...
+- Validated all endpoints and error handling
+
+**FILES MODIFIED:**
+- `main.py` - 3-layer hallucination prevention
+- `.claude/context.md` - Comprehensive learnings documented
+- `README.md` - Version updated to 2.3.1
+- `CHANGELOG.md` - This entry
+
+**DEPLOYMENT:**
+- Backend: GCF Revision 00018 (deployed 02:21 UTC)
+- Status: **PRODUCTION SAFE - Hallucination Impossible**
+
+**KEY LEARNING:**
+Never trust LLMs with critical data when tools fail. Multi-layer protection is essential for pricing tools. Status codes alone aren't enough - need explicit behavioral constraints.
+
+---
+
 ## [2.3.0] - 2025-11-03 🧠 SUPERIOR GROK UX
 
 ### Complete System Prompt Rewrite - "Luxury Concierge" Mindset

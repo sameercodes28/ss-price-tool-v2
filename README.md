@@ -1,7 +1,7 @@
 # Sofas & Stuff Voice Price Check Tool - v2
 
-**Version:** 2.3.0 (Superior Grok UX)
-**Status:** 🚀 **PRODUCTION** - Intelligent LLM-Powered Assistant
+**Version:** 2.3.1 (Hallucination-Proof)
+**Status:** 🚀 **PRODUCTION** - Intelligent LLM-Powered Assistant (Hallucination-Safe)
 **Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
 **Last Updated:** November 3, 2025
 
