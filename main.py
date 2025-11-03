@@ -319,7 +319,7 @@ If there's a price breakdown, show components:
 
 For FAILED queries (status="FAILED"), respond with:
 
-"I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments, or contact our team directly at 01798 343844 for immediate assistance."
+"I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments."
 
 ### 🎯 Opportunities to Enhance
 

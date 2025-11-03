@@ -72,26 +72,26 @@ ERROR_CODES = {
     "E2001": {
         "name": "PRODUCT_NOT_FOUND",
         "description": "No product matched the query",
-        "user_message": "Product not found.",
-        "suggested_action": "Try searching for: 'Alwinton', 'Midhurst', 'Petworth', or 'Rye'"
+        "user_message": "I couldn't find that product. Common products include Alwinton, Midhurst, Petworth, and Rye.",
+        "suggested_action": "Try: 'How much is Alwinton snuggler?' or 'Show me Midhurst 3 seater'"
     },
     "E2002": {
         "name": "AMBIGUOUS_PRODUCT",
         "description": "Multiple products matched",
-        "user_message": "Multiple products match. Please be more specific.",
-        "suggested_action": None  # Specific suggestions provided in details
+        "user_message": "Multiple products match your query. Please be more specific.",
+        "suggested_action": "Choose one: See specific options in response above"
     },
     "E2003": {
         "name": "SIZE_NOT_FOUND",
         "description": "Size not available for product",
-        "user_message": "Size not found for this product.",
-        "suggested_action": "Try: 'snuggler', '2 seater', or '3 seater'"
+        "user_message": "That size isn't available for this product. Common sizes: Snuggler, 2 Seater, 3 Seater, 4 Seater.",
+        "suggested_action": "Try: 'Show me [product] snuggler' or 'Price for [product] 3 seater'"
     },
     "E2004": {
         "name": "FABRIC_NOT_FOUND",
         "description": "Fabric/color not found",
-        "user_message": "Fabric or color not found.",
-        "suggested_action": "Try: 'pacific', 'mink', 'waves', or 'sky'"
+        "user_message": "I couldn't find that fabric or color. Popular options: Pacific, Mink, Waves, Sky, Sussex Plain.",
+        "suggested_action": "Try: '[product] in pacific' or 'Show me blue fabrics for [product]'"
     },
     "E2005": {
         "name": "AMBIGUOUS_FABRIC",
