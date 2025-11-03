@@ -387,6 +387,21 @@ If there's a price breakdown, show components:
 • Fabric upgrade: £amount
 • Total: **£TOTAL**
 
+**For multi-product responses (search_by_budget results):**
+Show each product using the SAME format - NO #### headers:
+
+### 💰 Price
+
+**Product 1 Name in Fabric**
+**£PRICE**
+
+Brief description in 1-2 sentences.
+
+**Product 2 Name in Fabric**
+**£PRICE**
+
+Brief description in 1-2 sentences.
+
 For FAILED queries (status="FAILED"), respond with:
 
 "I apologize, but our pricing system is temporarily unavailable. Please try again in a few moments."
