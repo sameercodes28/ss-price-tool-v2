@@ -849,10 +849,17 @@ def find_best_matches(query, mapping, fuzziness=85):
     if not mapping:
         return matches
     
-    # 1. Try simple regex first (fast)
+    # 1. Try exact and prefix matching (fast and precise)
     for keyword, value in mapping.items():
+        # Exact match with word boundaries
         if re.search(r'\b' + re.escape(keyword) + r'\b', query, re.IGNORECASE):
-            confidence = 100 + len(keyword) # Prioritize exact matches
+            confidence = 100 + len(keyword)
+            matches.append((keyword, value, confidence))
+        # Prefix match: query contains start of keyword (e.g., "3 seater" matches "3 seater sofa")
+        # This allows "3 seater" to match "3 seater sofa" without fuzzy matching
+        elif re.search(r'\b' + re.escape(keyword), query, re.IGNORECASE):
+            # Lower confidence for prefix matches
+            confidence = 90 + len(keyword)
             matches.append((keyword, value, confidence))
 
     if matches:
