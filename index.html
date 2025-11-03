@@ -2555,39 +2555,32 @@
 
                 // Fallback: Manual parsing with basic markdown support (if marked.js fails or unavailable)
                 console.warn('[LLM Response] Falling back to manual markdown parsing');
+
+                // Parse ALL markdown first, then split into paragraphs
+                // Bold: **text** -> <strong>text</strong>
+                let parsed = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+                // Italic: _text_ -> <em>text</em>
+                parsed = parsed.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+                // Links: [text](url) -> <a href="url">text</a>
+                parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+                // Now split into paragraphs and render
                 html = '<div class="llm-suggestion-response">';
-                const paragraphs = content.split('\n\n');
+                const paragraphs = parsed.split('\n\n');
                 for (let para of paragraphs) {
                     para = para.trim();
                     if (!para) continue;
 
-                    // Parse basic markdown: **bold**, _italic_, [text](url)
-                    let parsed = escapeHtml(para);
-
-                    // Bold: **text** -> <strong>text</strong>
-                    parsed = parsed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-                    // Italic: _text_ -> <em>text</em>
-                    parsed = parsed.replace(/_(.+?)_/g, '<em>$1</em>');
-
-                    // Links: [text](url) -> <a href="url">text</a>
-                    parsed = parsed.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
-
-                    // Check for lists
-                    if (para.includes('•') || para.includes('-')) {
-                        html += '<ul style="margin: 10px 0;">';
-                        const items = parsed.split('\n');
-                        for (let item of items) {
-                            item = item.replace(/^[•\-]\s*/, '').trim();
-                            if (item) {
-                                html += `<li>${item}</li>`;
-                            }
-                        }
-                        html += '</ul>';
-                    } else {
-                        // Regular paragraph
-                        html += `<p style="margin: 10px 0;">${parsed.replace(/\n/g, '<br>')}</p>`;
+                    // Check for headers
+                    if (para.startsWith('###')) {
+                        html += `<h3 style="margin: 15px 0 10px 0; font-weight: 600;">${para.replace(/^###\s*/, '')}</h3>`;
+                        continue;
                     }
+
+                    // Regular paragraph with line breaks
+                    html += `<p style="margin: 10px 0;">${para.replace(/\n/g, '<br>')}</p>`;
                 }
 
                 html += '</div>';
