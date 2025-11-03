@@ -1432,9 +1432,47 @@ def http_entry_point(request):
         response.status_code = status_code
         return _add_cors_headers(response)
 
-    # Handle the root path for a health check
-    if request.path == '/' and request.method == 'GET':
-        return _add_cors_headers(jsonify({"message": "Sofas & Stuff Backend Translator is ALIVE!"}))
+    # Handle the root path and /health for health checks
+    if (request.path == '/' or request.path == '/health') and request.method == 'GET':
+        # Comprehensive health check for monitoring systems
+        health_data = {
+            "status": "healthy",
+            "service": "Sofas & Stuff Pricing API",
+            "version": "v2.5.0",
+            "timestamp": int(time.time()),
+
+            # Cache status
+            "cache": {
+                "entries": len(response_cache),
+                "max_size": response_cache.max_size,
+                "ttl_seconds": response_cache.ttl,
+                "usage_percent": round((len(response_cache) / response_cache.max_size) * 100, 1)
+            },
+
+            # Rate limiter status
+            "rate_limiter": {
+                "active_sessions": len(rate_limiter.session_requests),
+                "global_requests_in_window": len(rate_limiter.global_requests),
+                "per_session_limit": rate_limiter.per_session_limit,
+                "global_limit": rate_limiter.global_limit,
+                "window_seconds": rate_limiter.window_seconds
+            },
+
+            # Service availability
+            "services": {
+                "openrouter_llm": "available" if openrouter_client else "unavailable",
+                "price_api": "available"  # Always available (direct S&S API)
+            },
+
+            # Endpoints
+            "endpoints": {
+                "chat": "/chat",
+                "price": "/getPrice",
+                "health": "/health"
+            }
+        }
+
+        return _add_cors_headers(jsonify(health_data))
 
     # Handle 404
     return _add_cors_headers(jsonify({"error": "Not Found"})), 404
