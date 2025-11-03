@@ -5,6 +5,7 @@ import os
 import re
 import time
 from hashlib import md5
+from collections import OrderedDict  # For LRU cache implementation
 from urllib3.util.retry import Retry  # (Critique #1) Corrected import
 from requests.adapters import HTTPAdapter
 from flask import jsonify # GCF's functions_framework includes Flask for helpers
@@ -25,9 +26,56 @@ adapter = HTTPAdapter(max_retries=retry_strategy)
 session.mount("https://", adapter)
 
 # --- Setup: In-Memory Cache (Critique #10) ---
-# Simple in-memory cache with a 5-minute (300s) Time-to-Live (TTL)
-response_cache = {}
-CACHE_TTL = 300  # 5 minutes
+# LRU cache with size limit and TTL to prevent memory exhaustion
+# Max 1000 entries to prevent OOM on high-traffic instances
+
+class LRUCache:
+    """
+    Least Recently Used (LRU) cache with TTL and size limit.
+
+    Prevents unbounded memory growth by evicting oldest entries when cache is full.
+    Also expires entries after TTL seconds.
+    """
+    def __init__(self, max_size=1000, ttl=300):
+        self.cache = OrderedDict()
+        self.max_size = max_size
+        self.ttl = ttl
+
+    def get(self, key):
+        """Get value if exists and not expired."""
+        if key not in self.cache:
+            return None
+
+        timestamp, value = self.cache[key]
+        if time.time() - timestamp >= self.ttl:
+            # Expired - remove it
+            del self.cache[key]
+            return None
+
+        # Move to end (mark as recently used)
+        self.cache.move_to_end(key)
+        return value
+
+    def set(self, key, value):
+        """Set value, evicting oldest if cache is full."""
+        # Remove if already exists (we'll re-add)
+        if key in self.cache:
+            del self.cache[key]
+
+        # Evict oldest if at max size
+        if len(self.cache) >= self.max_size:
+            oldest_key = next(iter(self.cache))
+            del self.cache[oldest_key]
+            print(f"  [Cache] Evicted oldest entry (cache size: {self.max_size})")
+
+        # Add new entry with current timestamp
+        self.cache[key] = (time.time(), value)
+
+    def __len__(self):
+        return len(self.cache)
+
+response_cache = LRUCache(max_size=1000, ttl=300)
+CACHE_TTL = 300  # 5 minutes (kept for compatibility)
 
 # --- (Critique #7: Authentication - COMMENTED OUT) ---
 # To enable, set this in your GCF Environment Variables
@@ -35,16 +83,34 @@ CACHE_TTL = 300  # 5 minutes
 
 # --- Helper Function to Load Dictionaries ---
 def load_json_file(filename):
-    """Loads a JSON file from the same directory."""
+    """
+    Loads a JSON file from the same directory with enhanced error detection.
+
+    Args:
+        filename (str): Name of the JSON file to load (e.g., 'products.json')
+
+    Returns:
+        dict: Parsed JSON data
+
+    Raises:
+        RuntimeError: If file is missing, corrupted, or malformed
+    """
     path = os.path.join(os.path.dirname(__file__), filename)
     try:
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        # (Critique #8) Fail loudly if data files are missing
+        # File doesn't exist - likely first deployment or missing file
         raise RuntimeError(f"[FATAL ERROR] {filename} not found. Run the sku_discovery_tool.py script first.")
+    except json.JSONDecodeError as e:
+        # File exists but contains invalid JSON - likely corruption or manual edit error
+        raise RuntimeError(f"[FATAL ERROR] {filename} is corrupted or contains invalid JSON at line {e.lineno}, column {e.colno}: {e.msg}")
+    except UnicodeDecodeError as e:
+        # File contains invalid UTF-8 characters
+        raise RuntimeError(f"[FATAL ERROR] {filename} contains invalid UTF-8 characters: {e}")
     except Exception as e:
-        raise RuntimeError(f"[FATAL ERROR] Could not load {filename}: {e}")
+        # Catch-all for unexpected errors
+        raise RuntimeError(f"[FATAL ERROR] Could not load {filename}: {type(e).__name__}: {e}")
 
 # --- Load our "Translation Dictionaries" ---
 # This happens once when the function instance starts.
@@ -589,17 +655,21 @@ def get_cache_key(product_sku, size_sku, cover_sku, fabric_sku, color_sku):
 
 def get_from_cache(cache_key):
     """Checks cache for a valid, non-expired key."""
-    if cache_key in response_cache:
-        cached_time, cached_data = response_cache[cache_key]
-        if (time.time() - cached_time) < CACHE_TTL:
-            print(f"  [Cache HIT] Returning cached response for {cache_key}")
-            return cached_data
+    cached_data = response_cache.get(cache_key)
+    if cached_data:
+        print(f"  [Cache HIT] Returning cached response for {cache_key}")
+        return cached_data
     print(f"  [Cache MISS] for {cache_key}")
     return None
 
 def set_to_cache(cache_key, data):
     """Sets a response in the cache."""
-    response_cache[cache_key] = (time.time(), data)
+    try:
+        response_cache.set(cache_key, data)
+        print(f"  [Cache] Stored response (total entries: {len(response_cache)})")
+    except Exception as e:
+        # Non-fatal - log warning but don't crash if cache fails
+        print(f"  [WARNING] Cache write failed: {e}")
 
 # --- Main Logic Function ---
 def get_price_logic(request):
@@ -615,13 +685,19 @@ def get_price_logic(request):
     #     return {"error": "Unauthorized"}, 401
     
     # 1. Get the query from the frontend app
-    data = request.get_json()
+    # CRITICAL: Wrap get_json() in try/catch to prevent crashes on malformed requests
+    try:
+        data = request.get_json()
+    except (ValueError, TypeError) as e:
+        print(f"  [ERROR] Invalid JSON in request: {e}")
+        return {"error": "Invalid request format. Please check your request body."}, 400
+
     if not data:
         return {"error": "No JSON payload received"}, 400
-        
+
     query = data.get('query', '').lower()
     user_agent = request.headers.get('User-Agent', 'Mozilla/5.0')
-    
+
     if not query:
         return {"error": "No query provided"}, 400
 
@@ -859,7 +935,13 @@ def chat_handler(request):
             }, 503
 
         # Parse request body
-        data = request.get_json()
+        # CRITICAL: Wrap get_json() in try/catch to prevent crashes on malformed requests
+        try:
+            data = request.get_json()
+        except (ValueError, TypeError) as e:
+            print(f"  [ERROR] Invalid JSON in chat request: {e}")
+            return {"error": "Invalid request format. Please check your JSON body."}, 400
+
         if not data:
             return {"error": "No JSON body provided"}, 400
 
