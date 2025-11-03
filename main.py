@@ -38,6 +38,10 @@ class LRUCache:
 
     Prevents unbounded memory growth by evicting oldest entries when cache is full.
     Also expires entries after TTL seconds.
+
+    Args:
+        max_size (int): Maximum number of entries before eviction (default: 1000)
+        ttl (int): Time-to-live in seconds before entries expire (default: 300)
     """
     def __init__(self, max_size=1000, ttl=300):
         self.cache = OrderedDict()
@@ -45,7 +49,18 @@ class LRUCache:
         self.ttl = ttl
 
     def get(self, key):
-        """Get value if exists and not expired."""
+        """
+        Get value from cache if it exists and hasn't expired.
+
+        Automatically removes expired entries. Marks accessed entries as
+        recently used (LRU ordering).
+
+        Args:
+            key (str): Cache key to retrieve
+
+        Returns:
+            Any: Cached value if found and not expired, None otherwise
+        """
         if key not in self.cache:
             return None
 
@@ -60,7 +75,19 @@ class LRUCache:
         return value
 
     def set(self, key, value):
-        """Set value, evicting oldest if cache is full."""
+        """
+        Store value in cache, evicting oldest entry if at capacity.
+
+        If key already exists, it's removed and re-added (updates timestamp).
+        If cache is full, evicts the least recently used entry.
+
+        Args:
+            key (str): Cache key to store
+            value (Any): Value to cache
+
+        Side effects:
+            Prints log message when evicting old entries
+        """
         # Remove if already exists (we'll re-add)
         if key in self.cache:
             del self.cache[key]
@@ -621,7 +648,16 @@ def search_fabrics_by_color_handler(color, product_name=None):
 
 # --- CORS Helper (Critique #9) ---
 def _build_cors_preflight_response():
-    """Builds a response for a CORS preflight (OPTIONS) request."""
+    """
+    Builds response for CORS preflight OPTIONS request.
+
+    Preflight requests are sent by browsers before actual requests
+    to verify CORS permissions.
+
+    Returns:
+        tuple: (Flask Response object, 200 status code)
+               Response includes CORS headers allowing all origins
+    """
     response = jsonify({'message': 'CORS preflight OK'})
     response.headers.add("Access-Control-Allow-Origin", "*")
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
@@ -629,15 +665,37 @@ def _build_cors_preflight_response():
     return response, 200
 
 def _add_cors_headers(response):
-    """Adds CORS headers to a standard response."""
+    """
+    Adds CORS headers to Flask response to allow cross-origin requests.
+
+    Args:
+        response (Flask Response): Response object to modify
+
+    Returns:
+        Flask Response: Same response object with CORS headers added
+    """
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 # --- Search Helper (Critique #5) ---
 def find_best_matches(query, mapping, fuzziness=85):
     """
-    Finds all matching keywords from a mapping in the query using regex and fuzzy matching.
-    Returns a list of tuples: [(keyword, value, confidence_score), ...]
+    Finds matching keywords from a mapping using regex and fuzzy matching.
+
+    First attempts exact regex word-boundary matching for speed. If no exact
+    matches, falls back to fuzzy string matching with configurable threshold.
+
+    Args:
+        query (str): Search query to match against (case-insensitive)
+        mapping (dict): Dictionary mapping keywords to values
+        fuzziness (int): Minimum fuzzy match score (0-100, default: 85)
+
+    Returns:
+        list: Tuples of (keyword, value, confidence_score) sorted by confidence desc.
+              Empty list if no matches found.
+
+    Side effects:
+        Prints fuzzy match info when fuzzy matching is used
     """
     matches = []
     if not mapping:
@@ -670,11 +728,38 @@ def find_best_matches(query, mapping, fuzziness=85):
 
 # --- Cache Helpers (Critique #10) ---
 def get_cache_key(product_sku, size_sku, cover_sku, fabric_sku, color_sku):
-    """(Critique #10 Fix) Creates a unique cache key including product_sku."""
+    """
+    Creates unique MD5 hash cache key from SKU components.
+
+    Combines all SKU components into a single string and returns MD5 hash.
+    This ensures each unique combination of product/size/cover/fabric/color
+    gets a unique cache key.
+
+    Args:
+        product_sku (str): Product SKU identifier
+        size_sku (str): Size SKU identifier
+        cover_sku (str): Cover/upholstery SKU identifier
+        fabric_sku (str): Fabric SKU identifier
+        color_sku (str): Color SKU identifier
+
+    Returns:
+        str: 32-character MD5 hexadecimal hash
+    """
     return md5(f"{product_sku}{size_sku}{cover_sku}{fabric_sku}{color_sku}".encode()).hexdigest()
 
 def get_from_cache(cache_key):
-    """Checks cache for a valid, non-expired key."""
+    """
+    Retrieves cached pricing response if available and not expired.
+
+    Args:
+        cache_key (str): MD5 hash cache key from get_cache_key()
+
+    Returns:
+        dict or None: Cached response data if found and not expired, None otherwise
+
+    Side effects:
+        Prints cache HIT or MISS log message
+    """
     cached_data = response_cache.get(cache_key)
     if cached_data:
         print(f"  [Cache HIT] Returning cached response for {cache_key}")
@@ -683,7 +768,20 @@ def get_from_cache(cache_key):
     return None
 
 def set_to_cache(cache_key, data):
-    """Sets a response in the cache."""
+    """
+    Stores pricing response in cache with error handling.
+
+    Attempts to store data in cache. If caching fails, logs warning
+    but doesn't raise exception (non-fatal error).
+
+    Args:
+        cache_key (str): MD5 hash cache key from get_cache_key()
+        data (dict): Response data to cache
+
+    Side effects:
+        Prints cache storage log or warning on failure
+        May evict old entries if cache is full (see LRUCache.set)
+    """
     try:
         response_cache.set(cache_key, data)
         print(f"  [Cache] Stored response (total entries: {len(response_cache)})")
@@ -694,9 +792,33 @@ def set_to_cache(cache_key, data):
 # --- Main Logic Function ---
 def get_price_logic(request):
     """
-    This is the core logic. It's no longer a Flask route,
-    just a pure function called by the entry point.
-    It returns (data_dictionary, status_code)
+    Core pricing logic for /getPrice endpoint.
+
+    Extracts product/size/fabric from natural language query, translates to SKUs,
+    fetches price from S&S API, and returns structured response. Uses fuzzy matching
+    for product names and caching for performance.
+
+    Args:
+        request (Flask Request): Request object with JSON body containing:
+            - query (str): Natural language pricing query (e.g., "alwinton snuggler pacific")
+
+    Returns:
+        tuple: (response_dict, status_code)
+            - response_dict: Pricing data or error response with error_code
+            - status_code (int): HTTP status code (200, 400, 500, 502, 504)
+
+    Side effects:
+        - Prints request ID and query logs
+        - Caches successful responses
+        - Makes external API calls to sofasandstuff.com
+
+    Error codes:
+        E2006: Invalid JSON format
+        E2007: Missing required field (query)
+        E2001: Product not found
+        E2002: Ambiguous product match
+        E2003: Fabric not found
+        E2004: Size not valid
     """
     
     # --- (Critique #7: Authentication - COMMENTED OUT) ---
@@ -944,19 +1066,40 @@ def get_price_logic(request):
 # --- Chat Handler for Grok LLM (Phase 1C: Piece 3.2) ---
 def chat_handler(request):
     """
-    Handles /chat endpoint for Grok LLM conversations.
+    Handles conversational pricing queries via Grok LLM with tool calling.
 
-    Expects JSON body:
-    {
-        "messages": [{"role": "user", "content": "..."}],
-        "session_id": "optional-session-id"
-    }
+    Processes natural language conversations, allowing Grok LLM to call internal
+    tools (get_price, search_by_budget, search_fabrics_by_color) to answer pricing
+    questions. Supports multi-turn conversations and maintains session history.
+
+    Args:
+        request (Flask Request): Request object with JSON body containing:
+            - messages (list): Array of message dicts with 'role' and 'content'
+            - session_id (str, optional): Session identifier for tracking
 
     Returns:
-    {
-        "response": "...",
-        "metadata": {"tokens": 123, "session_id": "..."}
-    }
+        tuple: (response_dict, status_code)
+            - response_dict: Contains 'response' (LLM message) and 'metadata'
+            - status_code (int): HTTP status code (200, 400, 503)
+
+    Side effects:
+        - Calls OpenRouter API (Grok LLM)
+        - May trigger tool calls that fetch prices or search products
+        - Prints request ID and chat processing logs
+        - Token usage logged in metadata
+
+    Error codes:
+        E1006: OpenRouter/Grok unavailable
+        E2006: Invalid JSON format
+        E2007: Missing required field (messages)
+
+    Example request body:
+        {"messages": [{"role": "user", "content": "How much is alwinton?"}],
+         "session_id": "abc123"}
+
+    Example response:
+        {"response": "The Alwinton 3-seater in Pacific fabric costs £1,095",
+         "metadata": {"tokens": 245, "session_id": "abc123"}}
     """
     try:
         # Check if OpenRouter client is initialized
@@ -1145,8 +1288,34 @@ def chat_handler(request):
 # --- Google Cloud Functions Entry Point (Critique #2, #9) ---
 @functions_framework.http
 def http_entry_point(request):
-    """Cloud Functions entry point that routes requests."""
-    
+    """
+    Google Cloud Functions HTTP entry point - routes all requests.
+
+    Main routing function that handles all HTTP requests to the Cloud Function.
+    Routes to appropriate handlers based on path and method, handles CORS,
+    and provides health check endpoint.
+
+    Supported endpoints:
+        - OPTIONS * : CORS preflight (all paths)
+        - GET / : Health check
+        - POST /chat : Grok LLM conversational interface
+        - POST /getPrice : Direct keyword-based pricing
+
+    Args:
+        request (Flask Request): Incoming HTTP request from Google Cloud Functions
+
+    Returns:
+        Flask Response: JSON response with appropriate status code and CORS headers
+
+    Response codes:
+        200: Successful request
+        400: Client error (invalid input, missing fields)
+        404: Unknown endpoint
+        500: Server error
+        503: Service unavailable (OpenRouter down)
+        504: Request timeout
+    """
+
     # Handle CORS preflight (OPTIONS) requests
     if request.method == 'OPTIONS':
         return _build_cors_preflight_response()
