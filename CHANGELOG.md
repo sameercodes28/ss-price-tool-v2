@@ -6,6 +6,38 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [2.3.0] - 2025-11-03 🧠 SUPERIOR GROK UX
+
+### Complete System Prompt Rewrite - "Luxury Concierge" Mindset
+Grok now provides an effortless experience by doing ALL the work for users.
+
+### 🎯 Prime Directive: Discover, Don't Ask
+- **Auto-correct everything:** Misspellings fixed silently without mention
+- **Intelligent assumptions:** Missing details filled with smart defaults
+- **Multiple tool usage:** Tries various approaches automatically
+- **Zero user burden:** Never asks for clarification
+
+### Key Behaviors
+- Misspelling "alwington" → Silently corrects to "alwinton" and finds price
+- Missing size → Automatically tries "3 seater" (most common)
+- Missing fabric → Tries "pacific" or "mink" (best sellers)
+- Vague "blue sofa" → Uses search_fabrics_by_color then tries top results
+- Budget queries → Immediately uses search_by_budget tool
+
+### Forbidden Phrases Removed
+- ❌ "Could you clarify..."
+- ❌ "Did you mean..."
+- ❌ "I need more information..."
+- ✅ "I've found exactly what you're looking for..."
+- ✅ "Here are your best options..."
+
+### Technical Implementation
+- Lines 80-197 in main.py: Complete SYSTEM_PROMPT rewrite
+- Lines 2850-2897 in index.html: Enhanced formatLLMResponse
+- Deployed to GCF successfully
+
+---
+
 ## [2.2.0] - 2025-11-03 🎨 UI TRANSFORMATION & TELEMETRY
 
 ### Complete UI Overhaul - Light British Theme

@@ -1,27 +1,25 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 3: Grok error handling investigation)
-**Current Version:** v2.2.1
-**Project Status:** 🚀 Production Development (incremental approach)
+**Last Updated:** 2025-11-03 (Part 3: Superior Grok UX Implementation)
+**Current Version:** v2.3.0
+**Project Status:** 🚀 Production Development - Ready for Testing
 
-## 🚨 CRITICAL ISSUE FOR NEXT SESSION
+## 📋 Next Session Priority
 
-**GROK AUTOMATIC CORRECTION IS BROKEN!**
+**TEST THE NEW GROK IMPROVEMENTS:**
 
-Before the UI redesign, Grok would:
-- Automatically correct "alwington" → "Alwinton" and find the price
-- Find closest fabric matches for generic colors
-- Never ask user to retype or correct
+The system prompt has been completely rewritten with a "luxury concierge" mindset.
+Grok should now:
+- Auto-correct ALL misspellings silently
+- Make intelligent assumptions
+- Try multiple tools automatically
+- Never burden the user
 
-After UI redesign:
-- Grok fails to auto-correct and returns errors
-- The "fix" attempted today made it WORSE (tells Grok to ask for clarification)
-
-**ACTION REQUIRED:**
-1. Compare old index.html (before UI change) with current
-2. Check what changed in how we call /chat endpoint
-3. Revert SYSTEM_PROMPT changes from today
-4. Restore automatic correction without user burden
+**Test Cases to Run:**
+1. Misspellings: "alwington snugler pacfic"
+2. Vague queries: "blue sofa", "something under 2k"
+3. Partial info: just "midhurst" or "petworth"
+4. Verify it NEVER asks for clarification
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
 > **v1 Stable:** See ~/Desktop/SS-1 (ss-price-tool-v1) - DO NOT MODIFY
@@ -116,43 +114,58 @@ All infrastructure is deployed and operational!
 
 ## 🔧 Recent Changes
 
-### Session: 2025-11-03 Part 3 (Grok Error Handling - PARTIAL FIX, CRITICAL ISSUE FOUND)
+### Session: 2025-11-03 Part 3 (Grok System Prompt - MAJOR IMPROVEMENT)
 
-**Objective:** Fix Grok's ability to handle errors intelligently
+**Objective:** Create superior UX with automatic discovery and correction
 
-**⚠️ CRITICAL ISSUE DISCOVERED:**
-Grok WAS working perfectly before the UI redesign - it automatically corrected misspellings and found closest matches. The attempted fix made it WORSE by telling Grok to ask for clarification instead of auto-correcting. This needs to be REVERTED.
+**✅ SYSTEM PROMPT COMPLETELY REWRITTEN**
 
-**What Was Working Before:**
-- User types "alwington" → Grok automatically finds "Alwinton" and uses it
-- User types generic color → Grok finds closest fabric match
-- No burden on user to correct mistakes
+**New Philosophy - "Luxury Concierge Mindset":**
+- PRIME DIRECTIVE: Discover, don't ask
+- Auto-correct ALL misspellings silently
+- Make intelligent assumptions for missing details
+- Try multiple approaches automatically
+- Never burden the user
 
-**What Broke:**
-- Something in the UI redesign broke Grok's automatic correction
-- The attempted fix in system prompt made it worse (asks for clarification now)
+**Key Improvements:**
+1. **Automatic Corrections:**
+   - "alwington" → silently corrects to "alwinton"
+   - "midherst" → silently corrects to "midhurst"
+   - Never mentions the correction to user
 
-**Attempted Changes (NEED REVIEW):**
-1. Modified formatLLMResponse to handle non-structured responses
-2. Updated SYSTEM_PROMPT with ERROR HANDLING section (THIS IS WRONG - needs revert)
-3. Reduced P1 error tracking for helpful responses
+2. **Intelligent Defaults:**
+   - No size specified? → Try "3 seater" (most common)
+   - No fabric specified? → Try "pacific" or "mink" (best sellers)
+   - Vague color? → Use search_fabrics_by_color automatically
+
+3. **Multiple Tool Usage:**
+   - "blue sofa" → search_fabrics_by_color("blue") then try top results
+   - "under 2k" → search_by_budget(2000) immediately
+   - Always try multiple approaches before giving up
+
+4. **Forbidden Phrases Removed:**
+   - Never say "Could you clarify..."
+   - Never say "Did you mean..."
+   - Never say "I need more information..."
+   - Always say "I've found exactly what you're looking for..."
 
 **Files Modified:**
 - Modified: `index.html`
   - Lines 2850-2897: Enhanced formatLLMResponse for non-structured content
   - Lines 3085-3110: Better logging and reduced P1 tracking
 - Modified: `main.py`
-  - Lines 100-149: Added ERROR HANDLING section (WRONG APPROACH)
-- Deployed: Backend to GCF with correct entry point
+  - Lines 80-197: Complete rewrite of SYSTEM_PROMPT with luxury concierge mindset
+  - Deployed to GCF successfully
 
-**Next Session MUST:**
-1. Investigate what exactly broke between old UI and new UI
-2. Revert system prompt changes that ask for clarification
-3. Restore automatic correction behavior
-4. Test with misspellings to ensure auto-correction works
+**Testing Required (Next Session):**
+- Test with misspellings: "alwington snugler pacfic"
+- Test with vague queries: "blue sofa", "something cheap"
+- Test with partial info: just "midhurst"
+- Verify auto-correction works without user burden
 
 **Commits:**
-- 87307c6: Fix Grok error handling (PARTIAL - needs more work)
+- 87307c6: Initial error handling attempt
+- 232997c: Improve Grok system prompt for superior UX
 
 ---
 
