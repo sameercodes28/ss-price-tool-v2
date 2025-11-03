@@ -1002,6 +1002,54 @@
             font-size: 13px;
         }
 
+        /* Feedback buttons */
+        .message-feedback {
+            position: absolute;
+            bottom: 4px;
+            right: 4px;
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .message-wrapper:hover .message-feedback {
+            opacity: 1;
+        }
+
+        .feedback-btn {
+            padding: 4px 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .feedback-btn:hover {
+            background: white;
+            border-color: var(--border-medium);
+        }
+
+        .feedback-btn.active-positive {
+            background: #dcfce7;
+            border-color: #22c55e;
+        }
+
+        .feedback-btn.active-negative {
+            background: #fee2e2;
+            border-color: #ef4444;
+        }
+
+        .feedback-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
         .follow-up-text {
             color: var(--text-secondary);
             margin: 24px 0 20px;
@@ -1712,13 +1760,139 @@
         }
 
         // ========================================
+        // ANALYTICS AND TELEMETRY SYSTEM
+        // ========================================
+
+        const Analytics = {
+            sessionId: null,
+            sessionStart: null,
+            events: [],
+
+            init() {
+                // Generate or retrieve session ID
+                this.sessionId = localStorage.getItem('sessionId') || this.generateSessionId();
+                localStorage.setItem('sessionId', this.sessionId);
+                this.sessionStart = Date.now();
+
+                // Track page load
+                this.track('page_load', {
+                    url: window.location.href,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Track page unload
+                window.addEventListener('beforeunload', () => {
+                    this.track('session_end', {
+                        duration: Date.now() - this.sessionStart,
+                        eventCount: this.events.length
+                    });
+                    this.flush();
+                });
+            },
+
+            generateSessionId() {
+                return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            },
+
+            track(eventName, data = {}) {
+                const event = {
+                    sessionId: this.sessionId,
+                    eventName,
+                    timestamp: Date.now(),
+                    data: {
+                        ...data,
+                        userAgent: navigator.userAgent,
+                        screenResolution: `${window.screen.width}x${window.screen.height}`,
+                        viewport: `${window.innerWidth}x${window.innerHeight}`
+                    }
+                };
+
+                this.events.push(event);
+                console.log('[Analytics]', eventName, data);
+
+                // Store locally for now
+                const storedEvents = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                storedEvents.push(event);
+                localStorage.setItem('analyticsEvents', JSON.stringify(storedEvents));
+
+                // Auto-flush every 10 events
+                if (this.events.length >= 10) {
+                    this.flush();
+                }
+            },
+
+            trackQuery(query, source) {
+                this.track('user_query', {
+                    query,
+                    source, // 'typed', 'suggestion', 'opportunity'
+                    queryLength: query.length,
+                    timestamp: new Date().toISOString()
+                });
+            },
+
+            trackResponse(response, responseTime) {
+                this.track('agent_response', {
+                    responseLength: response.length,
+                    responseTime,
+                    hasPrice: response.includes('£'),
+                    hasFeatures: response.includes('Key Features'),
+                    hasOpportunities: response.includes('Opportunities'),
+                    timestamp: new Date().toISOString()
+                });
+            },
+
+            trackFeedback(messageId, feedback, responseContent) {
+                this.track('response_feedback', {
+                    messageId,
+                    feedback, // 'positive' or 'negative'
+                    responseContent,
+                    responseHtml: responseContent.substring(0, 500), // First 500 chars
+                    timestamp: new Date().toISOString(),
+                    screenshot: this.captureResponseScreenshot(messageId)
+                });
+            },
+
+            captureResponseScreenshot(messageId) {
+                // Capture the response HTML for later review
+                const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (messageElement) {
+                    return {
+                        html: messageElement.innerHTML,
+                        text: messageElement.innerText,
+                        prices: Array.from(messageElement.querySelectorAll('.price-amount')).map(el => el.innerText)
+                    };
+                }
+                return null;
+            },
+
+            flush() {
+                // In future, send to backend
+                // For now, just ensure it's saved to localStorage
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                console.log('[Analytics] Flushing', events.length, 'events');
+            },
+
+            getAnalytics() {
+                // Retrieve stored analytics for viewing
+                return JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            }
+        };
+
+        // Initialize analytics on page load
+        window.addEventListener('load', () => Analytics.init());
+
+        // ========================================
         // CHAT INTERFACE LOGIC
         // ========================================
+
+        let messageIdCounter = 0;
 
         function addMessage(type, content) {
             const messagesWrapper = document.getElementById('messagesWrapper');
             const message = document.createElement('div');
+            const messageId = `msg-${++messageIdCounter}`;
             message.className = `message ${type}`;
+            message.setAttribute('data-message-id', messageId);
 
             const time = new Date().toLocaleTimeString('en-US', {
                 hour: 'numeric',
@@ -1736,7 +1910,7 @@
                     </div>
                 `;
             } else {
-                // Assistant message with ultra fabric orb
+                // Assistant message with ultra fabric orb and feedback buttons
                 const formattedContent = USE_LLM
                     ? formatLLMResponse(content)
                     : `<p style="white-space: pre-wrap;">${escapeHtml(content)}</p>`;
@@ -1745,7 +1919,7 @@
                     <div class="message-avatar">
                         <img src="orbgif.gif" alt="Assistant" style="width: 100%; height: 100%; border-radius: 50%;">
                     </div>
-                    <div class="message-wrapper">
+                    <div class="message-wrapper" style="position: relative;">
                         <div class="message-header">
                             <span class="message-author">Assistant</span>
                             <span class="message-time">${time}</span>
@@ -1753,12 +1927,51 @@
                         <div class="message-content llm-response">
                             ${formattedContent}
                         </div>
+                        <div class="message-feedback">
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'positive')" title="Good response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
+                            </button>
+                            <button class="feedback-btn" onclick="provideFeedback('${messageId}', 'negative')" title="Poor response">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 `;
+
+                // Track the response
+                Analytics.trackResponse(content, Date.now() - window.lastQueryTime || 0);
             }
 
             messagesWrapper.appendChild(message);
             scrollToBottom();
+        }
+
+        function provideFeedback(messageId, feedback) {
+            const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+            const feedbackBtns = messageElement.querySelectorAll('.feedback-btn');
+
+            // Remove all active classes
+            feedbackBtns.forEach(btn => {
+                btn.classList.remove('active-positive', 'active-negative');
+            });
+
+            // Add active class to clicked button
+            if (feedback === 'positive') {
+                feedbackBtns[0].classList.add('active-positive');
+            } else {
+                feedbackBtns[1].classList.add('active-negative');
+            }
+
+            // Track the feedback
+            const responseContent = messageElement.querySelector('.message-content').innerText;
+            Analytics.trackFeedback(messageId, feedback, responseContent);
+
+            // Show confirmation
+            console.log(`[Feedback] ${feedback} for message ${messageId}`);
         }
 
         function escapeHtml(text) {
@@ -1919,6 +2132,7 @@
 
         function handleSuggestionClick(suggestionText) {
             console.log('[CLICK] Suggestion clicked:', suggestionText);
+            Analytics.trackQuery(suggestionText, 'suggestion');
             document.getElementById('chatInput').value = suggestionText;
             sendChatMessage();
         }
@@ -1929,6 +2143,7 @@
             // Remove any "Add" prefix if it exists to avoid duplication
             let cleanText = opportunityText.replace(/^Add\s+/i, '');
             let query = `Add ${cleanText} to my current selection`;
+            Analytics.trackQuery(query, 'opportunity');
             document.getElementById('chatInput').value = query;
             sendChatMessage();
         }
@@ -2085,6 +2300,12 @@
 
             if (!message) return;
 
+            // Track query if typed by user
+            if (!text) {
+                Analytics.trackQuery(message, 'typed');
+            }
+
+            window.lastQueryTime = Date.now();
             addMessage('user', message);
 
             if (!text) {
