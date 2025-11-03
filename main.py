@@ -243,21 +243,21 @@ print("Dictionaries loaded successfully.")
 SOFA_API_URL = "https://sofasandstuff.com/ProductExtend/ChangeProductSize"
 BED_API_URL = "https://sofasandstuff.com/Category/ProductPrice"
 
-# --- OpenRouter/Grok Configuration (Phase 1C) ---
-# Environment variables for OpenRouter API integration
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
-GROK_MODEL = os.getenv('GROK_MODEL', 'x-ai/grok-4')  # Default to grok-4
+# --- xAI/Grok Configuration ---
+# Environment variables for xAI API integration (direct, not via OpenRouter)
+XAI_API_KEY = os.getenv('XAI_API_KEY')
+GROK_MODEL = os.getenv('GROK_MODEL', 'grok-4-fast')  # Default to grok-4-fast
 
-# Initialize OpenRouter client (only if API key is available)
-openrouter_client = None
-if OPENROUTER_API_KEY:
+# Initialize xAI client (only if API key is available)
+openrouter_client = None  # Keep variable name for backward compatibility
+if XAI_API_KEY:
     openrouter_client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=OPENROUTER_API_KEY
+        base_url="https://api.x.ai/v1",
+        api_key=XAI_API_KEY
     )
-    print(f"OpenRouter client initialized with model: {GROK_MODEL}")
+    print(f"xAI client initialized with model: {GROK_MODEL}")
 else:
-    print("[WARNING] OPENROUTER_API_KEY not found. Chat endpoint will not work.")
+    print("[WARNING] XAI_API_KEY not found. Chat endpoint will not work.")
 
 # --- System Prompt for Grok (Phase 1C) - LEAN VERSION FOR SPEED ---
 SYSTEM_PROMPT = """You are an elite sales assistant for Sofas & Stuff. Your mission: Find what the customer wants WITHOUT making them work for it.
