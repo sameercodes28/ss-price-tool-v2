@@ -1165,36 +1165,6 @@
             color: var(--text-primary);
         }
 
-        .opportunities-section {
-            margin: 20px 0;
-        }
-
-        /* Opportunity buttons - same style as suggestion chips */
-        .opportunity-button {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 4px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border-light);
-            border-radius: 20px;
-            color: var(--text-secondary);
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            outline: none;
-            text-align: left;
-        }
-
-        .opportunity-button:hover {
-            background: white;
-            border: 1px solid var(--border-medium);
-            color: var(--text-primary);
-        }
-
-        .opportunity-button strong {
-            color: var(--fabric-terracotta);
-        }
-
         .savings-text {
             color: #16a34a;
             font-size: 14px;
@@ -1394,57 +1364,6 @@
         }
 
         /* Removed duplicate feature-list styles - using the ones above */
-
-        /* Removed duplicate opportunities-section - using the one above */
-
-        /* Suggestions Section */
-        .suggestions-section {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid #0ea5e9;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
-        }
-
-        .suggestions-header {
-            color: #0369a1;
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-        }
-
-        .suggestions-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.625rem;
-        }
-
-        .suggestion-chip-llm {
-            background: white;
-            border: 2px solid #38bdf8;
-            border-radius: 9999px;
-            padding: 0.625rem 1.25rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #0369a1;
-            cursor: pointer;
-            min-height: 44px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.1);
-        }
-
-        .suggestion-chip-llm:hover {
-            background: #0ea5e9;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
-        }
-
-        .suggestion-chip-llm:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);
-        }
 
         /* Price Section */
         .price-section {
@@ -2582,17 +2501,13 @@
                 let html = '';
                 const lines = content.split('\n');
                 let currentSection = '';
-                let suggestions = [];
                 let features = [];
-                let opportunities = [];
                 let priceShown = false;  // Track if we've already shown a price
                 let hasStructuredContent = false; // Track if response has our expected format
 
             // Check if content has our expected format
             hasStructuredContent = content.includes('### 💰') ||
-                                  content.includes('### ✨') ||
-                                  content.includes('### 🎯') ||
-                                  content.includes('### 💬');
+                                  content.includes('### ✨');
 
             // If no structured content, parse markdown manually (simple, reliable)
             if (!hasStructuredContent) {
@@ -2702,12 +2617,6 @@
                 } else if (line.startsWith('### ✨')) {
                     currentSection = 'features';
                     continue;
-                } else if (line.startsWith('### 🎯')) {
-                    currentSection = 'opportunities';
-                    continue;
-                } else if (line.startsWith('### 💬')) {
-                    currentSection = 'suggestions';
-                    continue;
                 }
 
                 // Product name from #### header (multi-product responses like "under 2000")
@@ -2811,15 +2720,6 @@
                         features.push(parseMarkdown(featureText));
                     }
                 }
-                else if (currentSection === 'opportunities') {
-                    if (line.startsWith('>')) {
-                        const text = line.substring(1).trim();
-                        opportunities.push(text);
-                    }
-                }
-                else if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
-                    suggestions.push(line.substring(1).trim());
-                }
             }
 
             // Save the final product if it has data
@@ -2838,33 +2738,7 @@
                 );
             });
 
-            // Add opportunities section ONLY for single-product queries
-            // For multi-product results (like "under 2000"), opportunities don't make sense
-            if (opportunities.length > 0 && products.length === 1) {
-                html += '<div class="opportunities-section">';
-                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
-                opportunities.forEach(opp => {
-                    const parsedOpp = parseMarkdown(opp);
-                    const cleanOpp = opp.replace(/\*\*(.*?)\*\*/g, '$1');
-                    html += `<button class="opportunity-button" onclick="handleOpportunityClick('${escapeHtml(cleanOpp).replace(/'/g, "\\'")}')" style="flex: 1; min-width: 200px;">${parsedOpp}</button>`;
-                });
-                html += '</div>';
-                html += '</div>';
-            }
-
-            // Add suggestion chips
-            if (suggestions.length > 0) {
-                html += '<div class="suggestion-chips-container" style="margin-top: 20px;">';
-                html += '<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Other related questions?</div>';
-                html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
-                suggestions.forEach(suggestion => {
-                    html += `<button class="suggestion-chip-minimal" onclick="handleSuggestionClick('${escapeHtml(suggestion).replace(/'/g, "\\'")}')" style="padding: 8px 16px;">${escapeHtml(suggestion)}</button>`;
-                });
-                html += '</div>';
-                html += '</div>';
-            }
-
-                return html || `<p class="response-text">${escapeHtml(content)}</p>`;
+            return html || `<p class="response-text">${escapeHtml(content)}</p>`;
             } catch (error) {
                 // CRITICAL: If markdown parsing fails, fallback to plain text display
                 console.error('[ERROR] formatLLMResponse failed:', error);
