@@ -2574,12 +2574,23 @@
 
             // If no structured content, treat as helpful error/suggestion message
             if (!hasStructuredContent) {
-                console.log('[LLM Response] No structured format detected, displaying as helpful message');
+                console.log('[LLM Response] No structured format detected, using markdown parser');
 
-                // Format the response nicely but don't treat as error
+                // Use marked.js to parse markdown properly
+                if (typeof marked !== 'undefined') {
+                    try {
+                        html = '<div class="llm-suggestion-response">';
+                        html += marked.parse(content);
+                        html += '</div>';
+                        return html;
+                    } catch (e) {
+                        console.error('[ERROR] Marked.js parsing failed:', e);
+                        // Fall through to manual parsing
+                    }
+                }
+
+                // Fallback: Manual parsing (if marked.js fails or unavailable)
                 html = '<div class="llm-suggestion-response">';
-
-                // Split into paragraphs and format
                 const paragraphs = content.split('\n\n');
                 for (let para of paragraphs) {
                     para = para.trim();
