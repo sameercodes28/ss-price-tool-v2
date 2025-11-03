@@ -1,8 +1,8 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 11: Discovery Buttons - Product Exploration UX)
-**Current Version:** v2.5.0+ (Production Hardened - Enhanced Discovery)
-**Project Status:** 🚀 Production - Stable + Discovery Buttons Feature
+**Last Updated:** 2025-11-03 (Part 12: Fabric Search Formatting Enhancement)
+**Current Version:** v2.5.0+ (Production Hardened - Enhanced Discovery + Fabric Formatting)
+**Project Status:** 🚀 Production - Stable + Discovery + Fabric Improvements
 
 ## ⚠️ CRITICAL: DEPLOYMENT URLS - READ THIS FIRST
 
@@ -85,16 +85,56 @@ return content
 
 ## 📋 Next Session Priority
 
-**✅ v2.5.0 STABLE - HOTFIXES DEPLOYED**
+**✅ v2.5.0 STABLE - FABRIC FORMATTING DEPLOYED**
 
-Backend: revision 00021-luw (CORS fix)
-Frontend: Latest deployment (timing tracking removed)
+Backend: Updated SYSTEM_PROMPT for better fabric display
+Frontend: No changes in this session
 
 **Status:** 🟢 **ALL SYSTEMS OPERATIONAL**
-- CORS configuration fixed ✅
-- JavaScript crash bug fixed ✅
-- Timing tracking removed for simplicity ✅
-- Markdown rendering working ✅
+- Fabric search formatting improved ✅
+- Tier-based grouping added (Essentials, Exclusives, Signature) ✅
+- Swatch links removed ✅
+- Color and material filter suggestions added ✅
+
+**⚠️ NOTE:** Backend deployed but XAI_API_KEY needs to be set in Cloud Function environment variables for chat functionality.
+
+---
+
+## 🔍 SESSION: PART 12 FABRIC SEARCH FORMATTING (2025-11-03)
+
+**Objective:** Improve fabric search results formatting with tier grouping and remove clutter
+
+**User Request:**
+User showed screenshots of fabric search results ("Show me fabrics similar to Sussex Plain - Pacific") displaying as plain text with "View swatch" links. Requested proper formatting consistent with product card design language.
+
+**Requirements:**
+1. Remove all "View swatch" links
+2. Group fabrics by tier: Essentials, Exclusives, Signature
+3. Show color filter options when user asks about colors
+4. Show material filter options when user asks about materials
+
+**Changes Made:**
+
+**Backend (main.py lines 556-600):**
+- Updated FABRIC SEARCH FORMATTING section in SYSTEM_PROMPT
+- Added tier grouping headers with emojis (✨ Essentials, 💎 Exclusives, 👑 Signature)
+- Removed all swatch link instructions
+- Added tier name mapping: Premium → Exclusives, Luxury → Signature
+- Added color filter suggestions: Black, Blue, Brown, Green, Grey, Multi-coloured, Neutral, Orange, Pink, Purple, Red, Rust, Yellow
+- Added material filter suggestions: Plain, Linen, Stripes & Checks, Velvet, Patterned, Wool, Harris Tweed, Cotton, Stain Resistant, Viscose
+
+**Deployment:**
+- Deployed to Google Cloud Functions Gen2
+- Function is healthy and operational
+- Note: XAI_API_KEY environment variable needs to be set for chat functionality (currently empty)
+
+**Documentation:**
+- Updated CHANGELOG.md with fabric formatting enhancement details
+- Updated .claude/context.md to Part 12
+
+---
+
+## 🔍 SESSION: PART 11 DISCOVERY BUTTONS (2025-11-03)
 
 **✅ COMPLETED SESSION (Part 9):**
 1. ✅ **CRITICAL:** Fixed CORS configuration (added X-Request-ID header)

@@ -555,23 +555,47 @@ For FAILED queries (status="FAILED"), respond with:
 
 ## FABRIC SEARCH FORMATTING
 
-When presenting results from search_fabrics_by_color, format each fabric as:
+When presenting results from search_fabrics_by_color, format fabrics grouped by tier.
 
+TIER GROUPING (ALWAYS use these tier names):
+### ✨ Essentials
+[Essentials fabrics here]
+
+### 💎 Exclusives
+[Premium tier fabrics here - map "Premium" from data to "Exclusives" in display]
+
+### 👑 Signature
+[Luxury tier fabrics here - map "Luxury" from data to "Signature" in display]
+
+FORMAT PER FABRIC:
 **[Fabric Name]** in [Color Name]
-_[Description]_
-[View swatch]([swatch_url])
+_[Description - keep under 30 words]_
 
 EXAMPLE:
+### ✨ Essentials
 **House Wool** in Navy
 _Premium wool blend with subtle texture, perfect for high-traffic family homes_
-[View swatch](https://sofasandstuff.com/...)
+
+**Sussex Plain** in Pacific
+_Soft, durable plain weave in calming blue tone_
+
+### 💎 Exclusives
+**Harris Tweed** in Charcoal
+_Authentic Scottish wool with distinctive texture_
 
 RULES:
+- NO swatch links - remove entirely
 - Fabric name MUST be in **bold**
 - Description in _italics_
-- Swatch link MUST be clickable hyperlink with "View swatch" as the text
-- Group by tier (Essentials, Premium, Luxury) if showing multiple
-- Keep descriptions concise (under 30 words)
+- ALWAYS group by tier with headers (Essentials, Exclusives, Signature)
+- Map backend tier names: Premium → Exclusives, Luxury → Signature
+
+FILTER OPTIONS TO SHOW:
+When user asks about colours, suggest these filters:
+Black, Blue, Brown, Green, Grey, Multi-coloured, Neutral, Orange, Pink, Purple, Red, Rust, Yellow
+
+When user asks about materials, suggest these filters:
+Plain, Linen, Stripes & Checks, Velvet, Patterned, Wool, Harris Tweed, Cotton, Stain Resistant, Viscose
 
 Keep responses SHORT and SCANNABLE.
 """

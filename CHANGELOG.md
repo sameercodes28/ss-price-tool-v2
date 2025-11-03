@@ -8,6 +8,32 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ## [Unreleased] - 2025-11-03 🔍 DISCOVERY BUTTONS + UI CLEANUP
 
+### 🎨 Fabric Search Formatting Enhancement
+Improved fabric search results display with tier-based organization and removed clutter.
+
+**Changes:**
+- ✅ Removed "View swatch" links from fabric results
+- ✅ Added tier-based grouping: Essentials (✨), Exclusives (💎), Signature (👑)
+- ✅ Map backend tier names: Premium → Exclusives, Luxury → Signature
+- ✅ Added color filter suggestions: Black, Blue, Brown, Green, Grey, Multi-coloured, Neutral, Orange, Pink, Purple, Red, Rust, Yellow
+- ✅ Added material filter suggestions: Plain, Linen, Stripes & Checks, Velvet, Patterned, Wool, Harris Tweed, Cotton, Stain Resistant, Viscose
+
+**Technical Changes:**
+- **Backend (main.py):**
+  - Updated FABRIC SEARCH FORMATTING section in SYSTEM_PROMPT (lines 556-600)
+  - Clear instructions for tier-based grouping with emoji headers
+  - Removed swatch link generation instructions
+  - Added filter option recommendations for colors and materials
+  - Total: ~45 lines modified
+
+**User Experience:**
+- Cleaner, more scannable fabric results
+- Better organization by price tier
+- Helpful filter suggestions for exploration
+- Consistent with product card design language
+
+---
+
 ### 🎯 Major Feature: Discovery Buttons
 Added 3 product exploration buttons to single-product responses for improved user experience.
 
