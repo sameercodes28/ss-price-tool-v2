@@ -1934,6 +1934,16 @@
             sessionId: null,
             sessionStart: null,
             events: [],
+            healthChecks: {
+                lastCheck: null,
+                apiStatus: {},
+                errors: []
+            },
+            performanceMetrics: {
+                responseTimes: [],
+                typewriterSpeeds: [],
+                renderTimes: []
+            },
 
             init() {
                 // Generate or retrieve session ID
@@ -1941,20 +1951,130 @@
                 localStorage.setItem('sessionId', this.sessionId);
                 this.sessionStart = Date.now();
 
-                // Track page load
+                // Track page load with performance metrics
                 this.track('page_load', {
                     url: window.location.href,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    performance: this.getPageLoadMetrics()
                 });
+
+                // Start health monitoring
+                this.startHealthMonitoring();
+
+                // Monitor performance
+                this.monitorPerformance();
 
                 // Track page unload
                 window.addEventListener('beforeunload', () => {
                     this.track('session_end', {
                         duration: Date.now() - this.sessionStart,
-                        eventCount: this.events.length
+                        eventCount: this.events.length,
+                        avgResponseTime: this.calculateAvgResponseTime(),
+                        errorCount: this.healthChecks.errors.length
                     });
                     this.flush();
                 });
+            },
+
+            getPageLoadMetrics() {
+                if (window.performance && window.performance.timing) {
+                    const timing = window.performance.timing;
+                    return {
+                        domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
+                        fullyLoaded: timing.loadEventEnd - timing.navigationStart,
+                        firstPaint: timing.responseEnd - timing.navigationStart,
+                        domInteractive: timing.domInteractive - timing.navigationStart
+                    };
+                }
+                return null;
+            },
+
+            startHealthMonitoring() {
+                // Check backend health every 30 seconds
+                setInterval(() => this.checkBackendHealth(), 30000);
+                // Initial check
+                this.checkBackendHealth();
+            },
+
+            async checkBackendHealth() {
+                const healthData = {
+                    timestamp: Date.now(),
+                    checks: {}
+                };
+
+                // Check price endpoint
+                try {
+                    const priceStart = Date.now();
+                    const priceResponse = await fetch('/api/getPrice', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: 'health check' })
+                    });
+                    healthData.checks.priceEndpoint = {
+                        status: priceResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - priceStart,
+                        statusCode: priceResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.priceEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                // Check chat endpoint
+                try {
+                    const chatStart = Date.now();
+                    const chatResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: 'health check' }],
+                            sessionId: 'health-check'
+                        })
+                    });
+                    healthData.checks.chatEndpoint = {
+                        status: chatResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - chatStart,
+                        statusCode: chatResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.chatEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                this.healthChecks.lastCheck = healthData;
+                this.track('health_check', healthData);
+            },
+
+            monitorPerformance() {
+                // Monitor long tasks
+                if ('PerformanceObserver' in window) {
+                    try {
+                        const observer = new PerformanceObserver((list) => {
+                            for (const entry of list.getEntries()) {
+                                if (entry.duration > 50) {  // Tasks longer than 50ms
+                                    this.track('long_task', {
+                                        duration: entry.duration,
+                                        startTime: entry.startTime,
+                                        name: entry.name
+                                    });
+                                }
+                            }
+                        });
+                        observer.observe({ entryTypes: ['longtask'] });
+                    } catch (e) {
+                        console.log('Long task monitoring not supported');
+                    }
+                }
+            },
+
+            calculateAvgResponseTime() {
+                if (this.performanceMetrics.responseTimes.length === 0) return 0;
+                const sum = this.performanceMetrics.responseTimes.reduce((a, b) => a + b, 0);
+                return Math.round(sum / this.performanceMetrics.responseTimes.length);
             },
 
             generateSessionId() {
@@ -1989,23 +2109,92 @@
             },
 
             trackQuery(query, source) {
-                this.track('user_query', {
+                const queryMetrics = {
                     query,
                     source, // 'typed', 'suggestion', 'opportunity'
                     queryLength: query.length,
-                    timestamp: new Date().toISOString()
-                });
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.filter(e => e.eventName === 'user_query').length + 1,
+                    timeSinceLastQuery: this.getTimeSinceLastQuery()
+                };
+
+                this.track('user_query', queryMetrics);
+
+                // Track query patterns
+                if (query.toLowerCase().includes('price') || query.includes('£')) {
+                    this.track('query_intent', { type: 'pricing', query });
+                } else if (query.toLowerCase().includes('fabric') || query.toLowerCase().includes('material')) {
+                    this.track('query_intent', { type: 'fabric', query });
+                } else if (query.toLowerCase().includes('size') || query.toLowerCase().includes('seater')) {
+                    this.track('query_intent', { type: 'sizing', query });
+                }
             },
 
             trackResponse(response, responseTime) {
-                this.track('agent_response', {
+                // Calculate quality metrics
+                const hasPrice = response.includes('£');
+                const priceCount = (response.match(/£[\d,]+/g) || []).length;
+                const hasFeatures = response.includes('Key Features');
+                const hasOpportunities = response.includes('Opportunities');
+                const hasSuggestions = response.includes('What next');
+
+                const responseMetrics = {
                     responseLength: response.length,
                     responseTime,
-                    hasPrice: response.includes('£'),
-                    hasFeatures: response.includes('Key Features'),
-                    hasOpportunities: response.includes('Opportunities'),
-                    timestamp: new Date().toISOString()
+                    hasPrice,
+                    priceCount,
+                    hasFeatures,
+                    hasOpportunities,
+                    hasSuggestions,
+                    responseCompleteness: (hasPrice ? 25 : 0) + (hasFeatures ? 25 : 0) +
+                                        (hasOpportunities ? 25 : 0) + (hasSuggestions ? 25 : 0),
+                    timestamp: new Date().toISOString(),
+                    timeToFirstByte: window.firstByteTime ? window.firstByteTime - window.lastQueryTime : null,
+                    charactersPerSecond: response.length / (responseTime / 1000)
+                };
+
+                // Track response time for performance metrics
+                this.performanceMetrics.responseTimes.push(responseTime);
+
+                // Track response quality
+                if (responseMetrics.responseCompleteness >= 75) {
+                    this.track('high_quality_response', responseMetrics);
+                } else if (responseMetrics.responseCompleteness <= 25) {
+                    this.track('low_quality_response', responseMetrics);
+                }
+
+                this.track('agent_response', responseMetrics);
+            },
+
+            trackError(errorType, errorDetails) {
+                this.healthChecks.errors.push({
+                    type: errorType,
+                    details: errorDetails,
+                    timestamp: Date.now()
                 });
+
+                this.track('error_occurred', {
+                    errorType,
+                    errorDetails,
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.length,
+                    recoveryAttempted: false
+                });
+            },
+
+            trackUserJourney(milestone) {
+                this.track('journey_milestone', {
+                    milestone,
+                    timestamp: new Date().toISOString(),
+                    timeFromStart: Date.now() - this.sessionStart,
+                    queriesBeforeMilestone: this.events.filter(e => e.eventName === 'user_query').length
+                });
+            },
+
+            getTimeSinceLastQuery() {
+                const queries = this.events.filter(e => e.eventName === 'user_query');
+                if (queries.length === 0) return 0;
+                return Date.now() - queries[queries.length - 1].timestamp;
             },
 
             trackFeedback(messageId, feedback, responseContent) {
@@ -2500,6 +2689,13 @@
                 console.error('Error sending message:', error);
                 hideTypingIndicator();
                 addMessage('assistant', 'Sorry, I encountered a connection error. Please try again.');
+
+                // Track the error
+                Analytics.trackError('api_error', {
+                    endpoint: USE_LLM ? '/chat' : '/getPrice',
+                    error: error.message,
+                    query: message
+                });
 
                 if (USE_LLM && conversationHistory.length > 0 &&
                     conversationHistory[conversationHistory.length - 1].role === 'user') {
