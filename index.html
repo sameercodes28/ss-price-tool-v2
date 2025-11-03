@@ -1705,10 +1705,22 @@
         let sessionId = null;
         let conversationHistory = [];
 
+        /**
+         * Generates unique session ID for tracking user conversations.
+         * Format: "session_{timestamp}_{random}"
+         *
+         * @returns {string} Unique session identifier
+         */
         function generateSessionId() {
             return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(7);
         }
 
+        /**
+         * Resets conversation state and generates new session ID.
+         * Clears message history and creates fresh session for request tracking.
+         *
+         * @returns {void}
+         */
         function resetConversation() {
             conversationHistory = [];
             sessionId = generateSessionId();
@@ -2353,6 +2365,17 @@
 
         let messageIdCounter = 0;
 
+        /**
+         * Adds message bubble to chat interface.
+         *
+         * Creates and appends formatted message element with:
+         * - User messages: Simple text with timestamp
+         * - Assistant messages: Formatted HTML, avatar, feedback buttons
+         *
+         * @param {string} type - Message type: 'user' or 'assistant'
+         * @param {string} content - Message content (raw text or markdown)
+         * @returns {void}
+         */
         function addMessage(type, content) {
             const messagesWrapper = document.getElementById('messagesWrapper');
             const message = document.createElement('div');
@@ -2442,6 +2465,13 @@
             console.log(`[Feedback] ${feedback} for message ${messageId}`);
         }
 
+        /**
+         * Escapes HTML special characters to prevent XSS attacks.
+         * Converts <, >, &, ", ' to their HTML entity equivalents.
+         *
+         * @param {string} text - Text to escape
+         * @returns {string} HTML-safe escaped text
+         */
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -2449,8 +2479,19 @@
         }
 
         /**
-         * Format LLM response into clean, minimal HTML
-         * VERSION: COMPREHENSIVE PARSER WITH CLICKABLE OPPORTUNITIES
+         * Formats LLM markdown response into structured HTML.
+         *
+         * Parses LLM-generated markdown into clean HTML with:
+         * - Price display with currency formatting
+         * - Clickable product suggestions
+         * - Opportunity chips for related queries
+         * - Properly formatted lists and sections
+         *
+         * Falls back to plain text if parsing fails.
+         *
+         * @param {string} content - Raw markdown content from LLM
+         * @returns {string} Formatted HTML string ready for display
+         * @throws {Error} Logs error to Analytics but returns safe fallback
          */
         function formatLLMResponse(content) {
             try {
@@ -2625,6 +2666,13 @@
             }
         }
 
+        /**
+         * Handles clicks on product suggestion chips.
+         * Populates input with suggestion and submits query automatically.
+         *
+         * @param {string} suggestionText - Product name suggestion to query
+         * @returns {void}
+         */
         function handleSuggestionClick(suggestionText) {
             console.log('[CLICK] Suggestion clicked:', suggestionText);
             Analytics.track('query', { query: suggestionText, source: 'suggestion' });
@@ -2632,6 +2680,13 @@
             sendChatMessage();
         }
 
+        /**
+         * Handles clicks on opportunity/upsell chips.
+         * Creates followup query to add suggested item to current selection.
+         *
+         * @param {string} opportunityText - Opportunity text (e.g., "Cushions", "Ottoman")
+         * @returns {void}
+         */
         function handleOpportunityClick(opportunityText) {
             console.log('[CLICK] Opportunity clicked:', opportunityText);
             // Clean up the opportunity text and create a proper query
@@ -2647,6 +2702,21 @@
             sendChatMessage();
         }
 
+        /**
+         * Processes user message and fetches pricing response.
+         *
+         * Main query processing function that:
+         * - Routes to LLM chat endpoint or direct getPrice endpoint based on USE_LLM flag
+         * - Manages conversation history for multi-turn chats
+         * - Handles automatic retries on transient failures
+         * - Tracks errors and analytics events
+         * - Displays responses with formatted HTML
+         *
+         * @async
+         * @param {string} message - User's pricing query
+         * @returns {Promise<void>}
+         * @throws {Error} Displays error message to user and logs to Analytics
+         */
         async function processMessage(message) {
             // Store current query globally for tracking
             window.currentQuery = message;
