@@ -1,8 +1,27 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Dashboard consolidation, P1 error tracking, root cause analysis)
+**Last Updated:** 2025-11-03 (Part 3: Grok error handling investigation)
 **Current Version:** v2.2.1
 **Project Status:** 🚀 Production Development (incremental approach)
+
+## 🚨 CRITICAL ISSUE FOR NEXT SESSION
+
+**GROK AUTOMATIC CORRECTION IS BROKEN!**
+
+Before the UI redesign, Grok would:
+- Automatically correct "alwington" → "Alwinton" and find the price
+- Find closest fabric matches for generic colors
+- Never ask user to retype or correct
+
+After UI redesign:
+- Grok fails to auto-correct and returns errors
+- The "fix" attempted today made it WORSE (tells Grok to ask for clarification)
+
+**ACTION REQUIRED:**
+1. Compare old index.html (before UI change) with current
+2. Check what changed in how we call /chat endpoint
+3. Revert SYSTEM_PROMPT changes from today
+4. Restore automatic correction without user burden
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
 > **v1 Stable:** See ~/Desktop/SS-1 (ss-price-tool-v1) - DO NOT MODIFY
@@ -96,6 +115,46 @@ All infrastructure is deployed and operational!
 ---
 
 ## 🔧 Recent Changes
+
+### Session: 2025-11-03 Part 3 (Grok Error Handling - PARTIAL FIX, CRITICAL ISSUE FOUND)
+
+**Objective:** Fix Grok's ability to handle errors intelligently
+
+**⚠️ CRITICAL ISSUE DISCOVERED:**
+Grok WAS working perfectly before the UI redesign - it automatically corrected misspellings and found closest matches. The attempted fix made it WORSE by telling Grok to ask for clarification instead of auto-correcting. This needs to be REVERTED.
+
+**What Was Working Before:**
+- User types "alwington" → Grok automatically finds "Alwinton" and uses it
+- User types generic color → Grok finds closest fabric match
+- No burden on user to correct mistakes
+
+**What Broke:**
+- Something in the UI redesign broke Grok's automatic correction
+- The attempted fix in system prompt made it worse (asks for clarification now)
+
+**Attempted Changes (NEED REVIEW):**
+1. Modified formatLLMResponse to handle non-structured responses
+2. Updated SYSTEM_PROMPT with ERROR HANDLING section (THIS IS WRONG - needs revert)
+3. Reduced P1 error tracking for helpful responses
+
+**Files Modified:**
+- Modified: `index.html`
+  - Lines 2850-2897: Enhanced formatLLMResponse for non-structured content
+  - Lines 3085-3110: Better logging and reduced P1 tracking
+- Modified: `main.py`
+  - Lines 100-149: Added ERROR HANDLING section (WRONG APPROACH)
+- Deployed: Backend to GCF with correct entry point
+
+**Next Session MUST:**
+1. Investigate what exactly broke between old UI and new UI
+2. Revert system prompt changes that ask for clarification
+3. Restore automatic correction behavior
+4. Test with misspellings to ensure auto-correction works
+
+**Commits:**
+- 87307c6: Fix Grok error handling (PARTIAL - needs more work)
+
+---
 
 ### Session: 2025-11-03 Part 2 (Dashboard Consolidation, P1 Error Tracking & Root Cause Analysis)
 
