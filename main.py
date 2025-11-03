@@ -13,6 +13,9 @@ from fuzzywuzzy import process # For fuzzy matching
 from urllib.parse import quote # For URL encoding image paths
 from openai import OpenAI # For Grok LLM integration via OpenRouter
 
+# Import error code system (v2.5.0)
+from error_codes import create_error_response, ERROR_CODES
+
 # --- Setup: Session with Retries (Critique #6) ---
 # Create a reusable session to handle connections and retries
 session = requests.Session()
@@ -690,16 +693,16 @@ def get_price_logic(request):
         data = request.get_json()
     except (ValueError, TypeError) as e:
         print(f"  [ERROR] Invalid JSON in request: {e}")
-        return {"error": "Invalid request format. Please check your request body."}, 400
+        return create_error_response("E2006"), 400
 
     if not data:
-        return {"error": "No JSON payload received"}, 400
+        return create_error_response("E2007", details={"field": "JSON body"}), 400
 
     query = data.get('query', '').lower()
     user_agent = request.headers.get('User-Agent', 'Mozilla/5.0')
 
     if not query:
-        return {"error": "No query provided"}, 400
+        return create_error_response("E2007", details={"field": "query"}), 400
 
     print(f"--- New Query: '{query}' ---")
 
@@ -716,13 +719,17 @@ def get_price_logic(request):
     product_matches = find_best_matches(query, PRODUCT_SKU_MAP)
     if not product_matches:
         print(f"  [Error] No product match found for query: {query}")
-        return {"error": f"Product not found. Please try a product name like 'Alwinton' or 'Dog Bed'."}, 400
-    
+        return create_error_response("E2001"), 400
+
     # Check for ambiguity
     if len(product_matches) > 1 and product_matches[0][2] == product_matches[1][2]:
          suggestions = [m[1]["full_name"] for m in product_matches[:3]]
          print(f"  [Error] Ambiguous product: {suggestions}")
-         return {"error": f"Ambiguous product. Did you mean: {', '.join(suggestions)}?"}, 400
+         return create_error_response(
+             "E2002",
+             custom_user_message=f"Multiple products match. Did you mean: {', '.join(suggestions)}?",
+             details={"options": suggestions}
+         ), 400
     
     product_name_keyword, product_data = product_matches[0][0], product_matches[0][1]
     product_sku = product_data["sku"]
@@ -739,7 +746,7 @@ def get_price_logic(request):
              print(f"  [Info] No size specified, defaulting to first available: '{size_sku}'")
          else:
             print(f"  [Error] No size match for {product_sku}. Map: {product_size_map}")
-            return {"error": f"Could not find a size for '{product_data['full_name']}'. Try 'snuggler', '3 seater', etc."}, 400
+            return create_error_response("E2003"), 400
     else:
         size_sku = size_matches[0][1] # [1] is the SKU
         print(f"  [Match] Size: '{size_matches[0][0]}' -> SKU: '{size_sku}'")
@@ -762,20 +769,27 @@ def get_price_logic(request):
     product_fabric_map = FABRIC_SKU_MAP.get(product_sku, {})
     if not product_fabric_map:
         print(f"  [Error] No fabric dictionary found for product SKU: {product_sku}")
-        return {"error": f"No fabrics seem to be available for '{product_data['full_name']}'."}, 404
+        return create_error_response(
+            "E2004",
+            custom_user_message=f"No fabrics available for '{product_data['full_name']}'."
+        ), 404
 
     fabric_matches = find_best_matches(query, product_fabric_map)
     if not fabric_matches:
          print(f"  [Error] No fabric match for query: {query}")
-         return {"error": f"Fabric not found for '{product_data['full_name']}'. Try a specific color like 'pacific' or 'waves'."}, 400
-    
+         return create_error_response("E2004"), 400
+
     # Ambiguity check for fabrics (e.g., "blue" matching "light blue" and "dark blue")
     if len(fabric_matches) > 1 and fabric_matches[0][2] < 100: # Check if it wasn't an exact match
         # Check if top matches are too close to call
         if fabric_matches[0][2] - fabric_matches[1][2] < 10: # If scores are very close
             suggestions = [m[0] for m in fabric_matches[:3]]
             print(f"  [Error] Ambiguous fabric: {suggestions}")
-            return {"error": f"Ambiguous fabric. Did you mean: {', '.join(suggestions)}?"}, 400
+            return create_error_response(
+                "E2005",
+                custom_user_message=f"Multiple fabrics match. Did you mean: {', '.join(suggestions)}?",
+                details={"options": suggestions}
+            ), 400
         
     fabric_match_data = fabric_matches[0][1] # [1] is the fabric data dict
     print(f"  [Match] Fabric: '{fabric_matches[0][0]}' -> SKU: '{fabric_match_data['fabric_sku']}', Color: '{fabric_match_data['color_sku']}'")
@@ -783,7 +797,7 @@ def get_price_logic(request):
     # (Critique #13) Validate fabric_match_data
     if not fabric_match_data or 'fabric_sku' not in fabric_match_data or 'color_sku' not in fabric_match_data:
         print(f"  [Error] Invalid fabric data found: {fabric_match_data}")
-        return {"error": f"Invalid fabric data found for '{product_data['full_name']}'"}, 500
+        return create_error_response("E3004", details={"product": product_data['full_name']}), 500
         
     # --- 3. Check Cache (Critique #10) ---
     cache_key = get_cache_key(product_sku, size_sku, cover_sku, fabric_match_data['fabric_sku'], fabric_match_data['color_sku'])
@@ -929,10 +943,10 @@ def chat_handler(request):
     try:
         # Check if OpenRouter client is initialized
         if not openrouter_client:
-            return {
-                "error": "Chat service unavailable. OpenRouter API key not configured.",
-                "fallback": "Please use the /getPrice endpoint for direct product queries."
-            }, 503
+            return create_error_response(
+                "E1006",
+                details={"fallback_endpoint": "/getPrice"}
+            ), 503
 
         # Parse request body
         # CRITICAL: Wrap get_json() in try/catch to prevent crashes on malformed requests
@@ -940,16 +954,16 @@ def chat_handler(request):
             data = request.get_json()
         except (ValueError, TypeError) as e:
             print(f"  [ERROR] Invalid JSON in chat request: {e}")
-            return {"error": "Invalid request format. Please check your JSON body."}, 400
+            return create_error_response("E2006"), 400
 
         if not data:
-            return {"error": "No JSON body provided"}, 400
+            return create_error_response("E2007", details={"field": "JSON body"}), 400
 
         messages = data.get('messages', [])
         session_id = data.get('session_id', 'no-session')
 
         if not messages:
-            return {"error": "No messages provided. Expected 'messages' array in JSON body."}, 400
+            return create_error_response("E2007", details={"field": "messages array"}), 400
 
         # Validate messages format
         if not isinstance(messages, list):
