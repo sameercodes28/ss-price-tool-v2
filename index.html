@@ -2509,18 +2509,14 @@
          * @param {string} text - Text with markdown syntax
          * @returns {string} HTML with markdown rendered
          */
-        // REPLACED WITH SIMPLER VERSION BELOW
-        function formatLLMResponse(content) {
-            console.log('[formatLLMResponse] SIMPLE VERSION');
-
-            // Parse markdown: **bold**, _italic_, [link](url)
-            let html = content
+        /**
+         * Helper: Parse markdown in a single line
+         */
+        function parseMarkdown(text) {
+            return text
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                 .replace(/_(.+?)_/g, '<em>$1</em>')
-                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>')
-                .replace(/\n/g, '<br>\n');
-
-            return '<div class="llm-response-content">' + html + '</div>';
+                .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
         }
 
         /**
