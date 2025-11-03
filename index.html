@@ -2855,7 +2855,49 @@
             let features = [];
             let opportunities = [];
             let priceShown = false;  // Track if we've already shown a price
+            let hasStructuredContent = false; // Track if response has our expected format
 
+            // Check if content has our expected format
+            hasStructuredContent = content.includes('### 💰') ||
+                                  content.includes('### ✨') ||
+                                  content.includes('### 🎯') ||
+                                  content.includes('### 💬');
+
+            // If no structured content, treat as helpful error/suggestion message
+            if (!hasStructuredContent) {
+                console.log('[LLM Response] No structured format detected, displaying as helpful message');
+
+                // Format the response nicely but don't treat as error
+                html = '<div class="llm-suggestion-response">';
+
+                // Split into paragraphs and format
+                const paragraphs = content.split('\n\n');
+                for (let para of paragraphs) {
+                    para = para.trim();
+                    if (!para) continue;
+
+                    // Check for lists
+                    if (para.includes('•') || para.includes('-')) {
+                        html += '<ul style="margin: 10px 0;">';
+                        const items = para.split('\n');
+                        for (let item of items) {
+                            item = item.replace(/^[•\-]\s*/, '').trim();
+                            if (item) {
+                                html += `<li>${escapeHtml(item)}</li>`;
+                            }
+                        }
+                        html += '</ul>';
+                    } else {
+                        // Regular paragraph
+                        html += `<p style="margin: 10px 0;">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`;
+                    }
+                }
+
+                html += '</div>';
+                return html;
+            }
+
+            // Process structured response as before
             for (let line of lines) {
                 line = line.trim();
                 if (!line) continue;
@@ -3041,12 +3083,31 @@
                     hideTypingIndicator();
 
                     if (response.ok && data.response) {
+                        // Log the raw response for debugging
+                        console.log('[LLM Response]:', data.response.substring(0, 200) + '...');
+
                         addMessage('assistant', data.response);
 
                         conversationHistory.push({
                             role: 'assistant',
                             content: data.response
                         });
+
+                        // Only track as P1 error if response doesn't contain a price AND doesn't contain helpful guidance
+                        const hasPrice = data.response.includes('£') && data.response.includes('### 💰');
+                        const hasHelpfulContent = data.response.includes('Did you mean') ||
+                                                 data.response.includes('Let me') ||
+                                                 data.response.includes('I found') ||
+                                                 data.response.includes('Here are') ||
+                                                 data.response.includes('available');
+
+                        if (!hasPrice && !hasHelpfulContent && message.toLowerCase().includes('price')) {
+                            console.warn('[LLM Response] No price or helpful content for price query');
+                            Analytics.track('llm_no_price', {
+                                query: message,
+                                response: data.response.substring(0, 200)
+                            });
+                        }
 
                         if (data.metadata) {
                             console.log('[Frontend] LLM Response metadata:', {
