@@ -8,6 +8,32 @@ This folder contains custom slash commands for this project.
 
 **Purpose:** Automatically update `.claude/context.md` with today's session changes.
 
+### `/audit`
+
+**Purpose:** Run comprehensive codebase audit to prevent documentation drift and code bloat.
+
+**Usage:**
+```
+/audit
+```
+
+**What it does:**
+1. Checks version consistency across all documentation files
+2. Finds TODO/FIXME/DEPRECATED comments
+3. Lists backup and test files in root directory
+4. Verifies CHANGELOG is up to date
+5. Generates actionable report with findings
+
+**When to use:**
+- After completing any feature
+- Before bumping version numbers
+- Monthly maintenance check
+- Before major deployments
+
+---
+
+### `/update-context`
+
 **Usage:**
 ```
 /update-context
