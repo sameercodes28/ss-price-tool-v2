@@ -8,6 +8,31 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ## [Unreleased] - 2025-11-03 🔍 DISCOVERY BUTTONS + UI CLEANUP
 
+### 🔧 Fix: "Other Sizes in Range" Discovery Button
+Fixed the "Other Sizes in Range" button to properly find all size variations of a product.
+
+**Problem:**
+- Clicking "Other Sizes in Range" returned "pricing system temporarily unavailable"
+- Example: Sudbury has both 3 Seater (£3,015) and 2.5 Seater (£2,866) but button couldn't find them
+
+**Solution:**
+- Added explicit SYSTEM_PROMPT instructions for handling "other sizes" queries
+- LLM now uses `search_by_budget(10000, product_name)` to find all size variations
+- Added examples: "Show me Sudbury 3 Seater in other sizes" → extracts "sudbury" → searches all sizes
+
+**Technical Changes:**
+- **Backend (main.py):**
+  - Updated "Use multiple tools to discover" section (line 425): Added "other sizes" instruction
+  - Added 2 new examples in "EXAMPLES OF EXCELLENCE" (lines 464-468): Sudbury and Alwinton size queries
+  - Total: ~7 lines added
+
+**User Experience:**
+- "Other Sizes in Range" button now works correctly
+- Shows all available sizes for a product in card format
+- Example: Clicking on Sudbury 3 Seater → "Other Sizes" shows both 3 Seater and 2.5 Seater
+
+---
+
 ### 🎨 Fabric Search Formatting Enhancement
 Improved fabric search results display with tier-based organization and removed ALL clutter.
 

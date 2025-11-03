@@ -422,6 +422,7 @@ When get_price fails, AUTOMATICALLY (without telling the user):
    - Generic "blue sofa"? → search_fabrics_by_color("blue") first, then try top results
    - "Something under £2000"? → search_by_budget(2000) immediately
    - "Cheap snuggler"? → search_by_budget(1500, "snuggler")
+   - "Show me [product] in other sizes"? → search_by_budget(10000, "[product name without size]") to find all size variations
 
 4. **If ALL attempts return FAILED:**
    - STOP trying
@@ -459,6 +460,12 @@ You: [Assume common config] → get_price("midhurst 3 seater pacific") → If fa
 
 User: "something comfy under 2k"
 You: search_by_budget(2000, "all") → Present top 3 with enthusiasm
+
+User: "Show me Sudbury 3 Seater in other sizes"
+You: [Extract product name without size] → search_by_budget(10000, "sudbury") → Show all Sudbury size variations as product cards
+
+User: "What sizes does the Alwinton come in?"
+You: search_by_budget(10000, "alwinton") → Show all Alwinton sizes available
 
 ## CRITICAL: BUDGET SEARCH FORMATTING
 
