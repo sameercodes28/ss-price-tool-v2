@@ -1,13 +1,13 @@
 # Sofas & Stuff Voice Price Check Tool - v2
 
-**Version:** 2.1.0 (Phase 1C Complete)
-**Status:** 🎭 **DEMO STAGE** - Working LLM-Powered Chat Agent
+**Version:** 2.3.0 (Superior Grok UX)
+**Status:** 🚀 **PRODUCTION** - Intelligent LLM-Powered Assistant
 **Parent Project:** [v1.0.0 (Stable)](https://github.com/sameercodes28/SS) (v1 repository)
-**Last Updated:** November 2, 2025
+**Last Updated:** November 3, 2025
 
 > **⚠️ IMPORTANT:** This is v2 production development. The stable v1 is deployed separately and remains unaffected by changes here.
 
-> **🎭 DEMO STAGE:** v2 now includes a working AI chat agent powered by Grok-4 with tool calling capabilities. This is a functional demo showcasing conversational product assistance. Further polish and features are in development.
+> **🚀 PRODUCTION:** v2 features a superior AI assistant powered by Grok-4 with automatic error correction, intelligent defaults, and effortless user experience. The system auto-corrects misspellings, makes smart assumptions, and never burdens users with clarifications.
 
 An AI-powered conversational assistant for Sofas & Stuff salespeople. This v2 version uses Grok-4 LLM to provide intelligent product recommendations, pricing, and fabric searches through natural conversation.
 
@@ -119,7 +119,7 @@ const BACKEND_API_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net
 
 Push to GitHub and enable GitHub Pages.
 
-**Done!** Your v2 app is live at `https://sameercodes28.github.io/SS-2/`
+**Done!** Your v2 app is live at `https://britishmade.ai/`
 
 ---
 
@@ -192,7 +192,8 @@ If you fix a bug in v1 and want it in v2:
 
 ### v2 Deployments (Separate from v1)
 - **Backend:** `https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2`
-- **Frontend:** `https://sameercodes28.github.io/SS-2/`
+- **Frontend:** `https://britishmade.ai/`
+- **Telemetry:** `https://britishmade.ai/telemetry.html` (Password: SOFAS25)
 - **Google Cloud Project:** `sofa-project-v2` (Separate project)
 - **OpenRouter API:** Proxies requests to Grok-4 via OpenAI-compatible SDK
 
@@ -225,7 +226,7 @@ curl -X POST https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-
 Expected: Natural language response with pricing details and metadata (tokens, iterations, model)
 
 ### Frontend Testing
-Visit: https://sameercodes28.github.io/SS-2/
+Visit: https://britishmade.ai/
 
 Try these queries:
 - "How much is an alwinton snuggler in pacific?" (get_price tool)

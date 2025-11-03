@@ -38,7 +38,7 @@ gcloud functions deploy sofa-price-calculator \
 #### Step 1: Packaging
 ```
 Your Local Directory:
-/Users/sameerm4/Desktop/SS-1/
+/Users/sameerm4/Desktop/SS-2/
 ├── main.py
 ├── requirements.txt
 ├── products.json
@@ -86,7 +86,7 @@ pip install -r requirements.txt
 #### Step 4: URL Assignment
 ```
 Your function gets a public URL:
-https://europe-west2-sofaproject-476903.cloudfunctions.net/sofa-price-calculator
+https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2
 
 This URL is accessible worldwide, 24/7
 ```

@@ -2906,9 +2906,6 @@
                 if (line.startsWith('### 💰')) {
                     currentSection = 'price';
                     continue;
-                } else if (line.startsWith('### ✨')) {
-                    currentSection = 'features';
-                    continue;
                 } else if (line.startsWith('### 🎯')) {
                     currentSection = 'opportunities';
                     continue;
@@ -2919,33 +2916,25 @@
 
                 // Handle different sections
                 if (currentSection === 'price') {
-                    // Product name (bold text) - show first product only
-                    if (!priceShown && line.startsWith('**') && line.endsWith('**')) {
+                    // Product name (bold text) - could be "Product Name in Fabric Name"
+                    if (line.startsWith('**') && line.endsWith('**') && !line.includes('£')) {
                         const productName = line.replace(/\*\*/g, '');
                         if (productName.includes(' in ')) {
                             const parts = productName.split(' in ');
                             html += `<h3 class="product-title">${escapeHtml(parts[0])}</h3>`;
-                            html += `<p class="product-specs">${escapeHtml(parts[1])}</p>`;
+                            html += `<p class="product-specs">in ${escapeHtml(parts[1])}</p>`;
                         } else {
                             html += `<h3 class="product-title">${escapeHtml(productName)}</h3>`;
                         }
-                        priceShown = true;
                         continue;
                     }
 
-                    // Price with strikethrough - show first price only
-                    if (!priceShown && line.includes('~~£') && line.includes('**£')) {
-                        const oldMatch = line.match(/~~£([\d,]+)~~/);
-                        const newMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                        const saveMatch = line.match(/Save £([\d,]+)/);
-
-                        if (oldMatch && newMatch) {
+                    // Main price display - **£PRICE**
+                    if (line.startsWith('**£') && line.endsWith('**')) {
+                        const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                        if (priceMatch && !priceShown) {
                             html += '<div class="main-price-display">';
-                            // No label needed since product details are shown above
-                            html += `<span class="price-amount">£${newMatch[1]}</span>`;
-                            if (saveMatch) {
-                                html += `<span class="savings-text">Save £${saveMatch[1]}!</span>`;
-                            }
+                            html += `<span class="price-amount">£${priceMatch[1]}</span>`;
                             html += '</div>';
                             priceShown = true;
                         }
@@ -2974,11 +2963,6 @@
                         continue;
                     }
                 }
-                else if (currentSection === 'features' && (line.startsWith('•') || line.startsWith('-') || line.startsWith('✓'))) {
-                    // Remove any leading checkmarks to avoid duplication
-                    let feature = line.replace(/^[•\-✓]\s*/, '').trim();
-                    features.push(feature);
-                }
                 else if (currentSection === 'opportunities') {
                     if (line.startsWith('>')) {
                         const text = line.substring(1).trim();
@@ -2994,17 +2978,6 @@
                 }
             }
 
-            // Add features section
-            if (features.length > 0) {
-                html += '<div class="features-section">';
-                html += '<h4 class="section-title">✨ Key Features</h4>';
-                html += '<ul class="feature-list">';
-                features.forEach(feature => {
-                    html += `<li>${escapeHtml(feature)}</li>`;
-                });
-                html += '</ul>';
-                html += '</div>';
-            }
 
             // Add opportunities section as clickable buttons
             if (opportunities.length > 0) {

@@ -167,20 +167,13 @@ For successful queries, use these sections:
 
 ### 💰 Price
 
-**Product Name** in Fabric Name
-~~£OLD~~ → **£NEW** *(Save £AMOUNT!)*
+**Product Name in Fabric Name**
+**£PRICE**
 
-**For multiple items or with add-ons, show TOTAL FIRST:**
-TOTAL: **£TOTAL_AMOUNT**
-- Item 1: £amount
-- Item 2: £amount
-- Add-on: £amount
-
-### ✨ Key Features
-
-• Hardwood frame with lifetime guarantee
-• Duck feather cushions
-• Handmade in UK (8-12 week delivery)
+If there's a price breakdown, show components:
+• Base product: £amount
+• Fabric upgrade: £amount
+• Total: **£TOTAL**
 
 ### 🎯 Opportunities to Enhance
 
