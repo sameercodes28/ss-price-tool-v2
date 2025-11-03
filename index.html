@@ -2589,27 +2589,40 @@
                     }
                 }
 
-                // Fallback: Manual parsing (if marked.js fails or unavailable)
+                // Fallback: Manual parsing with basic markdown support (if marked.js fails or unavailable)
+                console.warn('[LLM Response] Falling back to manual markdown parsing');
                 html = '<div class="llm-suggestion-response">';
                 const paragraphs = content.split('\n\n');
                 for (let para of paragraphs) {
                     para = para.trim();
                     if (!para) continue;
 
+                    // Parse basic markdown: **bold**, _italic_, [text](url)
+                    let parsed = escapeHtml(para);
+
+                    // Bold: **text** -> <strong>text</strong>
+                    parsed = parsed.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+                    // Italic: _text_ -> <em>text</em>
+                    parsed = parsed.replace(/_(.+?)_/g, '<em>$1</em>');
+
+                    // Links: [text](url) -> <a href="url">text</a>
+                    parsed = parsed.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+
                     // Check for lists
                     if (para.includes('•') || para.includes('-')) {
                         html += '<ul style="margin: 10px 0;">';
-                        const items = para.split('\n');
+                        const items = parsed.split('\n');
                         for (let item of items) {
                             item = item.replace(/^[•\-]\s*/, '').trim();
                             if (item) {
-                                html += `<li>${escapeHtml(item)}</li>`;
+                                html += `<li>${item}</li>`;
                             }
                         }
                         html += '</ul>';
                     } else {
                         // Regular paragraph
-                        html += `<p style="margin: 10px 0;">${escapeHtml(para).replace(/\n/g, '<br>')}</p>`;
+                        html += `<p style="margin: 10px 0;">${parsed.replace(/\n/g, '<br>')}</p>`;
                     }
                 }
 
