@@ -74,6 +74,146 @@
             --shadow-fabric: 0 4px 20px rgba(198, 126, 95, 0.15);
         }
 
+        /* ============================================
+           ACCESS CODE OVERLAY
+           ============================================ */
+        .access-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .access-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .access-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .access-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+        }
+
+        .access-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .access-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .access-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .access-input:focus {
+            border-color: var(--fabric-terracotta);
+            box-shadow: 0 0 0 4px rgba(198, 126, 95, 0.1);
+        }
+
+        .access-input.error {
+            border-color: #ef4444;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .access-button {
+            width: 100%;
+            padding: 16px;
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--fabric-terracotta) 0%, var(--fabric-bark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .access-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(198, 126, 95, 0.3);
+        }
+
+        .access-button:active {
+            transform: translateY(0);
+        }
+
+        .access-error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .access-error.show {
+            opacity: 1;
+        }
+
+        .access-hint {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-primary);
@@ -1440,6 +1580,33 @@
     </style>
 </head>
 <body>
+    <!-- Access Code Overlay -->
+    <div class="access-overlay" id="accessOverlay">
+        <div class="access-card">
+            <img src="orbgif.gif" alt="British Made AI" class="access-logo">
+            <h1 class="access-title">Welcome to British Made AI</h1>
+            <p class="access-subtitle">Please enter your access code to continue</p>
+            <input
+                type="text"
+                class="access-input"
+                id="accessInput"
+                placeholder="ENTER CODE"
+                maxlength="10"
+                autocomplete="off"
+                spellcheck="false"
+            >
+            <button class="access-button" onclick="checkAccessCode()">
+                Enter Showroom
+            </button>
+            <div class="access-error" id="accessError">
+                Incorrect access code. Please try again.
+            </div>
+            <div class="access-hint">
+                For showroom access, please contact your manager
+            </div>
+        </div>
+    </div>
+
     <!--
     ================================================================
     HEADER WITH ULTRA FABRIC ORB
@@ -1880,6 +2047,80 @@
 
         // Initialize analytics on page load
         window.addEventListener('load', () => Analytics.init());
+
+        // ========================================
+        // ACCESS CONTROL
+        // ========================================
+
+        const ACCESS_CODE = 'SOFAS25';
+        const AUTH_KEY = 'britishmade_authenticated';
+
+        function checkAuthentication() {
+            // Check if user is authenticated in session
+            const isAuthenticated = sessionStorage.getItem(AUTH_KEY);
+            const accessOverlay = document.getElementById('accessOverlay');
+
+            if (isAuthenticated === 'true') {
+                // User is authenticated, hide overlay
+                accessOverlay.classList.add('hidden');
+            } else {
+                // User needs to authenticate
+                accessOverlay.classList.remove('hidden');
+                document.getElementById('accessInput').focus();
+            }
+        }
+
+        function checkAccessCode() {
+            const input = document.getElementById('accessInput');
+            const errorMsg = document.getElementById('accessError');
+            const overlay = document.getElementById('accessOverlay');
+
+            const enteredCode = input.value.toUpperCase().trim();
+
+            if (enteredCode === ACCESS_CODE) {
+                // Correct code
+                sessionStorage.setItem(AUTH_KEY, 'true');
+                overlay.classList.add('hidden');
+                errorMsg.classList.remove('show');
+                input.classList.remove('error');
+                input.value = '';
+
+                // Track successful login
+                Analytics.track('access_granted', { timestamp: new Date().toISOString() });
+            } else {
+                // Incorrect code
+                input.classList.add('error');
+                errorMsg.classList.add('show');
+
+                // Track failed attempt
+                Analytics.track('access_denied', {
+                    attemptedCode: enteredCode,
+                    timestamp: new Date().toISOString()
+                });
+
+                // Clear after animation
+                setTimeout(() => {
+                    input.classList.remove('error');
+                    input.value = '';
+                    input.focus();
+                }, 500);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('DOMContentLoaded', () => {
+            const accessInput = document.getElementById('accessInput');
+            if (accessInput) {
+                accessInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAccessCode();
+                    }
+                });
+            }
+
+            // Check authentication on page load
+            checkAuthentication();
+        });
 
         // ========================================
         // CHAT INTERFACE LOGIC

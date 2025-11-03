@@ -333,6 +333,15 @@
     </div>
 
     <script>
+        // Check authentication
+        const AUTH_KEY = 'britishmade_authenticated';
+        const isAuthenticated = sessionStorage.getItem(AUTH_KEY);
+
+        if (!isAuthenticated || isAuthenticated !== 'true') {
+            // Redirect to main page if not authenticated
+            window.location.href = '/';
+        }
+
         let allEvents = [];
         let currentFilter = 'all';
 
