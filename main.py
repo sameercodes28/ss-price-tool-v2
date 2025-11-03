@@ -649,7 +649,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "search_by_budget",
-            "description": "Search for sofas and beds within a specific budget. Returns products with base prices under the specified amount, along with fabric tier guidance. Use this when customer asks 'show me sofas under £X' or 'what can I get for £X'. Note: Base prices shown are for standard configurations - final price varies by size, fabric tier, and cover type.",
+            "description": "Search for sofas and beds within a specific budget. Returns products with base prices under the specified amount, along with fabric tier guidance. Use this when customer asks 'show me sofas under £X' or 'what can I get for £X'. Also supports filtering by product name to find size variations (e.g., 'show me Sudbury in other sizes'). Note: Base prices shown are for standard configurations - final price varies by size, fabric tier, and cover type.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -657,9 +657,13 @@ TOOLS = [
                         "type": "number",
                         "description": "Maximum budget in GBP (pounds). Example: 2000 for £2,000"
                     },
+                    "product_name": {
+                        "type": "string",
+                        "description": "Optional filter by product name. Use this to find all size variations of a specific product. Example: 'sudbury' will find all Sudbury sizes, 'snuggler' will find all snuggler products. Matching is case-insensitive and partial matches are supported. Leave empty to search all products."
+                    },
                     "product_type": {
                         "type": "string",
-                        "description": "Optional filter by product type. Options: 'sofa', 'bed', 'chair', 'footstool', 'dog_bed'. If not specified, searches all types.",
+                        "description": "Optional filter by product type. Options: 'sofa', 'bed', 'chair', 'footstool', 'dog_bed', 'all'. If not specified, defaults to 'all'.",
                         "enum": ["sofa", "bed", "chair", "footstool", "dog_bed", "all"]
                     }
                 },
@@ -717,20 +721,28 @@ def get_price_tool_handler(query):
 
     return result, status_code
 
-def search_by_budget_handler(max_price, product_type="all"):
+def search_by_budget_handler(max_price, product_name=None, product_type="all"):
     """
     Tool handler for search_by_budget.
 
     Searches all products and returns those with base prices under the specified budget.
+    Optionally filters by product name to find size variations of a specific product.
+
+    When product_name is provided, this function will:
+    1. Find the matching product and its SKU
+    2. Look up all available sizes in SIZE_SKU_MAP
+    3. Dynamically fetch pricing for each size using get_price
+    4. Return all size variations (e.g., "Sudbury 2.5 Seater", "Sudbury 3 Seater")
 
     Args:
         max_price (int/float): Maximum budget in GBP
+        product_name (str): Optional filter - product name to search for (case-insensitive, partial match)
         product_type (str): Optional filter - 'sofa', 'bed', 'chair', 'footstool', 'dog_bed', or 'all'
 
     Returns:
         (result_dict, status_code)
     """
-    print(f"  [Tool:search_by_budget] Budget: £{max_price}, Type: {product_type}")
+    print(f"  [Tool:search_by_budget] Budget: £{max_price}, Product: {product_name or 'all'}, Type: {product_type}")
 
     try:
         # Validate inputs
@@ -738,10 +750,111 @@ def search_by_budget_handler(max_price, product_type="all"):
         if max_price <= 0:
             return {"error": "Budget must be greater than £0"}, 400
 
-        # Filter products by budget and type
+        # ==== SIZE VARIATION DISCOVERY MODE ====
+        # If product_name is provided, try to find all size variations dynamically
+        if product_name:
+            product_name_lower = product_name.lower().strip()
+
+            # Find the matching product in PRODUCT_SKU_MAP
+            matched_product = None
+            matched_keyword = None
+
+            for keyword, product_data in PRODUCT_SKU_MAP.items():
+                keyword_lower = keyword.lower()
+                full_name_lower = product_data.get("full_name", "").lower()
+
+                if product_name_lower in keyword_lower or product_name_lower in full_name_lower:
+                    matched_product = product_data
+                    matched_keyword = keyword
+                    break
+
+            if matched_product:
+                product_sku = matched_product.get("sku")
+                print(f"  [Size Discovery] Found product: {matched_keyword}, SKU: {product_sku}")
+
+                # Check if this product has multiple sizes in SIZE_SKU_MAP
+                if product_sku and product_sku in SIZE_SKU_MAP:
+                    sizes_map = SIZE_SKU_MAP[product_sku]
+                    print(f"  [Size Discovery] Found {len(sizes_map)} size entries for SKU {product_sku}")
+
+                    # Extract unique size names (filter out SKU-only entries like '3se': '3se')
+                    unique_sizes = []
+                    for size_name, size_sku in sizes_map.items():
+                        # Only include human-readable size names (not SKU aliases)
+                        if ' ' in size_name:  # "3 seater sofa", "2.5 seater sofa", etc.
+                            unique_sizes.append(size_name)
+
+                    print(f"  [Size Discovery] Unique sizes found: {unique_sizes}")
+
+                    # For each size, fetch actual pricing using get_price
+                    matching_products = []
+                    for size_name in unique_sizes:
+                        # Construct query: "product_keyword size pacific" (use default fabric)
+                        # Use a common default fabric for base pricing
+                        query = f"{matched_keyword} {size_name} pacific"
+                        print(f"  [Size Discovery] Fetching price for: {query}")
+
+                        # Call get_price to get actual pricing for this size
+                        result, status_code = get_price_tool_handler(query)
+
+                        if status_code == 200:
+                            # Successfully got pricing for this size
+                            price_text = result.get("price", "N/A")
+                            product_name_result = result.get("productName", f"{matched_keyword} {size_name}".title())
+
+                            # Extract numeric price for sorting and filtering
+                            try:
+                                # Price format: "£2,866" or "£2866"
+                                price_numeric = int(price_text.replace("£", "").replace(",", ""))
+                            except:
+                                price_numeric = 999999
+
+                            # Only include if within budget
+                            if price_numeric <= max_price:
+                                matching_products.append({
+                                    "name": product_name_result,
+                                    "base_price": price_numeric,
+                                    "price_display": price_text,
+                                    "type": matched_product.get("type", "unknown"),
+                                    "sku": product_sku,
+                                    "size": size_name
+                                })
+                                print(f"  [Size Discovery] ✓ Added: {product_name_result} - {price_text}")
+                        else:
+                            print(f"  [Size Discovery] ✗ Failed to get price for {query} (status: {status_code})")
+
+                    # If we successfully found size variations, return them
+                    if matching_products:
+                        matching_products.sort(key=lambda x: x["base_price"])
+
+                        print(f"  [Size Discovery] Returning {len(matching_products)} size variations")
+                        return {
+                            "count": len(matching_products),
+                            "products": matching_products,
+                            "truncated": False,
+                            "discovery_mode": "size_variations",
+                            "base_product": matched_keyword,
+                            "fabric_tier_guidance": {
+                                "note": "Prices shown are for Pacific fabric (Essentials tier). Final price varies by fabric choice.",
+                                "factors": ["Fabric tier (Essentials, Premium, Luxury)", "Cover type (fit, loose, slipcover)"]
+                            }
+                        }, 200
+
+        # ==== STANDARD BUDGET SEARCH MODE ====
+        # If we didn't find size variations, fall back to standard product search
         matching_products = []
 
-        for product_name, product_data in PRODUCT_SKU_MAP.items():
+        for keyword, product_data in PRODUCT_SKU_MAP.items():
+            # Skip if product doesn't match name filter (if provided)
+            if product_name:
+                product_name_lower = product_name.lower().strip()
+                keyword_lower = keyword.lower()
+                full_name_lower = product_data.get("full_name", "").lower()
+
+                # Check if search term appears in either keyword or full_name
+                if product_name_lower not in keyword_lower and product_name_lower not in full_name_lower:
+                    continue
+
             # Skip if product doesn't match type filter
             if product_type != "all" and product_data.get("type") != product_type:
                 continue
@@ -750,7 +863,7 @@ def search_by_budget_handler(max_price, product_type="all"):
             base_price = int(product_data.get("price", 999999))
             if base_price <= max_price:
                 matching_products.append({
-                    "name": product_data.get("full_name", product_name),
+                    "name": product_data.get("full_name", keyword),
                     "base_price": base_price,
                     "price_display": product_data.get("price_display", f"£{base_price:,}"),
                     "type": product_data.get("type", "unknown"),
@@ -1474,8 +1587,9 @@ def chat_handler(request):
                             tool_result, tool_status = get_price_tool_handler(query)
                         elif tool_name == "search_by_budget":
                             max_price = tool_args.get("max_price", 0)
+                            product_name = tool_args.get("product_name")
                             product_type = tool_args.get("product_type", "all")
-                            tool_result, tool_status = search_by_budget_handler(max_price, product_type)
+                            tool_result, tool_status = search_by_budget_handler(max_price, product_name, product_type)
                         elif tool_name == "search_fabrics_by_color":
                             color = tool_args.get("color", "")
                             product_name = tool_args.get("product_name")
