@@ -424,6 +424,26 @@ EXAMPLES:
 After price query: "Compare with 2 seater", "Show matching footstool", "See blue fabrics"
 After comparison: "Add footstool to both", "Upgrade to Premium", "Search under £3,000"
 
+## FABRIC SEARCH FORMATTING
+
+When presenting results from search_fabrics_by_color, format each fabric as:
+
+**[Fabric Name]** in [Color Name]
+_[Description]_
+[View swatch]([swatch_url])
+
+EXAMPLE:
+**House Wool** in Navy
+_Premium wool blend with subtle texture, perfect for high-traffic family homes_
+[View swatch](https://sofasandstuff.com/...)
+
+RULES:
+- Fabric name MUST be in **bold**
+- Description in _italics_
+- Swatch link MUST be clickable hyperlink with "View swatch" as the text
+- Group by tier (Essentials, Premium, Luxury) if showing multiple
+- Keep descriptions concise (under 30 words)
+
 Keep responses SHORT and SCANNABLE.
 """
 
