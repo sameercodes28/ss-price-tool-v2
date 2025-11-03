@@ -2688,12 +2688,64 @@
                 return html;
             }
 
-            // Collect data for card-based design
-            let productName = '';
-            let fabricInfo = '';
-            let mainPrice = '';
-            let priceItems = [];
-            let description = '';
+            // Helper function to build a product card
+            function buildProductCard(productName, fabricInfo, mainPrice, priceItems, description) {
+                if (!productName && !mainPrice) return '';
+
+                let cardHtml = '<div class="pricing-card">';
+
+                // Header with product name and price
+                cardHtml += '<div class="pricing-card-header">';
+                cardHtml += '<div class="pricing-card-title-section">';
+
+                // If no product name but we have price items, use first item as title
+                if (!productName && priceItems.length > 0) {
+                    cardHtml += `<div class="pricing-card-title">${escapeHtml(priceItems[0].label)}</div>`;
+                } else if (productName) {
+                    cardHtml += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
+                }
+
+                if (fabricInfo) {
+                    cardHtml += `<div class="pricing-card-subtitle">${escapeHtml(fabricInfo)}</div>`;
+                }
+                cardHtml += '</div>';
+                cardHtml += '<div class="pricing-card-price">';
+                cardHtml += '<div class="pricing-card-price-label">CLIENT PRICE</div>';
+                cardHtml += `<div class="pricing-card-price-amount">£${mainPrice}</div>`;
+                cardHtml += '</div>';
+                cardHtml += '</div>';
+
+                // Price breakdown if items exist
+                if (priceItems.length > 0) {
+                    cardHtml += '<div class="pricing-breakdown">';
+                    priceItems.forEach((item, index) => {
+                        const isTotal = item.label.toLowerCase().includes('total');
+                        cardHtml += `<div class="pricing-breakdown-row ${isTotal ? 'total' : ''}">`;
+                        cardHtml += `<span class="pricing-breakdown-label">${escapeHtml(item.label)}</span>`;
+                        cardHtml += `<span class="pricing-breakdown-value ${isTotal ? 'highlight' : ''}">£${item.value}</span>`;
+                        cardHtml += '</div>';
+                    });
+                    cardHtml += '</div>';
+                }
+
+                // Description
+                if (description && description.trim()) {
+                    cardHtml += `<div class="pricing-card-description">${parseMarkdown(description.trim())}</div>`;
+                }
+
+                cardHtml += '</div>'; // Close pricing-card
+                return cardHtml;
+            }
+
+            // Track all products (for multi-product responses)
+            let products = [];
+            let currentProduct = {
+                name: '',
+                fabric: '',
+                price: '',
+                items: [],
+                description: ''
+            };
 
             // Process structured response
             for (let line of lines) {
@@ -2718,13 +2770,20 @@
                 // Product name from #### header (multi-product responses like "under 2000")
                 // Handle this BEFORE section-specific logic since #### appears in intro text
                 if (line.startsWith('####')) {
+                    // Save previous product if it has data
+                    if (currentProduct.name || currentProduct.price) {
+                        products.push({...currentProduct});
+                        // Reset for new product
+                        currentProduct = { name: '', fabric: '', price: '', items: [], description: '' };
+                    }
+
                     const name = line.replace(/^####\s*/, '');
                     if (name.includes(' in ')) {
                         const parts = name.split(' in ');
-                        productName = parts[0];
-                        fabricInfo = parts[1];
+                        currentProduct.name = parts[0];
+                        currentProduct.fabric = parts[1];
                     } else {
-                        productName = name;
+                        currentProduct.name = name;
                     }
                     continue;
                 }
@@ -2733,22 +2792,39 @@
                 if (!currentSection && line.startsWith('**£') && line.endsWith('**')) {
                     const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
                     if (priceMatch) {
-                        mainPrice = priceMatch[1];
+                        currentProduct.price = priceMatch[1];
+                    }
+                    continue;
+                }
+
+                // Description text that appears between products (before emoji sections)
+                if (!currentSection && !line.startsWith('#') && !line.startsWith('**£')) {
+                    if (currentProduct.name || currentProduct.price) {
+                        currentProduct.description += line + ' ';
+                    } else {
+                        // Intro text before any products
+                        html += `<p class="response-text">${parseMarkdown(line)}</p>`;
                     }
                     continue;
                 }
 
                 // Handle different sections - COLLECT DATA
                 if (currentSection === 'price') {
-                    // Product name: **Product Name in Fabric**
+                    // Product name: **Product Name in Fabric** (single-product format)
                     if (line.startsWith('**') && line.endsWith('**') && !line.includes('£')) {
+                        // Save previous product if exists
+                        if (currentProduct.name || currentProduct.price) {
+                            products.push({...currentProduct});
+                            currentProduct = { name: '', fabric: '', price: '', items: [], description: '' };
+                        }
+
                         const name = line.replace(/\*\*/g, '');
                         if (name.includes(' in ')) {
                             const parts = name.split(' in ');
-                            productName = parts[0];
-                            fabricInfo = parts[1];
+                            currentProduct.name = parts[0];
+                            currentProduct.fabric = parts[1];
                         } else {
-                            productName = name;
+                            currentProduct.name = name;
                         }
                         continue;
                     }
@@ -2756,8 +2832,8 @@
                     // Main price: **£1,095**
                     if (line.startsWith('**£') && line.endsWith('**') && !line.includes('Total')) {
                         const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
-                        if (priceMatch && !mainPrice) {
-                            mainPrice = priceMatch[1];
+                        if (priceMatch && !currentProduct.price) {
+                            currentProduct.price = priceMatch[1];
                         }
                         continue;
                     }
@@ -2766,7 +2842,7 @@
                     if (line.startsWith('•') && line.includes('£')) {
                         const itemMatch = line.match(/•\s*(.+?):\s*£([\d,]+)/);
                         if (itemMatch) {
-                            priceItems.push({ label: itemMatch[1], value: itemMatch[2] });
+                            currentProduct.items.push({ label: itemMatch[1], value: itemMatch[2] });
                         }
                         continue;
                     }
@@ -2775,14 +2851,14 @@
                     if (line.toLowerCase().includes('total') && line.includes('£')) {
                         const totalMatch = line.match(/£([\d,]+)/);
                         if (totalMatch) {
-                            mainPrice = totalMatch[1]; // Override with total if present
+                            currentProduct.price = totalMatch[1]; // Override with total if present
                         }
                         continue;
                     }
 
                     // Description text
                     if (!line.includes('£') && !line.startsWith('**') && !line.startsWith('•')) {
-                        description += line + ' ';
+                        currentProduct.description += line + ' ';
                     }
                 }
                 else if (currentSection === 'features') {
@@ -2801,63 +2877,27 @@
                 else if (currentSection === 'suggestions' && (line.startsWith('•') || line.startsWith('-'))) {
                     suggestions.push(line.substring(1).trim());
                 }
-                else if (!currentSection && !line.startsWith('#')) {
-                    // Regular paragraph text - parse markdown first
-                    html += `<p class="response-text">${parseMarkdown(line)}</p>`;
-                }
             }
 
-            // BUILD CARD-BASED HTML
-            // Show card if we have either a product name OR price items (for combined pricing)
-            if (productName || (priceItems.length > 0 && mainPrice)) {
-                // Main pricing card
-                html += '<div class="pricing-card">';
-
-                // Header with product name and price
-                html += '<div class="pricing-card-header">';
-                html += '<div class="pricing-card-title-section">';
-
-                // If no product name but we have price items, use first item as title
-                if (!productName && priceItems.length > 0) {
-                    // For combined pricing, show first item as title
-                    html += `<div class="pricing-card-title">${escapeHtml(priceItems[0].label)}</div>`;
-                } else if (productName) {
-                    html += `<div class="pricing-card-title">${escapeHtml(productName)}</div>`;
-                }
-
-                if (fabricInfo) {
-                    html += `<div class="pricing-card-subtitle">${escapeHtml(fabricInfo)}</div>`;
-                }
-                html += '</div>';
-                html += '<div class="pricing-card-price">';
-                html += '<div class="pricing-card-price-label">CLIENT PRICE</div>';
-                html += `<div class="pricing-card-price-amount">£${mainPrice}</div>`;
-                html += '</div>';
-                html += '</div>';
-
-                // Price breakdown if items exist
-                if (priceItems.length > 0) {
-                    html += '<div class="pricing-breakdown">';
-                    priceItems.forEach((item, index) => {
-                        const isTotal = item.label.toLowerCase().includes('total');
-                        html += `<div class="pricing-breakdown-row ${isTotal ? 'total' : ''}">`;
-                        html += `<span class="pricing-breakdown-label">${escapeHtml(item.label)}</span>`;
-                        html += `<span class="pricing-breakdown-value ${isTotal ? 'highlight' : ''}">£${item.value}</span>`;
-                        html += '</div>';
-                    });
-                    html += '</div>';
-                }
-
-                // Description
-                if (description.trim()) {
-                    html += `<div class="pricing-card-description">${parseMarkdown(description.trim())}</div>`;
-                }
-
-                html += '</div>'; // Close pricing-card
+            // Save the final product if it has data
+            if (currentProduct.name || currentProduct.price) {
+                products.push({...currentProduct});
             }
 
-            // Add opportunities section as clickable buttons
-            if (opportunities.length > 0) {
+            // BUILD CARDS FOR ALL PRODUCTS
+            products.forEach(product => {
+                html += buildProductCard(
+                    product.name,
+                    product.fabric,
+                    product.price,
+                    product.items,
+                    product.description
+                );
+            });
+
+            // Add opportunities section ONLY for single-product queries
+            // For multi-product results (like "under 2000"), opportunities don't make sense
+            if (opportunities.length > 0 && products.length === 1) {
                 html += '<div class="opportunities-section">';
                 html += '<div class="chips-wrapper" style="gap: 8px; flex-wrap: wrap; display: flex;">';
                 opportunities.forEach(opp => {
