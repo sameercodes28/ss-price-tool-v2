@@ -1402,7 +1402,7 @@ def chat_handler(request):
 
 # --- Google Cloud Functions Entry Point (Critique #2, #9) ---
 @functions_framework.http
-def http_entry_point(request):
+def main(request):
     """
     Google Cloud Functions HTTP entry point - routes all requests.
 
