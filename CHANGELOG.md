@@ -6,6 +6,31 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [Unreleased] - 2025-11-03 🧹 UI CLEANUP
+
+### 🎨 UI Improvements
+- ✅ Removed suggestion bubbles from landing page (cleaner, more focused interface)
+  - Removed 5 static suggestion chips ("Alwinton pricing", "Velvet options", etc.)
+  - Users now interact directly with search input and typewriter examples
+  - Reduced visual clutter on initial landing page
+
+### 🔧 Technical Changes
+- **Frontend (index.html):**
+  - Removed `.suggestions` container div (lines 1737-1753)
+  - Removed `.suggestions` and `.suggestion-chip` CSS styles (33 lines)
+  - Removed `quickSearch()` JavaScript function (4 lines)
+  - Total reduction: **~50 lines of code**
+
+### 📝 Validation
+- ✅ No artifacts remaining (verified via grep)
+- ✅ Page loads without errors
+- ✅ Other suggestion systems intact (LLM response suggestions, typewriter placeholders)
+
+### 💡 Rationale
+The static suggestion chips on the landing page were redundant with the typewriter placeholder animation, which already cycles through product examples. Removing them simplifies the interface and reduces decision paralysis for users.
+
+---
+
 ## [2.5.0] - 2025-11-03 🛡️ PRODUCTION HARDENING - PHASE 3 & 4
 
 ### 🎯 Major Features

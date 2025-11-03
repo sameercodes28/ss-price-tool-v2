@@ -794,40 +794,6 @@
         }
 
         /* ============================================
-           SUGGESTION CHIPS
-           ============================================ */
-        .suggestions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 24px;
-            flex-wrap: wrap;
-            opacity: 0;
-            animation: fadeInUp 0.6s ease 0.3s forwards;
-        }
-
-        .suggestion-chip {
-            padding: 10px 16px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-light);
-            border-radius: 24px;
-            font-size: 14px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            font-family: inherit;
-            outline: none;
-        }
-
-        .suggestion-chip:hover {
-            background: var(--hover-bg);
-            border-color: var(--fabric-terracotta);
-            color: var(--fabric-terracotta);
-            transform: translateY(-1px);
-        }
-
-        /* ============================================
            CHAT INTERFACE
            ============================================ */
         .chat-container {
@@ -1733,24 +1699,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="suggestions">
-                <button class="suggestion-chip" onclick="quickSearch('Alwinton pricing')">
-                    Alwinton pricing
-                </button>
-                <button class="suggestion-chip" onclick="quickSearch('Velvet options')">
-                    Velvet options
-                </button>
-                <button class="suggestion-chip" onclick="quickSearch('Under £2000')">
-                    Under £2000
-                </button>
-                <button class="suggestion-chip" onclick="quickSearch('Chesterfield')">
-                    Chesterfield
-                </button>
-                <button class="suggestion-chip" onclick="quickSearch('Pet-friendly')">
-                    Pet-friendly
-                </button>
-            </div>
         </div>
     </div>
 
@@ -2122,11 +2070,6 @@
 
             // Send to backend
             processMessage(query);
-        }
-
-        function quickSearch(query) {
-            document.getElementById('landingSearchInput').value = query;
-            startConversation();
         }
 
         // ========================================
