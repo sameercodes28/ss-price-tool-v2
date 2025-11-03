@@ -6,6 +6,86 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [2.4.0] - 2025-11-03 🧹 TELEMETRY CLEANUP + ENHANCED DEBUG TRACKING
+
+### MAJOR CODE CLEANUP - 66% Reduction in Analytics Code
+
+**THE BLOAT:**
+Frontend Analytics object was 735 lines with 10 unused tracking systems consuming ~50KB+ localStorage.
+- conversionFunnel, productPopularity, fabricPopularity
+- priceSensitivity, queryPatterns, userJourneys
+- crossSell, peakUsage, nluScoring, healthChecks
+- 90% of code never used by debug.html or user
+
+**THE CLEANUP:**
+- **Removed 488 lines of bloat** (735 → 247 lines)
+- **Deleted 10 unused tracking systems**
+- **Kept only essentials:** events[], p1Errors, sessionId
+- **Simplified localStorage:** ~50KB+ → ~10KB
+- **Faster page load:** Less JavaScript to parse
+
+**ENHANCED DEBUG TRACKING (Option A):**
+Added 4 comprehensive tracking functions for effective Claude debugging:
+
+1. **trackFullResponse()** - Complete query/response pairs with metadata
+   ```javascript
+   trackFullResponse(query, response, { responseTime, hasPrice, priceCount })
+   ```
+
+2. **trackToolCall()** - Every tool invocation with args/results
+   ```javascript
+   trackToolCall(toolName, args, result, statusCode)
+   ```
+
+3. **trackAPICall()** - Backend API request/response logs
+   ```javascript
+   trackAPICall(endpoint, request, response, httpCode)
+   ```
+
+4. **trackErrorWithStack()** - Errors with full stack traces
+   ```javascript
+   trackErrorWithStack(error, context)
+   ```
+
+**DEBUG DASHBOARD ENHANCED:**
+- debug.html now includes comprehensive debug data in reports
+- Full query/response pairs (last 5)
+- Tool calls with status (last 10)
+- API calls with HTTP codes (last 10)
+- Error stack traces with context (last 5)
+
+**BENEFITS:**
+✅ ~488 lines removed (66% reduction)
+✅ Faster page load (less to parse)
+✅ Simpler localStorage (~50KB+ → ~10KB)
+✅ Everything needed for Claude debugging captured
+✅ Backward compatible with existing dashboards
+
+**TESTING:**
+```
+✅ Syntax validation passed
+✅ All Analytics method calls updated
+✅ Debug report generation enhanced
+✅ Page loads normally
+✅ Queries tracked correctly
+```
+
+**FILES MODIFIED:**
+- `index.html` - Simplified Analytics object, added enhanced tracking (854 lines changed)
+- `debug.html` - Enhanced generateDebugReport() (66 lines changed)
+- `index-before-cleanup.html` - Backup created
+- `README.md` - Updated to v2.4.0
+- `CHANGELOG.md` - This entry
+
+**DEPLOYMENT:**
+- Frontend: Deployed to GitHub Pages (britishmade.ai)
+- Status: **PRODUCTION - Lean & Debug-Ready**
+
+**KEY LEARNING:**
+Only track what's actually used. Remove bloat early. Capture comprehensive debug data for effective Claude collaboration. Make reversion easy with backups.
+
+---
+
 ## [2.3.1] - 2025-11-03 🛡️ CRITICAL: HALLUCINATION PREVENTION
 
 ### CRITICAL BUG FIX - Price Hallucination Prevented
