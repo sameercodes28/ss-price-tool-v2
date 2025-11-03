@@ -3057,6 +3057,33 @@
                         }
 
                     } else if (data.error) {
+                        // Log and track LLM chat errors
+                        console.error('[LLM Chat Error]:', data.error);
+
+                        // Track as P1 error - LLM failed to return price
+                        Analytics.track('p1_error', {
+                            type: 'llm_chat_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'LLM chat failed to return price'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'LLM_CHAT_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
                         addMessage('assistant',
                             "Sorry, I encountered an issue processing your request.\n\n" +
                             (data.details ? `Details: ${data.details}` : "Please try again or rephrase your question.")
@@ -3099,9 +3126,47 @@
                         const responseText = formatPriceResponse(data);
                         addMessage('assistant', responseText);
                     } else if (data.error) {
+                        // Log backend error
+                        console.error('[Direct Price Error]:', data.error);
+
+                        // Track as P1 error
+                        Analytics.track('p1_error', {
+                            type: 'direct_price_error',
+                            query: message,
+                            error: data.error,
+                            severity: 'P1',
+                            message: 'Direct price query failed'
+                        });
+
+                        // Store P1 error details
+                        if (!Analytics.p1Errors) {
+                            Analytics.p1Errors = { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+                        }
+                        Analytics.p1Errors.noPriceErrors.push({
+                            query: message,
+                            error: data.error,
+                            timestamp: Date.now(),
+                            sessionId: Analytics.sessionId,
+                            severity: 'P1',
+                            type: 'DIRECT_PRICE_ERROR'
+                        });
+                        Analytics.p1Errors.totalCount++;
+                        Analytics.p1Errors.lastOccurred = Date.now();
+
                         let helpfulError = "I couldn't find that exact product.\n\n";
 
-                        if (lowerMessage.length > 3) {
+                        // Provide specific guidance based on error type
+                        if (data.error.includes('Product not found')) {
+                            helpfulError = "❌ **Product not recognized**\n\n";
+                            helpfulError += "Available products: Alwinton, Midhurst, Petworth, Chesterfield, Aldingbourne\n\n";
+                            helpfulError += "Check spelling carefully!";
+                        } else if (data.error.includes('Fabric not found')) {
+                            helpfulError = "❌ **Fabric/color not found**\n\n";
+                            helpfulError += "Common fabrics: Sussex (Plain/Weave), House (Plain/Wool/Weave)\n";
+                            helpfulError += "Common colors: Pacific, Sky, Waves, Mink, Stone, Duck Egg";
+                        } else if (data.error.includes('Ambiguous')) {
+                            helpfulError = "❓ **Multiple matches found**\n\n" + data.error;
+                        } else if (lowerMessage.length > 3) {
                             helpfulError += "💡 Try:\n" +
                                 "• Check spelling (e.g., 'Alwinton' not 'Alwington')\n" +
                                 "• Include size (e.g., '3 seater', 'snuggler', 'corner')\n" +
@@ -3125,6 +3190,16 @@
             } catch (error) {
                 console.error('Error sending message:', error);
                 hideTypingIndicator();
+
+                // Track as P1 error
+                Analytics.track('p1_error', {
+                    type: 'api_failure',
+                    query: message,
+                    error: error.message,
+                    severity: 'P1',
+                    message: 'API call failed completely'
+                });
+
                 addMessage('assistant', 'Sorry, I encountered a connection error. Please try again.');
 
                 // Track the error
