@@ -142,26 +142,26 @@ ERROR_CODES = {
     "E4001": {
         "name": "TOOL_EXECUTION_FAILED",
         "description": "Tool handler threw exception",
-        "user_message": "Failed to process request.",
-        "suggested_action": "Try rephrasing your query or use direct product search."
+        "user_message": "I had trouble processing that request.",
+        "suggested_action": "Try a simpler query like: 'How much is Alwinton 3 seater in Pacific?'"
     },
     "E4002": {
         "name": "TOOL_MAX_ITERATIONS",
         "description": "Hit max tool calling iterations",
-        "user_message": "Request too complex to process.",
-        "suggested_action": "Try breaking into smaller queries or rephrase."
+        "user_message": "That query is too complex for me to handle all at once.",
+        "suggested_action": "Try asking one thing at a time. Example: First ask 'Price for Alwinton snuggler', then ask about fabric options separately."
     },
     "E4003": {
         "name": "LLM_PARSE_ERROR",
         "description": "Cannot parse LLM tool arguments",
-        "user_message": "Failed to understand request.",
-        "suggested_action": "Try rephrasing your query."
+        "user_message": "I didn't quite understand that request.",
+        "suggested_action": "Try using product name + size + fabric. Example: 'Midhurst 3 seater in Sky'"
     },
     "E4004": {
         "name": "LLM_NO_RESPONSE",
         "description": "LLM returned empty response",
-        "user_message": "No response generated.",
-        "suggested_action": "Try again or rephrase your query."
+        "user_message": "I'm sorry, I couldn't generate a response.",
+        "suggested_action": "Please try your question again, or ask for a specific product price."
     },
 }
 
