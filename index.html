@@ -2715,6 +2715,29 @@
                     continue;
                 }
 
+                // Product name from #### header (multi-product responses like "under 2000")
+                // Handle this BEFORE section-specific logic since #### appears in intro text
+                if (line.startsWith('####')) {
+                    const name = line.replace(/^####\s*/, '');
+                    if (name.includes(' in ')) {
+                        const parts = name.split(' in ');
+                        productName = parts[0];
+                        fabricInfo = parts[1];
+                    } else {
+                        productName = name;
+                    }
+                    continue;
+                }
+
+                // Price that appears right after #### header (before any emoji sections)
+                if (!currentSection && line.startsWith('**£') && line.endsWith('**')) {
+                    const priceMatch = line.match(/\*\*£([\d,]+)\*\*/);
+                    if (priceMatch) {
+                        mainPrice = priceMatch[1];
+                    }
+                    continue;
+                }
+
                 // Handle different sections - COLLECT DATA
                 if (currentSection === 'price') {
                     // Product name: **Product Name in Fabric**
