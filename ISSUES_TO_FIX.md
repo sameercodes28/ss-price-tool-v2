@@ -3,6 +3,8 @@
 **Last Updated:** 2025-11-03
 **Status:** S&S API returning 400 errors - waiting for recovery
 
+> **✅ COMPLETED (v2.4.0):** Telemetry cleanup - Removed 488 lines of bloat, enhanced debug tracking
+
 ---
 
 ## 🔴 CRITICAL (Do First)
