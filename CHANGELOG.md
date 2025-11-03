@@ -6,28 +6,80 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
-## [Unreleased] - 2025-11-03 🧹 UI CLEANUP
+## [Unreleased] - 2025-11-03 🔍 DISCOVERY BUTTONS + UI CLEANUP
 
-### 🎨 UI Improvements
-- ✅ Removed suggestion bubbles from landing page (cleaner, more focused interface)
-  - Removed 5 static suggestion chips ("Alwinton pricing", "Velvet options", etc.)
-  - Users now interact directly with search input and typewriter examples
-  - Reduced visual clutter on initial landing page
+### 🎯 Major Feature: Discovery Buttons
+Added 3 product exploration buttons to single-product responses for improved user experience.
 
-### 🔧 Technical Changes
-- **Frontend (index.html):**
-  - Removed `.suggestions` container div (lines 1737-1753)
-  - Removed `.suggestions` and `.suggestion-chip` CSS styles (33 lines)
-  - Removed `quickSearch()` JavaScript function (4 lines)
-  - Total reduction: **~50 lines of code**
+**New UI Elements:**
+- ✅ **"Other Sizes in Range"** - Explore available sizes for the current product
+- ✅ **"Similar Models (style, measurements)"** - Discover similar product alternatives
+- ✅ **"Similar Fabrics - materials"** - Find alternative fabric options
 
-### 📝 Validation
-- ✅ No artifacts remaining (verified via grep)
-- ✅ Page loads without errors
-- ✅ Other suggestion systems intact (LLM response suggestions, typewriter placeholders)
+**Implementation Details:**
+- Buttons only appear for single-product queries (not multi-product results like "under £2000")
+- Consistent terracotta border styling matching existing design language
+- 2-row layout: 2 half-width buttons (top), 1 full-width button (bottom)
+- Natural language query generation (e.g., "Show me Alwinton Snuggler in other sizes")
+- Analytics tracking with source attribution (`discovery_sizes`, `discovery_models`, `discovery_fabrics`)
 
-### 💡 Rationale
-The static suggestion chips on the landing page were redundant with the typewriter placeholder animation, which already cycles through product examples. Removing them simplifies the interface and reduces decision paralysis for users.
+**Technical Changes:**
+- **Frontend CSS (index.html):**
+  - Added `.discovery-buttons-container` and `.discovery-button` styles
+  - Terracotta border with hover effects (#C67E5F)
+  - Responsive layout with flex-wrap
+  - Total: +44 lines
+
+- **Frontend JavaScript (index.html):**
+  - Modified `buildProductCard()` to accept `isSingleProduct` parameter
+  - Added discovery buttons HTML generation (lines 2637-2654)
+  - Created `handleDiscoveryClick()` function with JSDoc documentation (lines 2831-2889)
+  - Smart query generation based on button type (sizes/models/fabrics)
+  - Total: +70 lines
+
+**User Experience:**
+- Reduces friction for product exploration
+- Helps users discover variations without typing queries
+- Contextual - only shows when relevant (single product)
+- Consistent with existing interaction patterns
+
+---
+
+### 🧹 UI Cleanup: Removed Upsell Sections
+
+**Removed from Backend (main.py):**
+- ❌ "### 🎯 Opportunities to Enhance" section from SYSTEM_PROMPT
+- ❌ "## UPSELLING" instructions
+- ❌ "## FOLLOW-UP SUGGESTIONS" section
+- ❌ "### 💬 What would you like to know next?"
+- Total reduction: **~38 lines**
+
+**Removed from Frontend (index.html):**
+- ❌ Opportunities section parsing and rendering
+- ❌ Suggestions section parsing and rendering
+- ❌ CSS styles for `.opportunities-section`, `.opportunity-button`, `.suggestions-section`, `.suggestion-chip-llm`
+- Total reduction: **~100 lines**
+
+**UI Elements Removed:**
+- ❌ "Add matching footstool - From £495"
+- ❌ "Upgrade to Premium fabric - Adds £200-400"
+- ❌ "Add extra scatter cushions - From £45 each"
+- ❌ "Create a suite - Pair with..."
+- ❌ "Other related questions?" section with 4 suggestion chips
+
+**Rationale:** Upsell sections created decision paralysis and cluttered responses. Discovery buttons provide better value by helping users explore variations organically.
+
+---
+
+### 🧹 Landing Page Cleanup
+
+- ✅ Removed 5 static suggestion bubbles from landing page
+  - "Alwinton pricing", "Velvet options", "Under £2000", "Chesterfield", "Pet-friendly"
+- ✅ Removed `.suggestions` container and CSS (33 lines)
+- ✅ Removed `quickSearch()` JavaScript function (4 lines)
+- Total reduction: **~50 lines**
+
+**Rationale:** Static chips redundant with typewriter animation. Simplified interface reduces visual clutter.
 
 ---
 

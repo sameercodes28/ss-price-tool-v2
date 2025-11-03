@@ -1,8 +1,8 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-03 (Part 10: UI Cleanup - Removed Landing Page Suggestion Bubbles)
-**Current Version:** v2.5.0+ (Production Hardened - UI Simplified)
-**Project Status:** 🚀 Production - Stable + Cleaner UI
+**Last Updated:** 2025-11-03 (Part 11: Discovery Buttons - Product Exploration UX)
+**Current Version:** v2.5.0+ (Production Hardened - Enhanced Discovery)
+**Project Status:** 🚀 Production - Stable + Discovery Buttons Feature
 
 ## ⚠️ CRITICAL: DEPLOYMENT URLS - READ THIS FIRST
 
@@ -139,6 +139,125 @@ Future improvements to debug dashboard (implement as needed):
 - Add query replay (reproduce exact user scenario)
 - Add comparison mode (before/after for debugging regressions)
 - Export bug report as GitHub issue template
+
+---
+
+## 🔍 SESSION: PART 11 DISCOVERY BUTTONS (2025-11-03)
+
+**Objective:** Add 3 product exploration buttons to improve user discovery experience
+
+**User Request:**
+User provided mockup showing 3 buttons below product cards:
+1. "Other Sizes in Range" (half-width, top-left)
+2. "Similar Models (style, measurements)" (half-width, top-right)
+3. "Similar Fabrics - materials" (full-width, bottom)
+
+**Requirements:**
+- Option A: Generic natural language queries (simple implementation)
+- Only show for single-product queries (not multi-product results)
+- Uniform styling consistent with existing design
+- High quality, careful implementation
+
+**Changes Made:**
+
+1. ✅ **CSS Styles Added** (index.html lines 1049-1090)
+   - `.discovery-buttons-container` - Flex container with gap
+   - `.discovery-button` - Terracotta border (#C67E5F), white background
+   - `.half-width` and `.full-width` modifiers for responsive layout
+   - Hover effects: Terracotta background, white text, translateY animation
+   - Total: +44 lines
+
+2. ✅ **buildProductCard Function Modified** (index.html)
+   - Added `isSingleProduct` parameter (line 2593)
+   - Conditional rendering: `if (productName && isSingleProduct)` (line 2639)
+   - Generates 3 buttons with onclick handlers
+   - Escape handling for product names and fabric info
+   - Lines 2637-2654: Discovery buttons HTML generation
+
+3. ✅ **handleDiscoveryClick Function Created** (index.html lines 2831-2889)
+   - Comprehensive JSDoc documentation with examples
+   - Switch statement for 3 button types: 'sizes', 'models', 'fabrics'
+   - Natural language query generation:
+     - sizes: "Show me ${productName} in other sizes"
+     - models: "Show me models similar to ${productName}"
+     - fabrics: "Show me fabrics similar to ${fabricInfo}"
+   - Analytics tracking with source attribution
+   - Auto-populates chat input and sends query
+
+4. ✅ **Single-Product Logic** (index.html lines 2794, 2802)
+   - Calculate `isSingleProduct = products.length === 1`
+   - Pass flag to each buildProductCard call
+   - Ensures buttons only appear for single-product responses
+   - Multi-product queries (like "under £2000") show no buttons
+
+**Files Modified:**
+- `index.html` (+114 lines: 44 CSS + 70 JS)
+- `CHANGELOG.md` (comprehensive documentation added)
+- `.claude/context.md` (this session documented)
+
+**Validation:**
+- ✅ CSS styles match existing terracotta theme
+- ✅ Buttons only show for single-product queries
+- ✅ Click handlers properly escape special characters
+- ✅ Natural language queries work with Grok
+- ✅ Analytics tracking implemented
+- ✅ JSDoc documentation comprehensive
+- ✅ No breaking changes to existing functionality
+
+**Testing:**
+- ✅ Opened in Chrome for visual verification
+- ✅ HTML structure validated
+- ✅ Logic flow verified (isSingleProduct flag)
+- ✅ Escape handling tested for quotes/apostrophes
+
+**Key Implementation Details:**
+
+**Why Option A (Generic Queries)?**
+- Simpler implementation (~20 minutes vs hours for data-driven)
+- Grok can intelligently handle natural language queries
+- No backend changes required
+- Easily testable
+- Can enhance later if needed
+
+**Single-Product Logic Flow:**
+```javascript
+// Step 1: Count products after parsing
+const isSingleProduct = products.length === 1;
+
+// Step 2: Pass flag to each card
+products.forEach(product => {
+    html += buildProductCard(..., isSingleProduct);
+});
+
+// Step 3: Conditional rendering in buildProductCard
+if (productName && isSingleProduct) {
+    // Show discovery buttons
+}
+```
+
+**Query Generation Examples:**
+```javascript
+// User queries: "alwinton snuggler in sussex plain pacific"
+// Product card shows with 3 buttons
+
+// Button 1 click: "Show me Alwinton Snuggler in other sizes"
+// Grok responds with 2-seater, 3-seater, 4-seater options
+
+// Button 2 click: "Show me models similar to Alwinton Snuggler"
+// Grok responds with Rye, Midhurst, similar traditional sofas
+
+// Button 3 click: "Show me fabrics similar to Sussex Plain Pacific"
+// Grok responds with other Sussex Plain colors, similar plain fabrics
+```
+
+**User Experience Impact:**
+- Reduces friction for product exploration
+- Contextual - only shows when relevant
+- Natural language queries feel conversational
+- Consistent with existing interaction patterns
+
+**Commits:**
+- Pending: "Add discovery buttons for product exploration - Option A"
 
 ---
 

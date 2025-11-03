@@ -1044,6 +1044,99 @@
             line-height: 1.6;
             color: var(--text-secondary);
             margin: 16px 0;
+            position: relative;
+        }
+
+        .pricing-card-description.collapsed {
+            max-height: 0;
+            overflow: hidden;
+            margin: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .pricing-card-description.expanded {
+            max-height: 500px;
+            overflow: visible;
+            margin: 16px 0;
+            opacity: 1;
+            transition: all 0.3s ease;
+        }
+
+        .description-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            margin: 8px 0;
+            background: transparent;
+            border: 1px solid var(--border-light);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .description-toggle:hover {
+            border-color: var(--fabric-terracotta);
+            color: var(--fabric-terracotta);
+            background: var(--bg-tertiary);
+        }
+
+        .description-toggle svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s;
+        }
+
+        .description-toggle.expanded svg {
+            transform: rotate(180deg);
+        }
+
+        /* Discovery buttons - "Other Sizes", "Similar Models", "Similar Fabrics" */
+        .discovery-buttons-container {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .discovery-button {
+            padding: 14px 20px;
+            background: white;
+            border: 2px solid var(--fabric-terracotta);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            text-align: center;
+            font-family: inherit;
+        }
+
+        .discovery-button:hover {
+            background: var(--fabric-terracotta);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(198, 126, 95, 0.2);
+        }
+
+        .discovery-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(198, 126, 95, 0.15);
+        }
+
+        .discovery-button.full-width {
+            flex: 1 1 100%;
+        }
+
+        .discovery-button.half-width {
+            flex: 1 1 calc(50% - 6px);
         }
 
         .intro-text {
@@ -2547,7 +2640,7 @@
             }
 
             // Helper function to build a product card
-            function buildProductCard(productName, fabricInfo, mainPrice, priceItems, description) {
+            function buildProductCard(productName, fabricInfo, mainPrice, priceItems, description, isSingleProduct = false) {
                 if (!productName && !mainPrice) return '';
 
                 let cardHtml = '<div class="pricing-card">';
@@ -2586,9 +2679,40 @@
                     cardHtml += '</div>';
                 }
 
-                // Description
+                // Description with collapse/expand toggle
                 if (description && description.trim()) {
-                    cardHtml += `<div class="pricing-card-description">${parseMarkdown(description.trim())}</div>`;
+                    // Generate unique ID for this description
+                    const descId = `desc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+                    // Toggle button
+                    cardHtml += `<button class="description-toggle" onclick="toggleDescription('${descId}', this)">`;
+                    cardHtml += `<span class="toggle-text">Show details</span>`;
+                    cardHtml += `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+                    cardHtml += `</button>`;
+
+                    // Description (collapsed by default)
+                    cardHtml += `<div class="pricing-card-description collapsed" id="${descId}">${parseMarkdown(description.trim())}</div>`;
+                }
+
+                // Discovery buttons - for product exploration
+                // Only show for single-product queries (not multi-product results like "under £2000")
+                console.log(`[BUILD CARD] Product: ${productName}, isSingleProduct: ${isSingleProduct}, Show buttons: ${productName && isSingleProduct}`);
+
+                if (productName && isSingleProduct) {
+                    cardHtml += '<div class="discovery-buttons-container">';
+
+                    // Button 1: Other Sizes in Range (half-width)
+                    const escapedProductName = escapeHtml(productName).replace(/'/g, "\\'");
+                    cardHtml += `<button class="discovery-button half-width" onclick="handleDiscoveryClick('sizes', '${escapedProductName}', '')">Other Sizes in Range</button>`;
+
+                    // Button 2: Similar Models (half-width)
+                    cardHtml += `<button class="discovery-button half-width" onclick="handleDiscoveryClick('models', '${escapedProductName}', '')">Similar Models (style, measurements)</button>`;
+
+                    // Button 3: Similar Fabrics (full-width)
+                    const escapedFabricInfo = fabricInfo ? escapeHtml(fabricInfo).replace(/'/g, "\\'") : '';
+                    cardHtml += `<button class="discovery-button full-width" onclick="handleDiscoveryClick('fabrics', '${escapedProductName}', '${escapedFabricInfo}')">Similar Fabrics - materials</button>`;
+
+                    cardHtml += '</div>';
                 }
 
                 cardHtml += '</div>'; // Close pricing-card
@@ -2728,13 +2852,18 @@
             }
 
             // BUILD CARDS FOR ALL PRODUCTS
+            // Pass isSingleProduct flag to show discovery buttons only for single-product queries
+            const isSingleProduct = products.length === 1;
+            console.log(`[DISCOVERY BUTTONS] Products count: ${products.length}, isSingleProduct: ${isSingleProduct}`);
+
             products.forEach(product => {
                 html += buildProductCard(
                     product.name,
                     product.fabric,
                     product.price,
                     product.items,
-                    product.description
+                    product.description,
+                    isSingleProduct
                 );
             });
 
@@ -2764,6 +2893,93 @@
             Analytics.track('query', { query: suggestionText, source: 'suggestion' });
             document.getElementById('chatInput').value = suggestionText;
             sendChatMessage();
+        }
+
+        /**
+         * Toggles product description visibility (collapsed/expanded state).
+         * Updates button text and icon rotation.
+         *
+         * @param {string} descId - ID of the description element to toggle
+         * @param {HTMLElement} button - The toggle button element
+         * @returns {void}
+         */
+        function toggleDescription(descId, button) {
+            const description = document.getElementById(descId);
+            const textSpan = button.querySelector('.toggle-text');
+
+            if (description.classList.contains('collapsed')) {
+                // Expand
+                description.classList.remove('collapsed');
+                description.classList.add('expanded');
+                textSpan.textContent = 'Hide details';
+                button.classList.add('expanded');
+            } else {
+                // Collapse
+                description.classList.remove('expanded');
+                description.classList.add('collapsed');
+                textSpan.textContent = 'Show details';
+                button.classList.remove('expanded');
+            }
+        }
+
+        /**
+         * Handles clicks on discovery buttons (Other Sizes, Similar Models, Similar Fabrics).
+         * Generates natural language queries based on button type and sends them to the LLM.
+         * These buttons help users explore product variations and alternatives.
+         *
+         * @param {string} type - Button type: 'sizes', 'models', or 'fabrics'
+         * @param {string} productName - Name of the current product (e.g., "Alwinton Snuggler")
+         * @param {string} fabricInfo - Current fabric information (e.g., "Sussex Plain Pacific")
+         * @returns {void}
+         *
+         * @example
+         * // "Other Sizes in Range" button click
+         * handleDiscoveryClick('sizes', 'Alwinton Snuggler', 'Sussex Plain Pacific')
+         * // Sends query: "Show me Alwinton Snuggler in other sizes"
+         *
+         * @example
+         * // "Similar Fabrics" button click
+         * handleDiscoveryClick('fabrics', 'Alwinton Snuggler', 'Sussex Plain Pacific')
+         * // Sends query: "Show me fabrics similar to Sussex Plain Pacific"
+         */
+        function handleDiscoveryClick(type, productName, fabricInfo) {
+            console.log('[CLICK] Discovery button clicked:', { type, productName, fabricInfo });
+
+            let query = '';
+
+            switch(type) {
+                case 'sizes':
+                    // "Other Sizes in Range" - Ask about all available sizes for this product
+                    query = `Show me ${productName} in other sizes`;
+                    break;
+
+                case 'models':
+                    // "Similar Models" - Ask about similar products by style/measurements
+                    query = `Show me models similar to ${productName}`;
+                    break;
+
+                case 'fabrics':
+                    // "Similar Fabrics" - Ask about fabric alternatives
+                    if (fabricInfo) {
+                        query = `Show me fabrics similar to ${fabricInfo}`;
+                    } else {
+                        query = `Show me available fabrics for ${productName}`;
+                    }
+                    break;
+
+                default:
+                    console.error('[ERROR] Unknown discovery button type:', type);
+                    return;
+            }
+
+            if (query) {
+                console.log('[DISCOVERY] Generated query:', query);
+                Analytics.track('query', { query, source: `discovery_${type}`, productName, fabricInfo });
+
+                // Set query in input and send
+                document.getElementById('chatInput').value = query;
+                sendChatMessage();
+            }
         }
 
         /**
