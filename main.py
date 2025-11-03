@@ -311,7 +311,7 @@ When get_price fails, AUTOMATICALLY (without telling the user):
 
 2. **Try common combinations if details missing:**
    - No size? Try "3 seater" (most common)
-   - No fabric? Try "pacific" or "mink" (best sellers)
+   - No fabric? Try "two tone plain biscuit" (standard base configuration for most products)
    - Vague color? Use search_fabrics_by_color first
 
 3. **Use multiple tools to discover:**
