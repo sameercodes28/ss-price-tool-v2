@@ -14,33 +14,35 @@ echo "🔍 Running pre-commit checks..."
 # ============================================
 echo "Checking version consistency..."
 
-VERSIONS=$(grep -rh "v2\.[0-9]\.[0-9]" README.md CHANGELOG.md .claude/context.md .claude/instructions.md 2>/dev/null | grep -oE "v2\.[0-9]\.[0-9]" | sort -u)
-VERSION_COUNT=$(echo "$VERSIONS" | wc -l | tr -d ' ')
+# Get version from each file (first occurrence only)
+README_VER=$(grep -m 1 "Version" README.md 2>/dev/null | grep -oE "[0-9]\.[0-9]\.[0-9]" | head -1)
+CHANGELOG_VER=$(grep -m 1 "## \[2\.[0-9]\.[0-9]\]" CHANGELOG.md 2>/dev/null | grep -oE "2\.[0-9]\.[0-9]" | head -1)
+CONTEXT_VER=$(grep -m 1 "Current Version" .claude/context.md 2>/dev/null | grep -oE "[0-9]\.[0-9]\.[0-9]" | head -1)
+INSTRUCTIONS_VER=$(grep "\*\*Project:\*\*" .claude/instructions.md 2>/dev/null | grep -oE "[0-9]\.[0-9]\.[0-9]" | head -1)
 
-if [ "$VERSION_COUNT" -gt 1 ]; then
+# Check if all versions match
+if [ "$README_VER" != "$CHANGELOG_VER" ] || [ "$README_VER" != "$CONTEXT_VER" ] || [ "$README_VER" != "$INSTRUCTIONS_VER" ]; then
     echo ""
     echo "❌ VERSION DRIFT DETECTED!"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "Found multiple versions:"
-    echo "$VERSIONS"
-    echo ""
-    echo "Files to check:"
-    grep -l "v2\.[0-9]\.[0-9]" README.md CHANGELOG.md .claude/context.md .claude/instructions.md 2>/dev/null
+    echo "README.md:               v$README_VER"
+    echo "CHANGELOG.md:            v$CHANGELOG_VER (latest entry)"
+    echo ".claude/context.md:      v$CONTEXT_VER"
+    echo ".claude/instructions.md: v$INSTRUCTIONS_VER"
     echo ""
     echo "Please update all files to the same version before committing."
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     exit 1
 fi
 
-CURRENT_VERSION=$(echo "$VERSIONS" | head -1)
-echo "✅ Version consistency: $CURRENT_VERSION"
+echo "✅ Version consistency: v$README_VER"
 
 # ============================================
 # CHECK 2: Backup Files in Root
 # ============================================
 echo "Checking for backup files in root..."
 
-BACKUP_FILES=$(ls -1 2>/dev/null | grep -E "backup|test-.*\.html|.*-old\.|temp-" | grep -v "index-before-cleanup.html")
+BACKUP_FILES=$(find . -maxdepth 1 -type f 2>/dev/null | grep -E "backup|test-.*\.html|.*-old\.|temp-" | grep -v "index-before-cleanup.html" | sed 's|^\./||')
 
 if [ ! -z "$BACKUP_FILES" ]; then
     echo ""
