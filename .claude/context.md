@@ -4,6 +4,23 @@
 **Current Version:** v2.5.0+ (Production Hardened - UI Simplified)
 **Project Status:** 🚀 Production - Stable + Cleaner UI
 
+## ⚠️ CRITICAL: DEPLOYMENT URLS - READ THIS FIRST
+
+**THE USER'S WEBSITE IS: https://britishmade.ai**
+
+- ✅ Frontend: https://britishmade.ai (GitHub Pages with custom domain)
+- ✅ Telemetry: https://britishmade.ai/telemetry.html
+- ✅ Backend API: https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2
+
+**NEVER say sofasandstuff.com when referring to the user's website!**
+- sofasandstuff.com = Data source (where we fetch product prices from)
+- britishmade.ai = User's deployment (where the tool is hosted)
+
+**This tool:**
+- Fetches data FROM: sofasandstuff.com API
+- Is deployed AT: britishmade.ai
+- Uses backend AT: Google Cloud Functions
+
 ## 🔥 CRITICAL: SIMPLICITY PRINCIPLE
 
 **NEVER repeat the markdown rendering disaster (2025-11-03).**
