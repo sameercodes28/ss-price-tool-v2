@@ -9,10 +9,12 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 ## [Unreleased] - 2025-11-03 🔍 DISCOVERY BUTTONS + UI CLEANUP
 
 ### 🎨 Fabric Search Formatting Enhancement
-Improved fabric search results display with tier-based organization and removed clutter.
+Improved fabric search results display with tier-based organization and removed ALL clutter.
 
 **Changes:**
 - ✅ Removed "View swatch" links from fabric results
+- ✅ Removed "Opportunities to Enhance" upselling sections
+- ✅ Removed "What would you like to know next?" follow-up suggestions
 - ✅ Added tier-based grouping: Essentials (✨), Exclusives (💎), Signature (👑)
 - ✅ Map backend tier names: Premium → Exclusives, Luxury → Signature
 - ✅ Added color filter suggestions: Black, Blue, Brown, Green, Grey, Multi-coloured, Neutral, Orange, Pink, Purple, Red, Rust, Yellow
@@ -20,17 +22,17 @@ Improved fabric search results display with tier-based organization and removed 
 
 **Technical Changes:**
 - **Backend (main.py):**
-  - Updated FABRIC SEARCH FORMATTING section in SYSTEM_PROMPT (lines 556-600)
-  - Clear instructions for tier-based grouping with emoji headers
-  - Removed swatch link generation instructions
-  - Added filter option recommendations for colors and materials
-  - Total: ~45 lines modified
+  - Updated RESPONSE RULES section (lines 431-447): Removed references to Features/Opportunities sections, added explicit rules against upselling
+  - Updated RESPONSE FORMAT section (lines 507-523): Added "NO EXTRA SECTIONS" rules
+  - Updated FABRIC SEARCH FORMATTING section (lines 593-601): Strengthened "NO swatch links" rule, added explicit rules against upselling/suggestions
+  - Total: ~60 lines modified
 
 **User Experience:**
 - Cleaner, more scannable fabric results
 - Better organization by price tier
-- Helpful filter suggestions for exploration
-- Consistent with product card design language
+- No distracting upselling or suggestions
+- Simple, focused presentation matching product card style
+- Only shows what user requested - nothing extra
 
 ---
 
