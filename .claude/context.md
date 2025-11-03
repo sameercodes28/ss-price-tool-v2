@@ -18,13 +18,36 @@ External dependency issue - S&S API returning HTTP 400 errors.
 1. ✅ Fixed OpenRouter API key (deployed new key)
 2. ✅ CRITICAL: Prevented price hallucination with 3-layer protection
 3. ✅ Validated all endpoints and error handling
-4. ✅ Documented learnings (see Session Part 5 below)
+4. ✅ Created developer debug dashboard (debug.html)
+5. ✅ Created comprehensive issue list (ISSUES_TO_FIX.md)
+6. ✅ Identified telemetry bloat (~500 lines to remove)
+7. ✅ Documented learnings (see Session Part 5 below)
 
-**⏳ WHILE WAITING FOR S&S API:**
-- Code cleanup and optimization
-- Documentation updates
-- Bug hunting and fixes
-- Architecture improvements
+**⏳ PENDING USER APPROVAL:**
+- Telemetry code cleanup (see TELEMETRY_CLEANUP_PLAN.md)
+
+**🤝 DEBUGGING WORKFLOW (IMPORTANT):**
+
+When debugging issues together, USER should:
+1. Visit https://[domain]/debug.html
+2. Click "Generate Debug Report"
+3. Copy the markdown report
+4. Share in Claude chat
+
+This gives Claude:
+- API health status
+- Recent queries and errors
+- Full event log
+- System diagnostics
+
+**Without this, Claude is blind to production issues!**
+
+Future improvements to debug dashboard (implement as needed):
+- Add GCF log streaming (show backend errors in real-time)
+- Add "Test All APIs" button (one-click health check)
+- Add query replay (reproduce exact user scenario)
+- Add comparison mode (before/after for debugging regressions)
+- Export bug report as GitHub issue template
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
 > **v1 Stable:** See ~/Desktop/SS-1 (ss-price-tool-v1) - DO NOT MODIFY
