@@ -1,7 +1,7 @@
 # Claude Context - Sofas & Stuff Price Tool - v2
 
-**Last Updated:** 2025-11-02 (v2 status changed to production development)
-**Current Version:** v2.0.0
+**Last Updated:** 2025-11-03 (UI transformation, telemetry & data persistence)
+**Current Version:** v2.2.0
 **Project Status:** 🚀 Production Development (incremental approach)
 
 > **Important:** This is the v2 repository. Build incrementally with thorough testing.
@@ -96,6 +96,106 @@ All infrastructure is deployed and operational!
 ---
 
 ## 🔧 Recent Changes
+
+### Session: 2025-11-03 (UI Transformation, Telemetry & Data Persistence Fix)
+
+**Objective:** Complete UI overhaul to light British theme, add comprehensive analytics, fix data persistence
+
+**Changes Made:**
+
+1. ✅ **Complete UI Transformation (NOT just orb)**
+   - Transformed entire UI from dark to light British theme
+   - Background: Dark gradient → Light #FAFAF8
+   - Chat bubbles: WhatsApp-style with proper alignment
+   - Typography: Changed to Inter font family
+   - Colors: Sophisticated terracotta and sage green palette
+   - Ultra Fabric Orb: 3D animated sphere with realistic texture layers
+
+2. ✅ **Typewriter Placeholder Effect**
+   - Auto-starting animation on page load
+   - Cycles through 6 product examples
+   - Word-by-word deletion with natural typing speed
+   - 1 second pause between examples
+
+3. ✅ **British-Themed Enhancements**
+   - Thinking messages: "Consulting the catalogues...", "Checking with the upholsterer..."
+   - Welcome messages culturally appropriate
+   - Button text: "Contact Swap" instead of "Contact Manager"
+
+4. ✅ **Comprehensive Analytics & Telemetry**
+   - Basic dashboard (telemetry.html): 7-day charts, health monitoring
+   - Advanced dashboard (telemetry-comprehensive.html): 12 tracking categories
+   - Conversion funnel (4 stages), product/fabric popularity
+   - Price sensitivity, query reformulation detection
+   - Journey paths, cross-sell rates, NLU scoring
+   - Peak usage patterns, abandonment analysis
+
+5. ✅ **Password Protection System**
+   - Access code: SOFAS25
+   - Session-based authentication (sessionStorage)
+   - Frosted glass overlay with backdrop-filter blur
+
+6. ✅ **Critical Data Persistence Fix**
+   - **Problem:** Maps/complex structures not serialized to localStorage
+   - **Solution:**
+     - Convert Maps to arrays before JSON serialization
+     - Load persisted data on init()
+     - Auto-save every 30 seconds + on page unload
+     - Save every 5 events to minimize data loss
+     - Maintain backward compatibility with legacy storage
+
+**Files Modified:**
+- Modified: `index.html` (3000+ lines - complete overhaul)
+  - Lines 1-600: Ultra fabric orb animations
+  - Lines 620-812: formatLLMResponse parser (192 lines)
+  - Lines 1933-2239: Analytics object with persistence
+  - Lines 2516-2610: Password protection logic
+  - Lines 1750-1850: Typewriter effect implementation
+- Created: `telemetry-comprehensive.html` (1453 lines - advanced analytics dashboard)
+- Modified: `telemetry.html` (enhanced dashboard)
+- Modified: `CHANGELOG.md` (added v2.2.0 entry documenting all changes)
+- Updated: `.claude/context.md` (this file)
+
+**Decisions Made:**
+- Complete UI overhaul was the user intent, not just orb changes
+- Persistence must handle Maps/Sets properly via serialization
+- Auto-save critical for preventing data loss
+- Password protection needed for client tool (SOFAS25)
+- Comprehensive telemetry provides business insights
+
+**Discovered Issues:**
+- Initial misunderstanding: Only changed orb instead of entire UI
+- Telemetry data loss: Maps weren't being serialized to localStorage properly
+- formatLLMResponse was oversimplified (restored full 192-line version)
+- Multiple prices showing (fixed with priceShown flag)
+- Typewriter not auto-starting (fixed with DOMContentLoaded)
+- "Add Add" duplication in opportunity clicks (cleaned text before query)
+
+**User Feedback:**
+- User initially confused about partial UI update
+- User noticed data persistence issue immediately
+- User requested documentation update to prevent drift
+- User happy with final UI transformation
+
+**Testing:**
+- Password protection tested and working (SOFAS25)
+- Data persistence verified across page reloads
+- Typewriter effect auto-starts properly
+- All telemetry metrics tracking correctly
+- Comprehensive dashboard showing all 12 insight categories
+
+**Commits:**
+- 75f6a2b: Fix critical telemetry data persistence issue
+
+**Current State:**
+- ✅ UI completely transformed to light British theme
+- ✅ Password protection active
+- ✅ Comprehensive telemetry with 12 tracking categories
+- ✅ Data persistence fixed and verified
+- ✅ All changes deployed to GitHub Pages
+- ✅ Live at https://britishmade.ai
+
+---
 
 ### Session: 2025-11-02 (Phase 1A: Frontend Chat UI - COMPLETE)
 

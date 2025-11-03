@@ -6,6 +6,144 @@ All notable changes to the **v2** version of the Sofas & Stuff Voice Price Tool 
 
 ---
 
+## [2.2.0] - 2025-11-03 🎨 UI TRANSFORMATION & TELEMETRY
+
+### Complete UI Overhaul - Light British Theme
+This release features a complete transformation from dark to light theme with British design sensibility.
+
+### 🎨 UI Transformation Features
+
+#### 1. Ultra Fabric Orb Design
+- 3D animated fabric sphere with realistic texture layers
+- Multi-layer weaving patterns with depth effects
+- Floating particle fibers for premium feel
+- Sophisticated terracotta and sage green color palette
+- Replaces dark gradient background with light #FAFAF8
+
+#### 2. Typewriter Placeholder Effect
+- Auto-starting animated placeholder text
+- Cycles through 6 product query examples
+- Word-by-word deletion animation
+- Natural typing speed variation (60ms + random)
+- Pauses 1 second between examples
+
+#### 3. British-Themed Thinking Messages
+- Culturally appropriate waiting messages:
+  - "Consulting the catalogues..."
+  - "Checking with the upholsterer..."
+  - "Having a quick word with the fabric experts..."
+  - "Fetching prices from the showroom..."
+- Replaces generic "Thinking..." with British charm
+
+#### 4. WhatsApp-Style Chat Interface
+- Message bubbles with timestamps
+- User messages: Right-aligned, terracotta gradient
+- Agent messages: Left-aligned, white with border
+- Clean typography with Inter font family
+- Responsive design with proper mobile scaling
+
+#### 5. Enhanced Response Formatting
+- Clickable opportunity buttons (terracotta gradient)
+- Follow-up suggestions as interactive chips
+- Price display with clear hierarchy
+- Feature lists with checkmarks
+- Unified button styling across interface
+
+### 📊 Comprehensive Analytics & Telemetry
+
+#### 1. Basic Analytics Dashboard (telemetry.html)
+- Real-time health monitoring
+- 7-day usage charts with Chart.js
+- Response time distribution graphs
+- User feedback display (upvotes/downvotes)
+- API status indicators
+- Error tracking and display
+
+#### 2. Advanced Analytics (telemetry-comprehensive.html)
+- **12 Comprehensive Tracking Categories:**
+  1. Conversion Funnel Tracking (4 stages)
+  2. Product Popularity Metrics
+  3. Fabric Popularity Analysis
+  4. Price Sensitivity Tracking
+  5. Query Reformulation Detection
+  6. Time to Success Measurements
+  7. Abandonment Analysis
+  8. Configuration Completion Rates
+  9. Cross-sell/Upsell Attachment Rates
+  10. Search Dead-end Detection
+  11. Peak Usage Pattern Analysis
+  12. NLU Confidence Scoring
+
+- **Tabbed Interface:**
+  - Overview Tab: Key metrics summary
+  - Conversion Tab: Funnel visualization
+  - Products Tab: Popularity charts
+  - Queries Tab: Pattern analysis
+  - Journey Tab: User path visualization
+
+### 🔐 Security & Access Control
+
+#### Password Protection System
+- Access code: SOFAS25
+- Session-based authentication (sessionStorage)
+- Frosted glass overlay effect (backdrop-filter: blur)
+- Persistent session across page navigation
+- Clean access denied messaging
+
+### 🐛 Critical Bug Fixes
+
+#### Data Persistence Issue (FIXED)
+- **Problem:** Telemetry data lost on page refresh (Maps not serialized)
+- **Solution:**
+  - Convert Maps to arrays before JSON serialization
+  - Load persisted data on init()
+  - Auto-save every 30 seconds + on page unload
+  - Save every 5 events to minimize data loss
+  - Maintain backward compatibility with legacy storage
+
+### 📈 Performance Optimizations
+
+#### Analytics Performance
+- Efficient Map/Set data structures for aggregation
+- Debounced persistence to localStorage
+- PerformanceObserver API for accurate timing
+- Lazy loading of Chart.js visualizations
+- Optimized query similarity calculations
+
+### 🛠️ Technical Implementation Details
+
+#### Files Modified
+- **index.html** (~3000 lines)
+  - Lines 1-600: Ultra fabric orb CSS animations
+  - Lines 1933-2239: Analytics object with persistence
+  - Lines 620-812: formatLLMResponse parser (192 lines)
+  - Lines 2516-2610: Password protection logic
+  - Lines 1750-1850: Typewriter effect implementation
+
+- **telemetry.html** (Enhanced dashboard)
+  - Real-time monitoring widgets
+  - Chart.js integrations
+  - Feedback visualization
+
+- **telemetry-comprehensive.html** (NEW)
+  - Advanced analytics dashboard
+  - 12 insight categories
+  - Tabbed interface
+  - Complex data visualizations
+
+### 🚀 Deployment Status
+- ✅ All changes deployed to GitHub Pages
+- ✅ Live at https://britishmade.ai
+- ✅ Data persistence verified working
+- ✅ Password protection active (SOFAS25)
+
+### 📝 Documentation Updates
+- ✅ Fixed critical data persistence issue
+- ⏳ Documentation update in progress
+- ⏳ Knowledge base synchronization pending
+
+---
+
 ## [2.1.0] - 2025-11-02 🎭 DEMO STAGE - Phase 1C Complete
 
 ### LLM Integration - Grok-4 Conversational Agent
