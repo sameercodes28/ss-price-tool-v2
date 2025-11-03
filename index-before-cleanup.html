@@ -1930,252 +1930,740 @@
         // ANALYTICS AND TELEMETRY SYSTEM
         // ========================================
 
-        // ========================================
-        // SIMPLIFIED ANALYTICS - v2.0 (CLEANED UP)
-        // ========================================
-        // Removed 500+ lines of bloat. Keeping only what's actually used:
-        // - events[] for debug history
-        // - p1Errors for error tracking
-        // - sessionId for session continuity
-        // + Enhanced debug tracking (Option A) for Claude collaboration
-
         const Analytics = {
             sessionId: null,
+            sessionStart: null,
             events: [],
+            healthChecks: {
+                lastCheck: null,
+                apiStatus: {},
+                errors: []
+            },
+            performanceMetrics: {
+                responseTimes: [],
+                renderTimes: []
+            },
+            // New comprehensive tracking
+            conversionFunnel: {
+                sessions: new Map(), // Track each session's progress
+                stages: ['query_started', 'price_shown', 'opportunity_clicked', 'configuration_complete']
+            },
+            productPopularity: new Map(), // Product name -> count
+            fabricPopularity: new Map(), // Fabric name -> count
+            priceSensitivity: {
+                ranges: new Map(), // Price range -> count
+                budgetQueries: [], // "under £X" queries
+            },
+            queryPatterns: {
+                reformulations: new Map(), // Session -> reformulation count
+                sequences: [], // Query sequences
+                deadEnds: [], // Queries with no results
+            },
             p1Errors: {
-                noPriceErrors: [],
+                noPriceErrors: [], // Critical: queries that returned no price
                 totalCount: 0,
                 lastOccurred: null
             },
-            maxEvents: 500, // Keep last 500 events only
-
-            // === OPTION A: ENHANCED DEBUG TRACKING ===
-            // Comprehensive tracking for effective Claude debugging
-            debugData: {
-                fullResponses: [], // Complete query/response pairs
-                toolCalls: [],     // All tool invocations with args/results
-                apiCalls: [],      // Backend API request/response logs
-                errorStacks: [],   // Errors with full stack traces
-                maxDebugItems: 100 // Keep last 100 of each type
+            userJourneys: {
+                paths: new Map(), // Session -> path array
+                timeToSuccess: [],
+                abandonments: [],
+                completions: []
+            },
+            crossSell: {
+                opportunities: new Map(), // Opportunity type -> click count
+                attachmentRate: 0
+            },
+            peakUsage: {
+                hourly: new Array(24).fill(0),
+                daily: new Array(7).fill(0)
+            },
+            nluScoring: {
+                confidenceScores: [],
+                uncertainQueries: [],
+                fallbacks: []
             },
 
             init() {
+                // Generate or retrieve session ID
                 this.sessionId = localStorage.getItem('sessionId') || this.generateSessionId();
                 localStorage.setItem('sessionId', this.sessionId);
-                this.loadData();
+                this.sessionStart = Date.now();
 
-                // Auto-save every 30s
-                setInterval(() => this.saveData(), 30000);
+                // Load persisted analytics data FIRST
+                this.loadPersistedData();
 
-                // Save on page unload
-                window.addEventListener('beforeunload', () => this.saveData());
-
-                console.log('[Analytics] Initialized - Session:', this.sessionId);
-            },
-
-            // === CORE TRACKING ===
-
-            track(eventName, data = {}) {
-                const event = {
-                    name: eventName,
-                    timestamp: Date.now(),
-                    data: { ...data, sessionId: this.sessionId }
-                };
-
-                this.events.push(event);
-
-                // Keep only last maxEvents
-                if (this.events.length > this.maxEvents) {
-                    this.events = this.events.slice(-this.maxEvents);
-                }
-
-                // Special handling for P1 errors
-                if (eventName === 'p1_error') {
-                    this.p1Errors.noPriceErrors.push({
-                        timestamp: Date.now(),
-                        query: data.query,
-                        error: data.error || data.message,
-                        sessionId: this.sessionId
-                    });
-                    this.p1Errors.totalCount++;
-                    this.p1Errors.lastOccurred = Date.now();
-                }
-
-                this.saveData();
-                console.log('[Analytics]', eventName, data);
-            },
-
-            trackFeedback(messageId, feedback, responseContent) {
-                this.track('feedback', {
-                    messageId,
-                    feedback,
-                    responseContent: responseContent.substring(0, 500)
+                // Track page load with performance metrics
+                this.track('page_load', {
+                    url: window.location.href,
+                    timestamp: new Date().toISOString(),
+                    performance: this.getPageLoadMetrics()
                 });
-            },
 
-            // === OPTION A: ENHANCED DEBUG TRACKING ===
+                // Start health monitoring
+                this.startHealthMonitoring();
 
-            trackFullResponse(query, response, metadata = {}) {
-                const fullResponseData = {
-                    timestamp: Date.now(),
-                    sessionId: this.sessionId,
-                    query: query,
-                    response: response,
-                    metadata: {
-                        responseTime: metadata.responseTime || null,
-                        hasPrice: response.includes('£'),
-                        priceCount: (response.match(/£[\d,]+/g) || []).length,
-                        responseLength: response.length,
-                        ...metadata
+                // Monitor performance
+                this.monitorPerformance();
+
+                // Track page unload
+                window.addEventListener('beforeunload', () => {
+                    // Check if session completed or abandoned
+                    const funnel = this.conversionFunnel.sessions.get(this.sessionId);
+                    const isComplete = funnel && funnel.stages.includes('configuration_complete');
+
+                    if (!isComplete && this.events.filter(e => e.eventName === 'user_query').length > 0) {
+                        this.trackAbandonment();
                     }
-                };
 
-                this.debugData.fullResponses.push(fullResponseData);
-
-                // Keep only last 100
-                if (this.debugData.fullResponses.length > this.debugData.maxDebugItems) {
-                    this.debugData.fullResponses = this.debugData.fullResponses.slice(-this.debugData.maxDebugItems);
-                }
-
-                // Check for P1 error (no price returned)
-                if (!fullResponseData.metadata.hasPrice && query && !query.includes('health check')) {
-                    this.track('p1_error', {
-                        query: query,
-                        message: 'No price returned in response',
-                        responsePreview: response.substring(0, 200)
+                    this.track('session_end', {
+                        duration: Date.now() - this.sessionStart,
+                        eventCount: this.events.length,
+                        avgResponseTime: this.calculateAvgResponseTime(),
+                        errorCount: this.healthChecks.errors.length,
+                        completed: isComplete
                     });
-                }
-
-                this.saveData();
-            },
-
-            trackToolCall(toolName, args, result, statusCode) {
-                const toolCallData = {
-                    timestamp: Date.now(),
-                    sessionId: this.sessionId,
-                    toolName: toolName,
-                    arguments: args,
-                    result: result,
-                    statusCode: statusCode,
-                    success: statusCode >= 200 && statusCode < 400
-                };
-
-                this.debugData.toolCalls.push(toolCallData);
-
-                // Keep only last 100
-                if (this.debugData.toolCalls.length > this.debugData.maxDebugItems) {
-                    this.debugData.toolCalls = this.debugData.toolCalls.slice(-this.debugData.maxDebugItems);
-                }
-
-                this.saveData();
-                console.log('[Analytics] Tool call:', toolName, 'Status:', statusCode);
-            },
-
-            trackAPICall(endpoint, request, response, httpCode) {
-                const apiCallData = {
-                    timestamp: Date.now(),
-                    sessionId: this.sessionId,
-                    endpoint: endpoint,
-                    request: request,
-                    response: response,
-                    httpCode: httpCode,
-                    success: httpCode >= 200 && httpCode < 400
-                };
-
-                this.debugData.apiCalls.push(apiCallData);
-
-                // Keep only last 100
-                if (this.debugData.apiCalls.length > this.debugData.maxDebugItems) {
-                    this.debugData.apiCalls = this.debugData.apiCalls.slice(-this.debugData.maxDebugItems);
-                }
-
-                // Track errors
-                if (httpCode >= 400) {
-                    this.track('api_error', {
-                        endpoint: endpoint,
-                        httpCode: httpCode,
-                        error: response.error || 'Unknown error'
-                    });
-                }
-
-                this.saveData();
-            },
-
-            trackErrorWithStack(error, context = {}) {
-                const errorData = {
-                    timestamp: Date.now(),
-                    sessionId: this.sessionId,
-                    message: error.message || error.toString(),
-                    stack: error.stack || 'No stack trace available',
-                    context: context,
-                    type: error.name || 'Error'
-                };
-
-                this.debugData.errorStacks.push(errorData);
-
-                // Keep only last 100
-                if (this.debugData.errorStacks.length > this.debugData.maxDebugItems) {
-                    this.debugData.errorStacks = this.debugData.errorStacks.slice(-this.debugData.maxDebugItems);
-                }
-
-                // Also track as regular error event
-                this.track('error', {
-                    message: errorData.message,
-                    type: errorData.type,
-                    context: context
+                    this.flush();
+                    this.persistData(); // Save all data before page unload
                 });
 
-                this.saveData();
-                console.error('[Analytics] Error:', error, 'Context:', context);
+                // Auto-save every 30 seconds
+                setInterval(() => this.persistData(), 30000);
             },
 
-            // === DATA PERSISTENCE ===
-
-            saveData() {
-                try {
-                    const data = {
-                        events: this.events,
-                        p1Errors: this.p1Errors,
-                        debugData: this.debugData,
-                        timestamp: Date.now()
+            getPageLoadMetrics() {
+                if (window.performance && window.performance.timing) {
+                    const timing = window.performance.timing;
+                    return {
+                        domContentLoaded: timing.domContentLoadedEventEnd - timing.navigationStart,
+                        fullyLoaded: timing.loadEventEnd - timing.navigationStart,
+                        firstPaint: timing.responseEnd - timing.navigationStart,
+                        domInteractive: timing.domInteractive - timing.navigationStart
                     };
-                    localStorage.setItem('analyticsComprehensive', JSON.stringify(data));
-                    localStorage.setItem('analyticsEvents', JSON.stringify(this.events));
-                } catch (e) {
-                    console.error('[Analytics] Save failed:', e);
+                }
+                return null;
+            },
+
+            startHealthMonitoring() {
+                // Check backend health every 30 seconds
+                setInterval(() => this.checkBackendHealth(), 30000);
+                // Initial check
+                this.checkBackendHealth();
+            },
+
+            async checkBackendHealth() {
+                const healthData = {
+                    timestamp: Date.now(),
+                    checks: {}
+                };
+
+                // Check price endpoint
+                try {
+                    const priceStart = Date.now();
+                    const priceResponse = await fetch('/api/getPrice', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ query: 'health check' })
+                    });
+                    healthData.checks.priceEndpoint = {
+                        status: priceResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - priceStart,
+                        statusCode: priceResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.priceEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                // Check chat endpoint
+                try {
+                    const chatStart = Date.now();
+                    const chatResponse = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            messages: [{ role: 'user', content: 'health check' }],
+                            sessionId: 'health-check'
+                        })
+                    });
+                    healthData.checks.chatEndpoint = {
+                        status: chatResponse.ok ? 'healthy' : 'unhealthy',
+                        responseTime: Date.now() - chatStart,
+                        statusCode: chatResponse.status
+                    };
+                } catch (error) {
+                    healthData.checks.chatEndpoint = {
+                        status: 'error',
+                        error: error.message
+                    };
+                }
+
+                this.healthChecks.lastCheck = healthData;
+                this.track('health_check', healthData);
+            },
+
+            monitorPerformance() {
+                // Monitor long tasks
+                if ('PerformanceObserver' in window) {
+                    try {
+                        const observer = new PerformanceObserver((list) => {
+                            for (const entry of list.getEntries()) {
+                                if (entry.duration > 50) {  // Tasks longer than 50ms
+                                    this.track('long_task', {
+                                        duration: entry.duration,
+                                        startTime: entry.startTime,
+                                        name: entry.name
+                                    });
+                                }
+                            }
+                        });
+                        observer.observe({ entryTypes: ['longtask'] });
+                    } catch (e) {
+                        console.log('Long task monitoring not supported');
+                    }
                 }
             },
 
-            loadData() {
-                try {
-                    const saved = localStorage.getItem('analyticsComprehensive');
-                    if (saved) {
-                        const data = JSON.parse(saved);
-                        this.events = data.events || [];
-                        this.p1Errors = data.p1Errors || { noPriceErrors: [], totalCount: 0, lastOccurred: null };
-                        this.debugData = data.debugData || {
-                            fullResponses: [],
-                            toolCalls: [],
-                            apiCalls: [],
-                            errorStacks: [],
-                            maxDebugItems: 100
-                        };
-                        console.log('[Analytics] Loaded data from', new Date(data.timestamp).toISOString());
-                    } else {
-                        // Legacy support
-                        const legacyEvents = localStorage.getItem('analyticsEvents');
-                        if (legacyEvents) {
-                            this.events = JSON.parse(legacyEvents);
-                            console.log('[Analytics] Loaded legacy events');
-                        }
-                    }
-                } catch (e) {
-                    console.error('[Analytics] Load failed:', e);
-                }
+            calculateAvgResponseTime() {
+                if (this.performanceMetrics.responseTimes.length === 0) return 0;
+                const sum = this.performanceMetrics.responseTimes.reduce((a, b) => a + b, 0);
+                return Math.round(sum / this.performanceMetrics.responseTimes.length);
             },
 
             generateSessionId() {
                 return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            },
+
+            // Persist all comprehensive tracking data to localStorage
+            persistData() {
+                const dataToSave = {
+                    events: this.events,
+                    healthChecks: this.healthChecks,
+                    performanceMetrics: this.performanceMetrics,
+                    conversionFunnel: {
+                        sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                        stages: this.conversionFunnel.stages
+                    },
+                    productPopularity: Array.from(this.productPopularity.entries()),
+                    fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                    priceSensitivity: {
+                        ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                        budgetQueries: this.priceSensitivity.budgetQueries
+                    },
+                    queryPatterns: {
+                        reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                        sequences: this.queryPatterns.sequences,
+                        deadEnds: this.queryPatterns.deadEnds
+                    },
+                    userJourneys: {
+                        paths: Array.from(this.userJourneys.paths.entries()),
+                        timeToSuccess: this.userJourneys.timeToSuccess,
+                        abandonments: this.userJourneys.abandonments,
+                        completions: this.userJourneys.completions
+                    },
+                    crossSell: {
+                        opportunities: Array.from(this.crossSell.opportunities.entries()),
+                        attachmentRate: this.crossSell.attachmentRate
+                    },
+                    peakUsage: this.peakUsage,
+                    nluScoring: this.nluScoring,
+                    p1Errors: this.p1Errors,
+                    timestamp: Date.now()
+                };
+
+                try {
+                    localStorage.setItem('analyticsComprehensive', JSON.stringify(dataToSave));
+                    // Keep backward compatibility
+                    localStorage.setItem('analyticsEvents', JSON.stringify(this.events));
+                    console.log('[Analytics] Data persisted successfully');
+                } catch (e) {
+                    console.error('[Analytics] Failed to persist data:', e);
+                }
+            },
+
+            // Load persisted data on init
+            loadPersistedData() {
+                try {
+                    const saved = localStorage.getItem('analyticsComprehensive');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+
+                        // Restore events and simple arrays
+                        this.events = data.events || [];
+                        this.healthChecks = data.healthChecks || { lastCheck: null, apiStatus: {}, errors: [] };
+                        this.performanceMetrics = data.performanceMetrics || { responseTimes: [], renderTimes: [] };
+
+                        // Restore Maps
+                        if (data.conversionFunnel) {
+                            this.conversionFunnel.sessions = new Map(data.conversionFunnel.sessions || []);
+                            this.conversionFunnel.stages = data.conversionFunnel.stages || this.conversionFunnel.stages;
+                        }
+
+                        this.productPopularity = new Map(data.productPopularity || []);
+                        this.fabricPopularity = new Map(data.fabricPopularity || []);
+
+                        if (data.priceSensitivity) {
+                            this.priceSensitivity.ranges = new Map(data.priceSensitivity.ranges || []);
+                            this.priceSensitivity.budgetQueries = data.priceSensitivity.budgetQueries || [];
+                        }
+
+                        if (data.queryPatterns) {
+                            this.queryPatterns.reformulations = new Map(data.queryPatterns.reformulations || []);
+                            this.queryPatterns.sequences = data.queryPatterns.sequences || [];
+                            this.queryPatterns.deadEnds = data.queryPatterns.deadEnds || [];
+                        }
+
+                        if (data.userJourneys) {
+                            this.userJourneys.paths = new Map(data.userJourneys.paths || []);
+                            this.userJourneys.timeToSuccess = data.userJourneys.timeToSuccess || [];
+                            this.userJourneys.abandonments = data.userJourneys.abandonments || [];
+                            this.userJourneys.completions = data.userJourneys.completions || [];
+                        }
+
+                        if (data.crossSell) {
+                            this.crossSell.opportunities = new Map(data.crossSell.opportunities || []);
+                            this.crossSell.attachmentRate = data.crossSell.attachmentRate || 0;
+                        }
+
+                        this.peakUsage = data.peakUsage || { hourly: new Array(24).fill(0), daily: new Array(7).fill(0) };
+                        this.nluScoring = data.nluScoring || { confidenceScores: [], uncertainQueries: [], fallbacks: [] };
+
+                        // Load P1 errors
+                        this.p1Errors = data.p1Errors || { noPriceErrors: [], totalCount: 0, lastOccurred: null };
+
+                        console.log('[Analytics] Loaded persisted data from', new Date(data.timestamp || 0).toISOString());
+                    } else {
+                        // Check for legacy data
+                        const legacyEvents = localStorage.getItem('analyticsEvents');
+                        if (legacyEvents) {
+                            this.events = JSON.parse(legacyEvents);
+                            console.log('[Analytics] Loaded legacy events data');
+                        }
+                    }
+                } catch (e) {
+                    console.error('[Analytics] Failed to load persisted data:', e);
+                }
+            },
+
+            track(eventName, data = {}) {
+                const event = {
+                    sessionId: this.sessionId,
+                    eventName,
+                    timestamp: Date.now(),
+                    data: {
+                        ...data,
+                        userAgent: navigator.userAgent,
+                        screenResolution: `${window.screen.width}x${window.screen.height}`,
+                        viewport: `${window.innerWidth}x${window.innerHeight}`
+                    }
+                };
+
+                this.events.push(event);
+                console.log('[Analytics]', eventName, data);
+
+                // Store locally for now
+                const storedEvents = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                storedEvents.push(event);
+                localStorage.setItem('analyticsEvents', JSON.stringify(storedEvents));
+
+                // Auto-flush every 10 events
+                if (this.events.length >= 10) {
+                    this.flush();
+                }
+
+                // Persist comprehensive data every 5 events to avoid data loss
+                if (this.events.length % 5 === 0) {
+                    this.persistData();
+                }
+            },
+
+            trackQuery(query, source) {
+                const queryMetrics = {
+                    query,
+                    source, // 'typed', 'suggestion', 'opportunity'
+                    queryLength: query.length,
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.filter(e => e.eventName === 'user_query').length + 1,
+                    timeSinceLastQuery: this.getTimeSinceLastQuery()
+                };
+
+                this.track('user_query', queryMetrics);
+
+                // Track conversion funnel
+                this.updateFunnelStage('query_started');
+
+                // Track product and fabric popularity
+                this.extractAndTrackProducts(query);
+                this.extractAndTrackFabrics(query);
+
+                // Track price sensitivity
+                this.trackPriceSensitivity(query);
+
+                // Track query reformulation
+                this.trackReformulation(query);
+
+                // Track user journey path
+                this.updateJourneyPath(query);
+
+                // Track peak usage
+                this.updatePeakUsage();
+
+                // Track query patterns and intent
+                if (query.toLowerCase().includes('price') || query.includes('£')) {
+                    this.track('query_intent', { type: 'pricing', query });
+                } else if (query.toLowerCase().includes('fabric') || query.toLowerCase().includes('material')) {
+                    this.track('query_intent', { type: 'fabric', query });
+                } else if (query.toLowerCase().includes('size') || query.toLowerCase().includes('seater')) {
+                    this.track('query_intent', { type: 'sizing', query });
+                }
+            },
+
+            updateFunnelStage(stage) {
+                if (!this.conversionFunnel.sessions.has(this.sessionId)) {
+                    this.conversionFunnel.sessions.set(this.sessionId, {
+                        stages: [],
+                        timestamp: Date.now()
+                    });
+                }
+                const session = this.conversionFunnel.sessions.get(this.sessionId);
+                if (!session.stages.includes(stage)) {
+                    session.stages.push(stage);
+                    this.track('funnel_stage', { stage, sessionId: this.sessionId });
+                }
+            },
+
+            extractAndTrackProducts(query) {
+                const products = ['Alwinton', 'Midhurst', 'Petworth', 'Aldingbourne', 'Chesterfield'];
+                const queryLower = query.toLowerCase();
+                products.forEach(product => {
+                    if (queryLower.includes(product.toLowerCase())) {
+                        const count = this.productPopularity.get(product) || 0;
+                        this.productPopularity.set(product, count + 1);
+                    }
+                });
+            },
+
+            extractAndTrackFabrics(query) {
+                const fabrics = ['Sussex Plain', 'House Wool', 'Velvet', 'Linen', 'Pacific', 'Sky', 'Terracotta'];
+                const queryLower = query.toLowerCase();
+                fabrics.forEach(fabric => {
+                    if (queryLower.includes(fabric.toLowerCase())) {
+                        const count = this.fabricPopularity.get(fabric) || 0;
+                        this.fabricPopularity.set(fabric, count + 1);
+                    }
+                });
+            },
+
+            trackPriceSensitivity(query) {
+                const priceMatch = query.match(/under\s*£?([\d,]+)|below\s*£?([\d,]+)|less\s+than\s*£?([\d,]+)/i);
+                if (priceMatch) {
+                    const budget = parseInt(priceMatch[1].replace(',', ''));
+                    this.priceSensitivity.budgetQueries.push({ query, budget, timestamp: Date.now() });
+
+                    // Track price ranges
+                    let range = '';
+                    if (budget < 1500) range = 'under-1500';
+                    else if (budget < 2000) range = '1500-2000';
+                    else if (budget < 2500) range = '2000-2500';
+                    else if (budget < 3000) range = '2500-3000';
+                    else range = 'over-3000';
+
+                    const count = this.priceSensitivity.ranges.get(range) || 0;
+                    this.priceSensitivity.ranges.set(range, count + 1);
+                }
+            },
+
+            trackReformulation(query) {
+                const recent = this.events.filter(e =>
+                    e.eventName === 'user_query' &&
+                    e.timestamp > Date.now() - 30000 // Last 30 seconds
+                );
+
+                if (recent.length > 0) {
+                    const lastQuery = recent[recent.length - 1].data.query;
+                    const similarity = this.calculateSimilarity(lastQuery, query);
+                    if (similarity > 0.5 && similarity < 0.9) { // Similar but not identical
+                        const count = this.queryPatterns.reformulations.get(this.sessionId) || 0;
+                        this.queryPatterns.reformulations.set(this.sessionId, count + 1);
+                    }
+                }
+            },
+
+            calculateSimilarity(str1, str2) {
+                const words1 = str1.toLowerCase().split(' ');
+                const words2 = str2.toLowerCase().split(' ');
+                const intersection = words1.filter(w => words2.includes(w));
+                return intersection.length / Math.max(words1.length, words2.length);
+            },
+
+            updateJourneyPath(query) {
+                if (!this.userJourneys.paths.has(this.sessionId)) {
+                    this.userJourneys.paths.set(this.sessionId, []);
+                }
+                const path = this.userJourneys.paths.get(this.sessionId);
+                path.push({ query, timestamp: Date.now() });
+            },
+
+            updatePeakUsage() {
+                const now = new Date();
+                this.peakUsage.hourly[now.getHours()]++;
+                this.peakUsage.daily[now.getDay()]++;
+            },
+
+            trackResponse(response, responseTime) {
+                // Calculate quality metrics
+                const hasPrice = response.includes('£');
+                const priceCount = (response.match(/£[\d,]+/g) || []).length;
+                const hasFeatures = response.includes('Key Features');
+                const hasOpportunities = response.includes('Opportunities');
+                const hasSuggestions = response.includes('What next');
+
+                const responseMetrics = {
+                    responseLength: response.length,
+                    responseTime,
+                    hasPrice,
+                    priceCount,
+                    hasFeatures,
+                    hasOpportunities,
+                    hasSuggestions,
+                    responseCompleteness: (hasPrice ? 25 : 0) + (hasFeatures ? 25 : 0) +
+                                        (hasOpportunities ? 25 : 0) + (hasSuggestions ? 25 : 0),
+                    timestamp: new Date().toISOString(),
+                    timeToFirstByte: window.firstByteTime ? window.firstByteTime - window.lastQueryTime : null,
+                    charactersPerSecond: response.length / (responseTime / 1000)
+                };
+
+                // Track response time for performance metrics
+                this.performanceMetrics.responseTimes.push(responseTime);
+
+                // Update funnel if price shown
+                if (hasPrice) {
+                    this.updateFunnelStage('price_shown');
+
+                    // Check if this is a complete configuration
+                    if (hasPrice && hasFeatures) {
+                        const queries = this.userJourneys.paths.get(this.sessionId) || [];
+                        if (queries.length > 0) {
+                            const timeToSuccess = Date.now() - queries[0].timestamp;
+                            this.userJourneys.timeToSuccess.push({
+                                time: timeToSuccess,
+                                queryCount: queries.length,
+                                sessionId: this.sessionId
+                            });
+                        }
+                    }
+                }
+
+                // Check for P1 errors - NO PRICE is critical
+                if (!hasPrice) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        const errorEvent = {
+                            query: lastQuery,
+                            response: response.substring(0, 200), // First 200 chars
+                            timestamp: Date.now(),
+                            sessionId: this.sessionId,
+                            severity: 'P1',
+                            type: 'NO_PRICE_RETURNED'
+                        };
+
+                        // Track as P1 error
+                        this.p1Errors.noPriceErrors.push(errorEvent);
+                        this.p1Errors.totalCount++;
+                        this.p1Errors.lastOccurred = Date.now();
+
+                        // Also track as critical error event
+                        this.track('p1_error', {
+                            type: 'no_price',
+                            query: lastQuery,
+                            severity: 'P1',
+                            message: 'Query returned no price information'
+                        });
+
+                        console.error('[P1 ERROR] No price returned for query:', lastQuery);
+                    }
+                }
+
+                // Check for other dead ends (no useful info at all)
+                if (!hasPrice && !hasFeatures && !hasOpportunities) {
+                    const queries = this.events.filter(e => e.eventName === 'user_query');
+                    if (queries.length > 0) {
+                        const lastQuery = queries[queries.length - 1].data.query;
+                        this.queryPatterns.deadEnds.push({
+                            query: lastQuery,
+                            timestamp: Date.now()
+                        });
+                    }
+                }
+
+                // Track NLU confidence (simplified - based on completeness)
+                this.nluScoring.confidenceScores.push(responseMetrics.responseCompleteness);
+                if (response.includes("I couldn't find") || response.includes("Could you try")) {
+                    this.nluScoring.fallbacks.push({ response, timestamp: Date.now() });
+                }
+
+                // Track response quality
+                if (responseMetrics.responseCompleteness >= 75) {
+                    this.track('high_quality_response', responseMetrics);
+                } else if (responseMetrics.responseCompleteness <= 25) {
+                    this.track('low_quality_response', responseMetrics);
+                }
+
+                this.track('agent_response', responseMetrics);
+            },
+
+            trackOpportunityClick(opportunity) {
+                // Update funnel
+                this.updateFunnelStage('opportunity_clicked');
+
+                // Track cross-sell
+                const count = this.crossSell.opportunities.get(opportunity) || 0;
+                this.crossSell.opportunities.set(opportunity, count + 1);
+
+                // Calculate attachment rate
+                const totalSessions = this.conversionFunnel.sessions.size;
+                const sessionsWithOpportunities = Array.from(this.conversionFunnel.sessions.values())
+                    .filter(s => s.stages.includes('opportunity_clicked')).length;
+                this.crossSell.attachmentRate = totalSessions > 0
+                    ? (sessionsWithOpportunities / totalSessions) * 100
+                    : 0;
+
+                this.track('cross_sell_clicked', { opportunity, timestamp: Date.now() });
+            },
+
+            trackConfigurationComplete() {
+                this.updateFunnelStage('configuration_complete');
+                this.userJourneys.completions.push({
+                    sessionId: this.sessionId,
+                    timestamp: Date.now(),
+                    queryCount: this.events.filter(e => e.eventName === 'user_query').length
+                });
+                this.track('configuration_complete', { sessionId: this.sessionId });
+            },
+
+            trackAbandonment() {
+                const path = this.userJourneys.paths.get(this.sessionId);
+                if (path && path.length > 0) {
+                    const lastQuery = path[path.length - 1];
+                    this.userJourneys.abandonments.push({
+                        lastQuery: lastQuery.query,
+                        queryCount: path.length,
+                        sessionDuration: Date.now() - path[0].timestamp,
+                        timestamp: Date.now()
+                    });
+                }
+            },
+
+            trackError(errorType, errorDetails) {
+                this.healthChecks.errors.push({
+                    type: errorType,
+                    details: errorDetails,
+                    timestamp: Date.now()
+                });
+
+                this.track('error_occurred', {
+                    errorType,
+                    errorDetails,
+                    timestamp: new Date().toISOString(),
+                    sessionDepth: this.events.length,
+                    recoveryAttempted: false
+                });
+            },
+
+            trackUserJourney(milestone) {
+                this.track('journey_milestone', {
+                    milestone,
+                    timestamp: new Date().toISOString(),
+                    timeFromStart: Date.now() - this.sessionStart,
+                    queriesBeforeMilestone: this.events.filter(e => e.eventName === 'user_query').length
+                });
+            },
+
+            getTimeSinceLastQuery() {
+                const queries = this.events.filter(e => e.eventName === 'user_query');
+                if (queries.length === 0) return 0;
+                return Date.now() - queries[queries.length - 1].timestamp;
+            },
+
+            trackFeedback(messageId, feedback, responseContent) {
+                this.track('response_feedback', {
+                    messageId,
+                    feedback, // 'positive' or 'negative'
+                    responseContent,
+                    responseHtml: responseContent.substring(0, 500), // First 500 chars
+                    timestamp: new Date().toISOString(),
+                    screenshot: this.captureResponseScreenshot(messageId)
+                });
+            },
+
+            captureResponseScreenshot(messageId) {
+                // Capture the response HTML for later review
+                const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+                if (messageElement) {
+                    return {
+                        html: messageElement.innerHTML,
+                        text: messageElement.innerText,
+                        prices: Array.from(messageElement.querySelectorAll('.price-amount')).map(el => el.innerText)
+                    };
+                }
+                return null;
+            },
+
+            flush() {
+                // In future, send to backend
+                // For now, just ensure it's saved to localStorage
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+                console.log('[Analytics] Flushing', events.length, 'events');
+            },
+
+            getAnalytics() {
+                // Retrieve stored analytics for viewing
+                const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+
+                // Include aggregated metrics for dashboard
+                const aggregated = {
+                    events,
+                    metrics: {
+                        productPopularity: Array.from(this.productPopularity.entries()),
+                        fabricPopularity: Array.from(this.fabricPopularity.entries()),
+                        priceSensitivity: {
+                            ranges: Array.from(this.priceSensitivity.ranges.entries()),
+                            budgetQueries: this.priceSensitivity.budgetQueries
+                        },
+                        conversionFunnel: {
+                            sessions: Array.from(this.conversionFunnel.sessions.entries()),
+                            stages: this.conversionFunnel.stages
+                        },
+                        crossSell: {
+                            opportunities: Array.from(this.crossSell.opportunities.entries()),
+                            attachmentRate: this.crossSell.attachmentRate
+                        },
+                        userJourneys: {
+                            timeToSuccess: this.userJourneys.timeToSuccess,
+                            abandonments: this.userJourneys.abandonments,
+                            completions: this.userJourneys.completions
+                        },
+                        queryPatterns: {
+                            reformulations: Array.from(this.queryPatterns.reformulations.entries()),
+                            deadEnds: this.queryPatterns.deadEnds
+                        },
+                        peakUsage: this.peakUsage,
+                        nluScoring: {
+                            avgConfidence: this.nluScoring.confidenceScores.length > 0
+                                ? this.nluScoring.confidenceScores.reduce((a, b) => a + b, 0) / this.nluScoring.confidenceScores.length
+                                : 0,
+                            fallbackCount: this.nluScoring.fallbacks.length
+                        }
+                    }
+                };
+
+                // Store aggregated data separately for dashboard
+                localStorage.setItem('analyticsAggregated', JSON.stringify(aggregated.metrics));
+
+                return aggregated;
             }
         };
 
@@ -2317,10 +2805,8 @@
                     </div>
                 `;
 
-                // Track the response with enhanced debug tracking
-                const responseTime = Date.now() - window.lastQueryTime || 0;
-                Analytics.track('llm_response', { responseTime, responseLength: content.length });
-                Analytics.trackFullResponse(window.currentQuery || '', content, { responseTime });
+                // Track the response
+                Analytics.trackResponse(content, Date.now() - window.lastQueryTime || 0);
             }
 
             messagesWrapper.appendChild(message);
@@ -2524,7 +3010,7 @@
 
         function handleSuggestionClick(suggestionText) {
             console.log('[CLICK] Suggestion clicked:', suggestionText);
-            Analytics.track('query', { query: suggestionText, source: 'suggestion' });
+            Analytics.trackQuery(suggestionText, 'suggestion');
             document.getElementById('chatInput').value = suggestionText;
             sendChatMessage();
         }
@@ -2536,18 +3022,15 @@
             let cleanText = opportunityText.replace(/^Add\s+/i, '');
 
             // Track the opportunity click
-            Analytics.track('opportunity_click', { opportunity: cleanText });
+            Analytics.trackOpportunityClick(cleanText);
 
             let query = `Add ${cleanText} to my current selection`;
-            Analytics.track('query', { query: query, source: 'opportunity' });
+            Analytics.trackQuery(query, 'opportunity');
             document.getElementById('chatInput').value = query;
             sendChatMessage();
         }
 
         async function processMessage(message) {
-            // Store current query globally for tracking
-            window.currentQuery = message;
-
             try {
                 if (USE_LLM) {
                     // LLM PATH
@@ -2753,9 +3236,10 @@
 
                 addMessage('assistant', 'Sorry, I encountered a connection error. Please try again.');
 
-                // Track the error with full stack trace
-                Analytics.trackErrorWithStack(error, {
+                // Track the error
+                Analytics.trackError('api_error', {
                     endpoint: USE_LLM ? '/chat' : '/getPrice',
+                    error: error.message,
                     query: message
                 });
 
@@ -2801,7 +3285,7 @@
 
             // Track query if typed by user
             if (!text) {
-                Analytics.track('query', { query: message, source: 'typed' });
+                Analytics.trackQuery(message, 'typed');
             }
 
             window.lastQueryTime = Date.now();
