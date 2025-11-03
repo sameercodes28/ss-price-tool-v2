@@ -84,6 +84,23 @@ CACHE_TTL = 300  # 5 minutes (kept for compatibility)
 # To enable, set this in your GCF Environment Variables
 # API_KEY = os.environ.get('YOUR_APP_API_KEY', 'default-key-change-me')
 
+# --- Request ID Tracing (v2.5.0 Phase 3) ---
+def get_request_id(request):
+    """
+    Extract request ID from X-Request-ID header for tracing.
+    Returns shortened version for logging (last 8 chars).
+
+    Args:
+        request: Flask/Functions Framework request object
+
+    Returns:
+        str: Request ID (truncated to last 8 chars) or 'unknown'
+    """
+    request_id = request.headers.get('X-Request-ID', 'unknown')
+    if request_id != 'unknown' and len(request_id) > 8:
+        return request_id[-8:]  # Last 8 chars for brevity
+    return request_id
+
 # --- Helper Function to Load Dictionaries ---
 def load_json_file(filename):
     """
@@ -700,11 +717,12 @@ def get_price_logic(request):
 
     query = data.get('query', '').lower()
     user_agent = request.headers.get('User-Agent', 'Mozilla/5.0')
+    request_id = get_request_id(request)
 
     if not query:
         return create_error_response("E2007", details={"field": "query"}), 400
 
-    print(f"--- New Query: '{query}' ---")
+    print(f"[{request_id}] --- New Query: '{query}' ---")
 
     # --- 2. Translation Logic (Ambiguity Check - Critique #5) ---
     
@@ -718,23 +736,23 @@ def get_price_logic(request):
     # Find Product (and its SKU and TYPE)
     product_matches = find_best_matches(query, PRODUCT_SKU_MAP)
     if not product_matches:
-        print(f"  [Error] No product match found for query: {query}")
+        print(f"[{request_id}]  [Error] No product match found for query: {query}")
         return create_error_response("E2001"), 400
 
     # Check for ambiguity
     if len(product_matches) > 1 and product_matches[0][2] == product_matches[1][2]:
          suggestions = [m[1]["full_name"] for m in product_matches[:3]]
-         print(f"  [Error] Ambiguous product: {suggestions}")
+         print(f"[{request_id}]  [Error] Ambiguous product: {suggestions}")
          return create_error_response(
              "E2002",
              custom_user_message=f"Multiple products match. Did you mean: {', '.join(suggestions)}?",
              details={"options": suggestions}
          ), 400
-    
+
     product_name_keyword, product_data = product_matches[0][0], product_matches[0][1]
     product_sku = product_data["sku"]
     product_type = product_data["type"] # This is "sofa", "bed", "chair", etc.
-    print(f"  [Match] Product: '{product_name_keyword}' -> SKU: '{product_sku}', Type: '{product_type}'")
+    print(f"[{request_id}]  [Match] Product: '{product_name_keyword}' -> SKU: '{product_sku}', Type: '{product_type}'")
 
     # Find Size (based on the product_sku)
     product_size_map = SIZE_SKU_MAP.get(product_sku, {})
@@ -961,6 +979,7 @@ def chat_handler(request):
 
         messages = data.get('messages', [])
         session_id = data.get('session_id', 'no-session')
+        request_id = get_request_id(request)
 
         if not messages:
             return create_error_response("E2007", details={"field": "messages array"}), 400
@@ -973,7 +992,7 @@ def chat_handler(request):
             if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
                 return {"error": "Each message must have 'role' and 'content' fields"}, 400
 
-        print(f"[Chat] Processing {len(messages)} messages for session: {session_id}")
+        print(f"[{request_id}] [Chat] Processing {len(messages)} messages for session: {session_id}")
 
         # Build conversation with system prompt
         conversation = [

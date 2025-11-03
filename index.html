@@ -1753,6 +1753,92 @@
             }
         }
 
+        /**
+         * Fetch with automatic retry and exponential backoff.
+         * Retries on network errors and 5xx server errors, but not on 4xx client errors.
+         * Automatically injects X-Request-ID header for request tracing.
+         *
+         * @param {string} url - URL to fetch
+         * @param {object} options - Fetch options
+         * @param {number} maxRetries - Maximum number of retry attempts (default 3)
+         * @param {number} timeout - Timeout per attempt in milliseconds (default 30000)
+         * @returns {Promise<Response>}
+         * @throws {Error} If all retries fail
+         *
+         * Retry strategy:
+         * - Attempt 1: Immediate
+         * - Attempt 2: After 1 second
+         * - Attempt 3: After 2 seconds (total 3s delay)
+         * - Attempt 4: After 4 seconds (total 7s delay)
+         *
+         * Example delays with maxRetries=3:
+         * Try 1 → fail → wait 1s → Try 2 → fail → wait 2s → Try 3 → fail → throw
+         */
+        async function fetchWithRetry(url, options = {}, maxRetries = 3, timeout = 30000) {
+            let lastError;
+
+            // Inject request ID header for backend correlation
+            const optionsWithRequestId = {
+                ...options,
+                headers: {
+                    ...(options.headers || {}),
+                    'X-Request-ID': sessionId
+                }
+            };
+
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    console.log(`[Fetch:${sessionId.substring(8, 16)}] Attempt ${attempt}/${maxRetries} to ${url.split('/').pop()}`);
+
+                    const response = await fetchWithTimeout(url, optionsWithRequestId, timeout);
+
+                    // SUCCESS - check if we should retry based on status
+                    if (response.ok) {
+                        if (attempt > 1) {
+                            console.log(`[Fetch] ✅ Success on attempt ${attempt}`);
+                        }
+                        return response;
+                    }
+
+                    // Got a response, but not OK
+                    // Don't retry on 4xx errors (client fault)
+                    if (response.status >= 400 && response.status < 500) {
+                        console.log(`[Fetch] ❌ Client error ${response.status}, not retrying`);
+                        return response; // Return error response, don't retry
+                    }
+
+                    // 5xx server error - should retry
+                    console.warn(`[Fetch] Server error ${response.status}, will retry`);
+                    lastError = new Error(`Server error: ${response.status}`);
+
+                } catch (error) {
+                    console.warn(`[Fetch] Attempt ${attempt} failed:`, error.message);
+                    lastError = error;
+
+                    // Don't retry if this was a client-side issue (invalid URL, etc.)
+                    if (error.message.includes('Failed to fetch') ||
+                        error.message.includes('Network request failed') ||
+                        error.message.includes('timed out')) {
+                        // Network/timeout errors - should retry
+                    } else {
+                        // Other errors (invalid URL, CORS, etc.) - don't retry
+                        throw error;
+                    }
+                }
+
+                // If not last attempt, wait before retrying (exponential backoff)
+                if (attempt < maxRetries) {
+                    const delayMs = Math.min(1000 * Math.pow(2, attempt - 1), 8000); // 1s, 2s, 4s, max 8s
+                    console.log(`[Fetch] ⏳ Waiting ${delayMs}ms before retry...`);
+                    await new Promise(resolve => setTimeout(resolve, delayMs));
+                }
+            }
+
+            // All retries exhausted
+            console.error(`[Fetch] ❌ All ${maxRetries} attempts failed`);
+            throw lastError || new Error(`Request failed after ${maxRetries} attempts`);
+        }
+
         // ========================================
         // LANDING PAGE LOGIC
         // ========================================
@@ -2575,8 +2661,8 @@
 
                     console.log('[Frontend] Sending to /chat with history:', conversationHistory.length, 'messages');
 
-                    // CRITICAL: Use fetchWithTimeout to prevent infinite waiting (30s timeout)
-                    const response = await fetchWithTimeout(`${BACKEND_API_URL}/chat`, {
+                    // Use fetchWithRetry for automatic retry on transient failures
+                    const response = await fetchWithRetry(`${BACKEND_API_URL}/chat`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -2585,7 +2671,7 @@
                             messages: conversationHistory,
                             session_id: sessionId
                         })
-                    }, 30000);
+                    }, 3, 30000);  // 3 retries, 30s timeout per attempt
 
                     const data = await response.json();
                     hideTypingIndicator();
@@ -2680,14 +2766,14 @@
                         return;
                     }
 
-                    // CRITICAL: Use fetchWithTimeout to prevent infinite waiting (30s timeout)
-                    const response = await fetchWithTimeout(`${BACKEND_API_URL}/getPrice`, {
+                    // Use fetchWithRetry for automatic retry on transient failures
+                    const response = await fetchWithRetry(`${BACKEND_API_URL}/getPrice`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({ query: message })
-                    }, 30000);
+                    }, 3, 30000);  // 3 retries, 30s timeout per attempt
 
                     const data = await response.json();
                     hideTypingIndicator();
