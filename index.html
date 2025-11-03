@@ -2536,27 +2536,11 @@
                                   content.includes('### 🎯') ||
                                   content.includes('### 💬');
 
-            // If no structured content, treat as helpful error/suggestion message
+            // If no structured content, parse markdown manually (simple, reliable)
             if (!hasStructuredContent) {
-                console.log('[LLM Response] No structured format detected, using markdown parser');
+                console.log('[LLM Response] No structured format, parsing markdown manually');
 
-                // Use marked.js to parse markdown properly
-                if (typeof marked !== 'undefined') {
-                    try {
-                        html = '<div class="llm-suggestion-response">';
-                        html += marked.parse(content);
-                        html += '</div>';
-                        return html;
-                    } catch (e) {
-                        console.error('[ERROR] Marked.js parsing failed:', e);
-                        // Fall through to manual parsing
-                    }
-                }
-
-                // Fallback: Manual parsing with basic markdown support (if marked.js fails or unavailable)
-                console.warn('[LLM Response] Falling back to manual markdown parsing');
-
-                // Parse ALL markdown first, then split into paragraphs
+                // Simple markdown parser - ONE code path, no dependencies
                 // Bold: **text** -> <strong>text</strong>
                 let parsed = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 
@@ -2566,24 +2550,26 @@
                 // Links: [text](url) -> <a href="url">text</a>
                 parsed = parsed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-                // Now split into paragraphs and render
+                // Build HTML
                 html = '<div class="llm-suggestion-response">';
                 const paragraphs = parsed.split('\n\n');
+
                 for (let para of paragraphs) {
                     para = para.trim();
                     if (!para) continue;
 
-                    // Check for headers
+                    // Headers
                     if (para.startsWith('###')) {
                         html += `<h3 style="margin: 15px 0 10px 0; font-weight: 600;">${para.replace(/^###\s*/, '')}</h3>`;
                         continue;
                     }
 
-                    // Regular paragraph with line breaks
+                    // Paragraphs
                     html += `<p style="margin: 10px 0;">${para.replace(/\n/g, '<br>')}</p>`;
                 }
 
                 html += '</div>';
+                console.log('[SUCCESS] Markdown parsed');
                 return html;
             }
 
