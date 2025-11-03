@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Developer Debug Dashboard - British Made AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #4a5568;
+        }
+
+        .header h1 {
+            color: #48bb78;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .header .subtitle {
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: #48bb78;
+            color: #1a202c;
+        }
+
+        .status-offline {
+            background: #f56565;
+            color: white;
+        }
+
+        .status-warning {
+            background: #ed8936;
+            color: #1a202c;
+        }
+
+        .section {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .section-header h2 {
+            color: #48bb78;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: #1a202c;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #4a5568;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+
+        .log-container {
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Monaco', monospace;
+            font-size: 11px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-time {
+            color: #718096;
+            margin-right: 8px;
+        }
+
+        .log-error {
+            color: #fc8181;
+        }
+
+        .log-warn {
+            color: #f6ad55;
+        }
+
+        .log-info {
+            color: #63b3ed;
+        }
+
+        .log-success {
+            color: #68d391;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .metric-card {
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            padding: 12px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #48bb78;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: #a0aec0;
+            margin-top: 4px;
+        }
+
+        .code-block {
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            padding: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 11px;
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #a0aec0;
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            background: #1a202c;
+            border: 1px solid #4a5568;
+            border-radius: 4px;
+            padding: 8px;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .table th {
+            background: #1a202c;
+            padding: 8px;
+            text-align: left;
+            color: #48bb78;
+            border-bottom: 2px solid #4a5568;
+        }
+
+        .table td {
+            padding: 8px;
+            border-bottom: 1px solid #2d3748;
+        }
+
+        .table tr:hover {
+            background: #1a202c;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .alert-error {
+            background: #742a2a;
+            border-color: #fc8181;
+            color: #feb2b2;
+        }
+
+        .alert-success {
+            background: #22543d;
+            border-color: #68d391;
+            color: #9ae6b4;
+        }
+
+        .alert-info {
+            background: #2c5282;
+            border-color: #63b3ed;
+            color: #90cdf4;
+        }
+
+        .copy-btn {
+            float: right;
+            padding: 4px 8px;
+            font-size: 10px;
+        }
+
+        #debugReport {
+            display: none;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .badge-success {
+            background: #48bb78;
+            color: #1a202c;
+        }
+
+        .badge-error {
+            background: #f56565;
+            color: white;
+        }
+
+        .badge-warning {
+            background: #ed8936;
+            color: #1a202c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🔧 Developer Debug Dashboard</h1>
+        <p class="subtitle">For debugging with Claude Code | Last updated: <span id="lastUpdate">Loading...</span></p>
+        <div class="status-bar" id="statusBar">
+            <span class="status-item status-offline">Checking...</span>
+        </div>
+    </div>
+
+    <!-- Quick Diagnostics -->
+    <div class="section">
+        <div class="section-header">
+            <h2>⚡ Quick Diagnostics</h2>
+            <button class="btn btn-primary" onclick="refreshDiagnostics()">🔄 Refresh</button>
+        </div>
+        <div class="grid-3">
+            <div class="metric-card">
+                <div class="metric-value" id="totalQueries">0</div>
+                <div class="metric-label">Total Queries</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="errorCount">0</div>
+                <div class="metric-label">Errors (Last 1h)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="lastQueryTime">--</div>
+                <div class="metric-label">Last Query</div>
+            </div>
+        </div>
+        <div id="diagnosticAlerts" style="margin-top: 12px;"></div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📋 Recent Activity (Last 10)</h2>
+            <button class="btn btn-secondary" onclick="showAllActivity()">View All</button>
+        </div>
+        <div class="log-container" id="recentActivity">
+            <div class="log-entry">No activity yet</div>
+        </div>
+    </div>
+
+    <!-- Debug Tools -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🛠️ Debug Tools</h2>
+        </div>
+        <div class="grid-2">
+            <!-- Test Query Builder -->
+            <div>
+                <h3 style="color: #63b3ed; margin-bottom: 8px; font-size: 14px;">Test Query Builder</h3>
+                <div class="input-group">
+                    <label>Quick Tests:</label>
+                    <div class="btn-group">
+                        <button class="btn btn-secondary" onclick="sendTestQuery('alwinton snuggler pacific')">Test Price</button>
+                        <button class="btn btn-secondary" onclick="sendTestQuery('show me sofas under 2000')">Test Budget</button>
+                        <button class="btn btn-secondary" onclick="sendTestQuery('blue fabrics')">Test Fabric</button>
+                        <button class="btn btn-secondary" onclick="sendTestQuery('invalid query xyz123')">Test Error</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Custom Query:</label>
+                    <input type="text" id="customQuery" placeholder="Enter test query">
+                    <button class="btn btn-primary" onclick="sendCustomQuery()" style="margin-top: 8px;">Send Query</button>
+                </div>
+            </div>
+
+            <!-- API Tester -->
+            <div>
+                <h3 style="color: #63b3ed; margin-bottom: 8px; font-size: 14px;">API Tester</h3>
+                <div class="input-group">
+                    <label>Endpoint:</label>
+                    <select id="apiEndpoint">
+                        <option value="/chat">/chat (LLM)</option>
+                        <option value="/getPrice">/getPrice (Direct)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Payload (JSON):</label>
+                    <textarea id="apiPayload">{"messages": [{"role": "user", "content": "test"}], "session_id": "debug"}</textarea>
+                </div>
+                <button class="btn btn-primary" onclick="testAPI()">Send API Request</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Response Inspector -->
+    <div class="section" id="apiResponseSection" style="display: none;">
+        <div class="section-header">
+            <h2>🔍 API Response Inspector</h2>
+            <button class="btn btn-secondary copy-btn" onclick="copyResponse()">Copy</button>
+        </div>
+        <div class="code-block" id="apiResponse"></div>
+    </div>
+
+    <!-- Generate Debug Report -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📄 Generate Debug Report (For Claude)</h2>
+            <button class="btn btn-primary" onclick="generateDebugReport()">Generate Report</button>
+        </div>
+        <p style="color: #a0aec0; font-size: 11px; margin-bottom: 12px;">
+            Click "Generate Report" to create a comprehensive debug report you can copy and share with Claude Code for troubleshooting.
+        </p>
+        <div id="debugReport">
+            <button class="btn btn-primary copy-btn" onclick="copyDebugReport()">📋 Copy Report</button>
+            <div class="code-block" id="debugReportContent"></div>
+        </div>
+    </div>
+
+    <!-- LocalStorage Inspector -->
+    <div class="section">
+        <div class="section-header">
+            <h2>💾 LocalStorage Inspector</h2>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="exportData()">Export JSON</button>
+                <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+            </div>
+        </div>
+        <div class="code-block" id="localStorageView"></div>
+    </div>
+
+    <!-- Backend Logs -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📡 Backend Logs (Last 50)</h2>
+            <button class="btn btn-primary" onclick="fetchBackendLogs()">Fetch GCF Logs</button>
+        </div>
+        <div class="log-container" id="backendLogs">
+            <div class="log-entry">Click "Fetch GCF Logs" to retrieve backend logs</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <div class="section-header">
+            <h2>⚡ Quick Actions</h2>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-secondary" onclick="resetSession()">Reset Session</button>
+            <button class="btn btn-secondary" onclick="clearCache()">Clear Cache</button>
+            <button class="btn btn-secondary" onclick="reloadPage()">Reload Page</button>
+            <button class="btn btn-danger" onclick="simulateError()">Simulate Error</button>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://europe-west2-sofa-project-v2.cloudfunctions.net/sofa-price-calculator-v2';
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        function refreshDiagnostics() {
+            updateTimestamp();
+            checkSystemStatus();
+            loadRecentActivity();
+            updateMetrics();
+            showLocalStorage();
+        }
+
+        function checkSystemStatus() {
+            const statusBar = document.getElementById('statusBar');
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const cutoff1h = Date.now() - (60 * 60 * 1000);
+            const recent1h = events.filter(e => e.timestamp > cutoff1h);
+
+            // Check API health
+            const chatSuccess = recent1h.filter(e => e.name === 'llm_response').length > 0;
+            const priceSuccess = recent1h.filter(e => e.name === 'price_response').length > 0;
+            const hasErrors = recent1h.filter(e => e.name === 'p1_error' || e.name === 'api_error').length > 0;
+
+            let statusHTML = '';
+            statusHTML += chatSuccess ?
+                '<span class="status-item status-online">✅ Chat API Online</span>' :
+                '<span class="status-item status-offline">❌ Chat API Down</span>';
+
+            statusHTML += priceSuccess ?
+                '<span class="status-item status-online">✅ Price API Online</span>' :
+                '<span class="status-item status-offline">❌ Price API Down</span>';
+
+            if (hasErrors) {
+                statusHTML += '<span class="status-item status-warning">⚠️ Errors Detected</span>';
+            }
+
+            statusBar.innerHTML = statusHTML;
+        }
+
+        function updateMetrics() {
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const queries = events.filter(e => e.name === 'query');
+            const cutoff1h = Date.now() - (60 * 60 * 1000);
+            const errors1h = events.filter(e =>
+                (e.name === 'p1_error' || e.name === 'api_error') && e.timestamp > cutoff1h
+            );
+
+            document.getElementById('totalQueries').textContent = queries.length;
+            document.getElementById('errorCount').textContent = errors1h.length;
+
+            if (queries.length > 0) {
+                const lastQuery = queries[queries.length - 1];
+                const timeDiff = Date.now() - lastQuery.timestamp;
+                const minutes = Math.floor(timeDiff / 60000);
+                document.getElementById('lastQueryTime').textContent =
+                    minutes === 0 ? 'Just now' : `${minutes}m ago`;
+            }
+
+            // Show diagnostic alerts
+            const alertsDiv = document.getElementById('diagnosticAlerts');
+            if (errors1h.length > 5) {
+                alertsDiv.innerHTML = `
+                    <div class="alert alert-error">
+                        🚨 HIGH ERROR RATE: ${errors1h.length} errors in last hour
+                    </div>
+                `;
+            } else if (queries.length === 0) {
+                alertsDiv.innerHTML = `
+                    <div class="alert alert-info">
+                        ℹ️ No queries yet. Try testing from the main app at britishmade.ai
+                    </div>
+                `;
+            } else {
+                alertsDiv.innerHTML = '';
+            }
+        }
+
+        function loadRecentActivity() {
+            const container = document.getElementById('recentActivity');
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+
+            if (events.length === 0) {
+                container.innerHTML = '<div class="log-entry">No activity yet</div>';
+                return;
+            }
+
+            const recent = events.slice(-10).reverse();
+            container.innerHTML = recent.map(e => {
+                const time = new Date(e.timestamp).toLocaleTimeString();
+                const type = e.name.includes('error') ? 'log-error' :
+                            e.name.includes('response') ? 'log-success' : 'log-info';
+
+                let detail = '';
+                if (e.name === 'query' && e.data) {
+                    detail = `: "${e.data.query}"`;
+                } else if (e.name === 'p1_error' && e.data) {
+                    detail = `: ${e.data.error || 'Unknown error'}`;
+                }
+
+                return `
+                    <div class="log-entry ${type}">
+                        <span class="log-time">[${time}]</span>
+                        <span>${e.name}${detail}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function sendTestQuery(query) {
+            document.getElementById('customQuery').value = query;
+            sendCustomQuery();
+        }
+
+        async function sendCustomQuery() {
+            const query = document.getElementById('customQuery').value;
+            if (!query) return;
+
+            const container = document.getElementById('apiResponseSection');
+            const response = document.getElementById('apiResponse');
+
+            container.style.display = 'block';
+            response.textContent = 'Sending query...';
+
+            try {
+                const result = await fetch(`${BACKEND_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: query }],
+                        session_id: 'debug-' + Date.now()
+                    })
+                });
+
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testAPI() {
+            const endpoint = document.getElementById('apiEndpoint').value;
+            const payload = document.getElementById('apiPayload').value;
+
+            const container = document.getElementById('apiResponseSection');
+            const response = document.getElementById('apiResponse');
+
+            container.style.display = 'block';
+            response.textContent = 'Sending request...';
+
+            try {
+                const result = await fetch(`${BACKEND_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+
+                const data = await result.json();
+                response.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                response.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function generateDebugReport() {
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            const comprehensive = JSON.parse(localStorage.getItem('analyticsComprehensive') || '{}');
+            const cutoff24h = Date.now() - (24 * 60 * 60 * 1000);
+            const recent24h = events.filter(e => e.timestamp > cutoff24h);
+
+            const queries = recent24h.filter(e => e.name === 'query');
+            const errors = recent24h.filter(e => e.name === 'p1_error' || e.name === 'api_error');
+            const responses = recent24h.filter(e => e.name === 'llm_response' || e.name === 'price_response');
+
+            const report = `# Debug Report - ${new Date().toISOString()}
+
+## System Status
+- **Frontend:** britishmade.ai
+- **Backend:** ${BACKEND_URL}
+- **Session ID:** ${localStorage.getItem('sessionId') || 'N/A'}
+
+## Quick Stats (Last 24h)
+- Total Queries: ${queries.length}
+- Successful Responses: ${responses.length}
+- Errors: ${errors.length}
+- Success Rate: ${queries.length > 0 ? Math.round((responses.length / queries.length) * 100) : 0}%
+
+## API Health
+${checkAPIHealthForReport(recent24h)}
+
+## Recent Errors (Last 10)
+${errors.slice(-10).reverse().map(e =>
+    `- [${new Date(e.timestamp).toLocaleTimeString()}] ${e.data?.error || 'Unknown'} (Query: "${e.data?.query || 'N/A'}")`
+).join('\n') || 'No errors'}
+
+## Recent Queries (Last 10)
+${queries.slice(-10).reverse().map(e =>
+    `- [${new Date(e.timestamp).toLocaleTimeString()}] "${e.data?.query || 'N/A'}"`
+).join('\n') || 'No queries'}
+
+## P1 Errors Summary
+${comprehensive.p1Errors ? `
+- Total Count: ${comprehensive.p1Errors.totalCount || 0}
+- Last Occurred: ${comprehensive.p1Errors.lastOccurred ? new Date(comprehensive.p1Errors.lastOccurred).toLocaleString() : 'Never'}
+` : 'No P1 error data'}
+
+## Full Event Log (JSON)
+\`\`\`json
+${JSON.stringify(events.slice(-20), null, 2)}
+\`\`\`
+
+---
+**Generated by:** Developer Debug Dashboard
+**For:** Debugging with Claude Code
+`;
+
+            document.getElementById('debugReport').style.display = 'block';
+            document.getElementById('debugReportContent').textContent = report;
+        }
+
+        function checkAPIHealthForReport(events24h) {
+            const chatSuccess = events24h.filter(e => e.name === 'llm_response').length;
+            const chatTotal = events24h.filter(e => e.name === 'llm_response' || e.name === 'llm_no_price').length;
+            const priceSuccess = events24h.filter(e => e.name === 'price_response').length;
+            const priceTotal = events24h.filter(e => e.name === 'price_response' || e.name === 'direct_price_error').length;
+
+            return `
+- **Chat API (Grok):** ${chatSuccess}/${chatTotal} successful (${chatTotal > 0 ? Math.round((chatSuccess/chatTotal) * 100) : 0}%)
+- **Price API (Direct):** ${priceSuccess}/${priceTotal} successful (${priceTotal > 0 ? Math.round((priceSuccess/priceTotal) * 100) : 0}%)
+`;
+        }
+
+        function copyDebugReport() {
+            const report = document.getElementById('debugReportContent').textContent;
+            navigator.clipboard.writeText(report);
+            alert('Debug report copied! Paste it in Claude chat.');
+        }
+
+        function copyResponse() {
+            const response = document.getElementById('apiResponse').textContent;
+            navigator.clipboard.writeText(response);
+            alert('Response copied to clipboard!');
+        }
+
+        function showLocalStorage() {
+            const view = document.getElementById('localStorageView');
+            const data = {
+                analyticsEvents: JSON.parse(localStorage.getItem('analyticsEvents') || '[]').length + ' events',
+                analyticsComprehensive: localStorage.getItem('analyticsComprehensive') ? 'Present' : 'None',
+                sessionId: localStorage.getItem('sessionId') || 'None',
+                size: new Blob([JSON.stringify(localStorage)]).size + ' bytes'
+            };
+            view.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function exportData() {
+            const data = {
+                analyticsEvents: JSON.parse(localStorage.getItem('analyticsEvents') || '[]'),
+                analyticsComprehensive: JSON.parse(localStorage.getItem('analyticsComprehensive') || '{}'),
+                sessionId: localStorage.getItem('sessionId'),
+                exportTime: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `debug-export-${Date.now()}.json`;
+            a.click();
+        }
+
+        function clearAllData() {
+            if (confirm('Clear all analytics data? This cannot be undone.')) {
+                localStorage.removeItem('analyticsEvents');
+                localStorage.removeItem('analyticsComprehensive');
+                localStorage.removeItem('analyticsAggregated');
+                alert('Data cleared!');
+                refreshDiagnostics();
+            }
+        }
+
+        function resetSession() {
+            if (confirm('Reset session ID?')) {
+                localStorage.removeItem('sessionId');
+                alert('Session reset! Reload the main app.');
+            }
+        }
+
+        function clearCache() {
+            alert('Cache cleared! (This is a placeholder - implement if needed)');
+        }
+
+        function reloadPage() {
+            location.reload();
+        }
+
+        function simulateError() {
+            const event = {
+                name: 'p1_error',
+                timestamp: Date.now(),
+                data: {
+                    error: 'Simulated error for testing',
+                    query: 'test query',
+                    sessionId: 'debug'
+                }
+            };
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            events.push(event);
+            localStorage.setItem('analyticsEvents', JSON.stringify(events));
+            alert('Error simulated! Check Recent Activity.');
+            refreshDiagnostics();
+        }
+
+        function fetchBackendLogs() {
+            const container = document.getElementById('backendLogs');
+            container.innerHTML = '<div class="log-entry">Fetching logs requires gcloud CLI access. Run:<br><br><code>gcloud functions logs read sofa-price-calculator-v2 --region=europe-west2 --limit=50</code></div>';
+        }
+
+        function showAllActivity() {
+            const events = JSON.parse(localStorage.getItem('analyticsEvents') || '[]');
+            alert(`Total events: ${events.length}\n\nCheck console for full log.`);
+            console.log('All analytics events:', events);
+        }
+
+        // Auto-refresh every 10 seconds
+        setInterval(refreshDiagnostics, 10000);
+
+        // Initial load
+        refreshDiagnostics();
+    </script>
+</body>
+</html>
